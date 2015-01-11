@@ -1,0 +1,25 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+
+
+namespace UnityRose.Utils
+{
+	public class Utils
+	{
+		public static void addVertexToLookup(Dictionary<String,List<int>> lookup, String vertex, int index)
+		{
+			if(!lookup.ContainsKey(vertex))
+			{
+				List<int> ids = new List<int>();
+				ids.Add (index);
+				lookup.Add (vertex.ToString(), ids);
+			}
+			else
+			{
+				lookup[vertex].Add(index);
+			}
+		}
+	}
+	
+}

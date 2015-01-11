@@ -1,0 +1,193 @@
+﻿using System.IO;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityRose.File;
+
+namespace UnityRose.Formats
+{
+	/// <summary>
+	/// ZMD class.
+	/// </summary>
+	public class ZMD
+	{
+		
+		
+		public BoneNode RootBone {get; set;}
+		public BoneNode RootDummy {get; set;}
+		
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ZMO"/> class.
+		/// </summary>
+		public ZMD()
+		{
+			
+		}
+		
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ZMD"/> class.
+		/// </summary>
+		/// <param name="filePath">The file path.</param>
+		public ZMD(string filePath)
+		{
+			Load(filePath);
+		}
+		
+		public class BoneNode
+		{
+			public string Name {get; set;}
+			public int BoneID {get; set;}
+			public Vector3 Position {get; set;}
+			public Quaternion Rotation {get; set;}
+			public int ParentID {get; set;}
+			public BoneNode parent {get; set;}
+			public List<BoneNode> children {get; set;}
+			
+			
+			public BoneNode()
+			{
+				Rotation = Quaternion.identity;
+			} 
+			
+		}
+		
+		void buildSkeleton(BoneNode parent, Dictionary<int,List<BoneNode>> boneLookup)
+		{
+			if(boneLookup.ContainsKey(parent.BoneID))
+			{
+				parent.children = boneLookup[parent.BoneID];
+				foreach(BoneNode child in parent.children)
+				{
+					child.parent = parent;
+					buildSkeleton (child, boneLookup);
+				}
+			}
+		}
+		
+		/// <summary>
+		/// Loads the specified file.
+		/// </summary>
+		/// <param name="filePath">The file path.</param>
+		public void Load(string filePath)
+		{
+			FileHandler fh = new FileHandler(filePath, FileHandler.FileOpenMode.Reading, null);
+			// header
+			int version = 3;
+			string magic_number = fh.Read<ZString>();
+			if(magic_number == "ZMD0002")
+				version = 2;
+			else if(magic_number == "ZMD0003")
+				version = 3;
+			
+			fh.Seek(7, SeekOrigin.Begin);
+			int nBones = fh.Read<int>();
+			Dictionary<int, List<BoneNode>> boneLookup = new Dictionary<int, List<BoneNode>>();
+			RootBone = new BoneNode();
+			
+			for(int i=0; i<nBones; i++)
+			{
+				BoneNode node = new BoneNode();
+				node = new BoneNode();
+				node.BoneID = i;
+				node.ParentID = fh.Read<int>();
+				node.Name = fh.Read<ZString>();
+				node.Position = fh.Read<Vector3>()/100.0f;
+				node.Rotation = fh.Read<Quaternion>();
+				if(node.ParentID == i)
+				{
+					RootBone = node;
+					continue; //do not add this bone to lookup
+				}
+				
+				if(boneLookup.ContainsKey(node.ParentID))
+					boneLookup[node.ParentID].Add (node);
+				else
+				{
+					List<BoneNode> boneList = new List<BoneNode>();
+					boneList.Add (node);
+					boneLookup.Add (node.ParentID, boneList);
+				}
+			}
+			
+			
+			// Starting with root bone, find all bones who's parentID == root bone.BoneID
+			// Add these bones to children of root bone
+			// Foreach child of root bone, find all bones who's parentID == child.boneID
+			// Add these bones to children of each child, and so on
+			
+			
+			buildSkeleton(RootBone, boneLookup);
+			
+			
+			int nDummies  = fh.Read<int>();
+			Dictionary<int, List<BoneNode>> dummyLookup = new Dictionary<int, List<BoneNode>>();
+			RootDummy = new BoneNode();
+			
+			for(int i=0; i<nDummies; i++)
+			{
+				BoneNode node = new BoneNode();
+				node = new BoneNode();
+				node.BoneID = i;
+				node.ParentID = fh.Read<int>();
+				node.Name = fh.Read<ZString>();
+				node.Position = fh.Read<Vector3>()/100.0f;
+				
+				if(version == 3)
+					node.Rotation = fh.Read<Quaternion>();
+					
+				if(node.ParentID == i)
+				{
+					RootBone = node;
+					continue; //do not add this bone to lookup
+				}
+				
+				if(dummyLookup.ContainsKey(node.ParentID))
+					dummyLookup[node.ParentID].Add (node);
+				else
+				{
+					List<BoneNode> boneList = new List<BoneNode>();
+					boneList.Add (node);
+					dummyLookup.Add (node.ParentID, boneList);
+				}
+			}
+			
+			// add extra root bone dummy bone
+			BoneNode extraDummy = new BoneNode();
+			extraDummy.Name = "_p1";
+			extraDummy.ParentID = 0;
+			extraDummy.Position = new Vector3();
+			extraDummy.Rotation = Quaternion.identity;
+			extraDummy.BoneID = nDummies;
+			
+			dummyLookup[extraDummy.ParentID].Add(extraDummy);
+			buildSkeleton(RootDummy, dummyLookup);
+			
+			/*
+			List<BoneNode> dummyNodes = new List<BoneNode>(nDummies+1);
+			
+			for(int i=0; i<nDummies; i++)
+			{
+				dummyNodes[i] = new BoneNode();
+				dummyNodes[i].ParentID = fh.Read<int>();
+				dummyNodes[i].Name = fh.Read<BString>();
+				dummyNodes[i].Position = fh.Read<Vector3>()/100.0f;
+				if(version == 3)
+					dummyNodes[i].Rotation = fh.Read<Quaternion>();
+				if(dummyNodes[i].ParentID == i)
+					RootDummy = dummyNodes[i];
+			}
+			
+			// add extra root bone dummy bone
+			BoneNode extraDummy = new BoneNode();
+			extraDummy.Name = "_p1";
+			extraDummy.ParentID = 0;
+			extraDummy.Position = new Vector3();
+			extraDummy.Rotation = Quaternion.identity;
+			
+			dummyNodes[nDummies] = extraDummy;
+
+			buildSkeleton(RootDummy, dummyNodes);
+			*/
+			fh.Close();
+		}
+	}
+}
