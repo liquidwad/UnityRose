@@ -190,7 +190,7 @@ public class RosePlayer
 		LoadPart(foot_zsc.Models[foot], foot_zsc.Textures[foot].Path, skeleton, player.transform);
 		LoadPart(face_zsc.Models[face], face_zsc.Textures[face].Path, skeleton, skeleton.findBone("b1_neck").boneObject.transform);
 		LoadPart(hair_zsc.Models[hair], hair_zsc.Textures[hair].Path, skeleton, skeleton.findBone("b1_neck").boneObject.transform);
-		//LoadPart(cap_zsc.Models[cap], cap_zsc.Textures[cap].Path, skeleton, skeleton.findDummy("p_06").boneObject.transform);
+		LoadPart(cap_zsc.Models[cap], cap_zsc.Textures[cap].Path, skeleton, skeleton.findDummy("p_06").boneObject.transform);
 		LoadPart(back_zsc.Models[back], back_zsc.Textures[back].Path, skeleton, skeleton.findDummy("p_03").boneObject.transform, false);
 		
 		player.transform.Rotate(-90.0f, 0.0f, 180.0f);

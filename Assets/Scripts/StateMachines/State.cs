@@ -19,11 +19,12 @@ public class StateConnection
 {
 	public State nextState;
 	private string paramName;
+	
 	public bool condition(StateParams stateParams)
 	{
 		Type type = typeof(StateParams);
 		bool value = (bool)type.GetField(paramName).GetValue(stateParams);
-		return value == true;	
+		return value;	
 	} 
 	
 	public StateConnection(State nextState, string parameter)
@@ -33,6 +34,7 @@ public class StateConnection
 		
 	}
 }
+
 
 public class State
 {
@@ -86,56 +88,96 @@ public class State
 	
 }
 
-
 public class TransitionState : State
 {
-	private string transitionClip;
-	private bool transition;
-	
-	public override void Entry (bool crossFade = false)
+	private State nextState;
+	public TransitionState(string name, State nextState, GameObject gameObject)
+		:base(name, gameObject, WrapMode.Once)
 	{
-		transition = true;
-		animation.wrapMode = WrapMode.Once;
-		if( crossFade )
-			animation.CrossFade( transitionClip );
-		else
-			animation.Play (transitionClip);
+		this.nextState = nextState;
 	}
 	
 	public override State Evaluate(StateParams stateParams)
 	{
-		if(animation.IsPlaying(transitionClip))
+		if(animation.IsPlaying(clipName))
 			return this;
-		else if(transition)
-		{
-			animation.Stop (transitionClip);
-			transition = false;
-			animation.wrapMode = wrapMode;
-			animation.Play (clipName);
-			return this;
-		}
 		else
-			return base.Evaluate(stateParams);	
-	}
-	
-	public override void Exit( bool crossFade = false)
-	{
-		if(!crossFade)
-		{
-			if( animation.IsPlaying( transitionClip ) )
-				animation.Stop ( transitionClip );
-			else
-				animation.Stop ( clipName );
-		}
-	}
-	
-	public TransitionState(string name, string transitionClip, GameObject gameObject, WrapMode wrapMode = WrapMode.Loop)
-		: base(name, gameObject, wrapMode)
-	{
-		this.transitionClip = transitionClip;
+			return nextState;
 	}
 }
 
+public class MultiAnimationState : State
+{
+	private List<string> clips;
+	int clipIndex;
+	bool randomize;
+	public MultiAnimationState( List<string> clips, GameObject gameObject, bool randomize = true)
+		:base("", gameObject, WrapMode.Once)
+	{
+		this.clips = clips;
+		this.randomize = randomize;
+		
+		if( randomize )
+			clipIndex = UnityEngine.Random.Range(0, clips.Count);
+		else
+			clipIndex = 0;
+			
+		clipName = clips[clipIndex];
+	}
+	
+	public override State Evaluate(StateParams stateParams)
+	{
+		State result = base.Evaluate(stateParams);
+		if( result != this )
+			return result;
+			
+		if( !animation.IsPlaying(clipName) )
+		{
+			if( randomize )
+				clipIndex = UnityEngine.Random.Range(0, clips.Count);
+			else
+				clipIndex = (clipIndex + 1)%clips.Count;
+				
+			clipName = clips[clipIndex]; 
+			animation.Play(clipName);
+		}
+		
+		return this; 
+	}
+}
+
+public class AttackMachine: State
+{
+	private Dictionary<string, State> states;
+	private State currentState;
+	
+	public AttackMachine(string name, GameObject gameObject)
+		:base( name, gameObject )	
+	{
+	}
+	
+	public override void Entry( bool crossFade = false )
+	{
+		List<string> defaultAttacks = new List<string>(3);
+		defaultAttacks[0] = "attack0";
+		defaultAttacks[1] = "attack1";
+		defaultAttacks[2] = "attack2";
+		states.Add ("attack1", new MultiAnimationState(defaultAttacks, gameObject));
+		states.Add ("attack2", new State("standing", gameObject));
+		states.Add ("attack3", new State("standing", gameObject));
+		states.Add ("skill1", new State("standing", gameObject));
+		states.Add ("skill2", new State("standing", gameObject));
+		states.Add ("skill3", new State("standing", gameObject));
+		states.Add ("skill4", new State("standing", gameObject));
+		states.Add ("skill5", new State("standing", gameObject));
+		states.Add ("skill6", new State("standing", gameObject));
+		states.Add ("skill7", new State("standing", gameObject));
+		states.Add ("skill8", new State("standing", gameObject));
+		
+		
+	}
+	
+}
 public class PlayerState : State
 {
 	private Dictionary<string, State> states;
@@ -150,13 +192,33 @@ public class PlayerState : State
 	{
 		// Generate list of states
 		states = new Dictionary<string, State>();
-		states.Add ("idle", new State("standing", gameObject));
-		states.Add ("standing", new TransitionState("standing", "stand", gameObject));
+		states.Add ("standing", new State("standing", gameObject));
+		states.Add ("stand", new TransitionState("stand", states["standing"], gameObject));
 		states.Add ("walk", new State("walk", gameObject));
-		states.Add ("sitting", new TransitionState("sitting", "sit", gameObject));
+		states.Add ("standWalk", new TransitionState("stand", states["walk"], gameObject));
+		states.Add ("sitting", new State("sitting", gameObject));
+		states.Add ("sit", new TransitionState("sit", states["sitting"], gameObject));
 		states.Add ("AttackMachine", new State("attack", gameObject));
+		states.Add ("standAttack", new TransitionState("stand", states["AttackMachine"], gameObject));
 		
-		// Add state connections
+		
+		states["standing"].connections.Add (new StateConnection(states["walk"], "walking"));
+		states["standing"].connections.Add (new StateConnection(states["sit"], "sitting"));
+		states["standing"].connections.Add (new StateConnection(states["AttackMachine"], "targetLocked"));
+		
+		states["sitting"].connections.Add ( new StateConnection(states["standWalk"], "walking"));
+		states["sitting"].connections.Add ( new StateConnection(states["stand"], "standing"));
+		states["sitting"].connections.Add ( new StateConnection(states["standAttack"], "targetLocked"));
+		
+		states["walk"].connections.Add ( new StateConnection(states["standing"], "standing"));
+		states["walk"].connections.Add ( new StateConnection(states["AttackMachine"], "targetLocked"));
+		
+		
+		states["AttackMachine"].connections.Add ( new StateConnection(states["standing"], "standing"));
+		states["AttackMachine"].connections.Add ( new StateConnection(states["walk"], "walking"));
+		
+		/*
+		// Add state connection
 		states["idle"].connections.Add (new StateConnection(states["walk"], "walking"));
 		states["idle"].connections.Add (new StateConnection(states["sitting"], "sitting"));
 		states["idle"].connections.Add (new StateConnection(states["AttackMachine"], "targetLocked"));
@@ -168,14 +230,18 @@ public class PlayerState : State
 		states["walk"].connections.Add (new StateConnection(states["idle"], "standing"));
 		states["walk"].connections.Add (new StateConnection(states["AttackMachine"], "targetLocked"));
 		
+		states["standWalk"].connections.Add (new StateConnection(states["idle"], "standing"));
+		states["standWalk"].connections.Add (new StateConnection(states["AttackMachine"], "targetLocked"));
+		
 		states["sitting"].connections.Add (new StateConnection(states["standing"], "standing"));
-		states["sitting"].connections.Add (new StateConnection(states["walk"], "walking"));
+		states["sitting"].connections.Add (new StateConnection(states["standWalk"], "walking"));
 		
 		states["AttackMachine"].connections.Add (new StateConnection(states["walk"], "walking"));
 		states["AttackMachine"].connections.Add (new StateConnection(states["idle"], "standing"));
 		states["AttackMachine"].connections.Add (new StateConnection(states["sitting"], "sitting"));
+		*/
 		
-		currentState = states["idle"];
+		currentState = states["standing"];
 		currentState.Entry();
 	}
 	
