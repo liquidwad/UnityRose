@@ -217,8 +217,7 @@ public class RosePlayer
 		*/
 		
 		//load all objects
-		
-<<<<<<< HEAD
+
 		LoadObject (body_zsc, chest, skeleton, player.transform);
 		LoadObject (arms_zsc, arms, skeleton, player.transform);
 		LoadObject (foot_zsc, foot, skeleton, player.transform);
@@ -226,18 +225,7 @@ public class RosePlayer
 		LoadObject(hair_zsc, hair, skeleton, skeleton.findBone("b1_neck").boneObject.transform);
 		LoadObject(cap_zsc, cap, skeleton, skeleton.findDummy("p_06").boneObject.transform);
 		LoadObject(back_zsc, back , skeleton, skeleton.findDummy("p_03").boneObject.transform, true);	
-	
-=======
-		LoadPart(body_zsc.Models[chest], body_zsc.Textures[chest].Path, skeleton, player.transform);
-		LoadPart(body_zsc.Models[legs], body_zsc.Textures[legs].Path, skeleton, player.transform);
-		LoadPart(arms_zsc.Models[arms], arms_zsc.Textures[arms].Path, skeleton, player.transform);
-		LoadPart(foot_zsc.Models[foot], foot_zsc.Textures[foot].Path, skeleton, player.transform);
-		LoadPart(face_zsc.Models[face], face_zsc.Textures[face].Path, skeleton, skeleton.findBone("b1_neck").boneObject.transform);
-		LoadPart(hair_zsc.Models[hair], hair_zsc.Textures[hair].Path, skeleton, skeleton.findBone("b1_neck").boneObject.transform);
-		LoadPart(cap_zsc.Models[cap], cap_zsc.Textures[cap].Path, skeleton, skeleton.findDummy("p_06").boneObject.transform);
-		LoadPart(back_zsc.Models[back], back_zsc.Textures[back].Path, skeleton, skeleton.findDummy("p_03").boneObject.transform, false);
-		
->>>>>>> origin/master
+
 		player.transform.Rotate(-90.0f, 0.0f, 180.0f);
 		
 		/*
