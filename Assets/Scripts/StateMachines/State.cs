@@ -10,8 +10,11 @@ public struct StateParams
 	public bool standing;
 	public bool walking;
 	public bool targetLocked;
-	public bool attacking;
 	public bool inRangeOfTarget;
+	public bool chase;
+	public bool skill;
+	public bool defaultAttack;
+	public string nextSkill;
 }
 
 
@@ -146,6 +149,62 @@ public class MultiAnimationState : State
 	}
 }
 
+public class SkillState: State
+{
+	Queue<string> skillQueue;
+	public SkillState(string name, GameObject gameObject)
+	:base(name, gameObject, WrapMode.Once)
+	{
+	}
+	
+	public override void Entry( bool crossFade = true )
+	{
+			
+	}
+	
+	public override State Evaluate(StateParams stateParams)
+	{
+		// Once a skill has been commanded, it won't stop till the animation ends
+		if( animation.IsPlaying(clipName) )
+		{
+			// if there is a skill pending
+			if(stateParams.nextSkill != "")
+			{
+				// enqueue and consume it
+				skillQueue.Enqueue(stateParams.nextSkill);
+				stateParams.nextSkill = "";
+			}
+			
+		}
+		else
+		{
+			// First, make sure we are still in this state
+			State result = base.Evaluate( stateParams );
+			
+			if(result!=this)
+				return result;
+				
+			// if we are in this state, check if there are still skills in the queue
+			if( skillQueue.Count > 0 )
+			{
+				// Play the next skill in the queue (without crossfade)
+				clipName = skillQueue.Dequeue();
+				base.Entry(false);
+			}
+
+		}
+		
+		return this;
+			
+	}
+	
+	public override void Exit(bool crossFade = false )
+	{
+		skillQueue.Clear();
+		animation.Stop (clipName);
+	}
+}
+
 public class AttackMachine: State
 {
 	private Dictionary<string, State> states;
@@ -154,27 +213,48 @@ public class AttackMachine: State
 	public AttackMachine(string name, GameObject gameObject)
 		:base( name, gameObject )	
 	{
+		states = new Dictionary<string, State>();
+		List<string> defaultAttacks = new List<string>(3);
+		defaultAttacks.Add ("attack1");
+		defaultAttacks.Add ("attack2");
+		defaultAttacks.Add("attack3");
+		states.Add ("defaultAttack", new MultiAnimationState(defaultAttacks, gameObject));
+		states.Add ("skill", new State("skill", gameObject));
+		states.Add ("chase", new State("walk", gameObject));
+	
+		// connect every state to every other state
+		states["defaultAttack"].connections.Add (new StateConnection(states["skill"], "skill"));
+		states["defaultAttack"].connections.Add (new StateConnection(states["chase"], "chase"));
+		states["skill"].connections.Add (new StateConnection( states["defaultAttack"], "defaultAttack"));
+		states["skill"].connections.Add (new StateConnection( states["chase"], "chase"));
+		states["chase"].connections.Add (new StateConnection( states["skill"], "skill"));
+		states["chase"].connections.Add (new StateConnection( states["defaultAttack"], "defaultAttack"));
+		
 	}
 	
 	public override void Entry( bool crossFade = false )
 	{
-		List<string> defaultAttacks = new List<string>(3);
-		defaultAttacks[0] = "attack0";
-		defaultAttacks[1] = "attack1";
-		defaultAttacks[2] = "attack2";
-		states.Add ("attack1", new MultiAnimationState(defaultAttacks, gameObject));
-		states.Add ("attack2", new State("standing", gameObject));
-		states.Add ("attack3", new State("standing", gameObject));
-		states.Add ("skill1", new State("standing", gameObject));
-		states.Add ("skill2", new State("standing", gameObject));
-		states.Add ("skill3", new State("standing", gameObject));
-		states.Add ("skill4", new State("standing", gameObject));
-		states.Add ("skill5", new State("standing", gameObject));
-		states.Add ("skill6", new State("standing", gameObject));
-		states.Add ("skill7", new State("standing", gameObject));
-		states.Add ("skill8", new State("standing", gameObject));
+		currentState = states["chase"];
+		currentState.Entry();
+	}
+	
+	public override State Evaluate( StateParams stateParams )
+	{
+		State result = currentState.Evaluate(stateParams);
 		
+		if(result != currentState)
+		{
+			currentState.Exit(true);
+			currentState = result;
+			currentState.Entry(true);
+		}	
 		
+		return this;
+	}
+	
+	public override void Exit(bool crossFade = false)
+	{
+		currentState.Exit( crossFade );
 	}
 	
 }
@@ -186,10 +266,6 @@ public class PlayerState : State
 	public PlayerState(string name, GameObject gameObject)
 		:base(name, gameObject)
 	{
-	}
-	
-	public override void Entry(bool crossFade = false)
-	{
 		// Generate list of states
 		states = new Dictionary<string, State>();
 		states.Add ("standing", new State("standing", gameObject));
@@ -198,7 +274,7 @@ public class PlayerState : State
 		states.Add ("standWalk", new TransitionState("stand", states["walk"], gameObject));
 		states.Add ("sitting", new State("sitting", gameObject));
 		states.Add ("sit", new TransitionState("sit", states["sitting"], gameObject));
-		states.Add ("AttackMachine", new State("attack", gameObject));
+		states.Add ("AttackMachine", new AttackMachine("attack", gameObject));
 		states.Add ("standAttack", new TransitionState("stand", states["AttackMachine"], gameObject));
 		
 		
@@ -217,30 +293,10 @@ public class PlayerState : State
 		states["AttackMachine"].connections.Add ( new StateConnection(states["standing"], "standing"));
 		states["AttackMachine"].connections.Add ( new StateConnection(states["walk"], "walking"));
 		
-		/*
-		// Add state connection
-		states["idle"].connections.Add (new StateConnection(states["walk"], "walking"));
-		states["idle"].connections.Add (new StateConnection(states["sitting"], "sitting"));
-		states["idle"].connections.Add (new StateConnection(states["AttackMachine"], "targetLocked"));
-		
-		states["standing"].connections.Add (new StateConnection(states["walk"], "walking"));
-		states["standing"].connections.Add (new StateConnection(states["sitting"], "sitting"));
-		states["standing"].connections.Add (new StateConnection(states["AttackMachine"], "targetLocked"));
-		
-		states["walk"].connections.Add (new StateConnection(states["idle"], "standing"));
-		states["walk"].connections.Add (new StateConnection(states["AttackMachine"], "targetLocked"));
-		
-		states["standWalk"].connections.Add (new StateConnection(states["idle"], "standing"));
-		states["standWalk"].connections.Add (new StateConnection(states["AttackMachine"], "targetLocked"));
-		
-		states["sitting"].connections.Add (new StateConnection(states["standing"], "standing"));
-		states["sitting"].connections.Add (new StateConnection(states["standWalk"], "walking"));
-		
-		states["AttackMachine"].connections.Add (new StateConnection(states["walk"], "walking"));
-		states["AttackMachine"].connections.Add (new StateConnection(states["idle"], "standing"));
-		states["AttackMachine"].connections.Add (new StateConnection(states["sitting"], "sitting"));
-		*/
-		
+	}
+	
+	public override void Entry(bool crossFade = false)
+	{	
 		currentState = states["standing"];
 		currentState.Entry();
 	}
