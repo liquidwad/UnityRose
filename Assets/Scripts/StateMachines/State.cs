@@ -10,7 +10,6 @@ public struct StateParams
 	public bool standing;
 	public bool walking;
 	public bool targetLocked;
-	public bool inRangeOfTarget;
 	public bool chase;
 	public bool skill;
 	public bool defaultAttack;
@@ -59,13 +58,13 @@ public class State
 		animation = gameObject.GetComponent<Animation>(); // TODO: add exception if no animation	
 	}
 	
-	public virtual void Exit(bool crossFade = false)
+	public virtual void Exit(bool crossFade = true)
 	{
 		if( !crossFade )
 			animation.Stop(clipName);
 	}
 	
-	public virtual void Entry(bool crossFade = false)
+	public virtual void Entry(bool crossFade = true)
 	{
 		animation = gameObject.GetComponent<Animation>();
 		if(animation)
@@ -78,7 +77,7 @@ public class State
 		}
 	}
 	
-	public virtual State Evaluate(StateParams stateParams) { 
+	public virtual State Evaluate(ref StateParams stateParams) { 
 		foreach(StateConnection connection in connections)
 		{
 			if(connection.condition(stateParams))
@@ -100,7 +99,7 @@ public class TransitionState : State
 		this.nextState = nextState;
 	}
 	
-	public override State Evaluate(StateParams stateParams)
+	public override State Evaluate(ref StateParams stateParams)
 	{
 		if(animation.IsPlaying(clipName))
 			return this;
@@ -128,9 +127,9 @@ public class MultiAnimationState : State
 		clipName = clips[clipIndex];
 	}
 	
-	public override State Evaluate(StateParams stateParams)
+	public override State Evaluate(ref StateParams stateParams)
 	{
-		State result = base.Evaluate(stateParams);
+		State result = base.Evaluate(ref stateParams);
 		if( result != this )
 			return result;
 			
@@ -151,10 +150,14 @@ public class MultiAnimationState : State
 
 public class SkillState: State
 {
-	Queue<string> skillQueue;
-	public SkillState(string name, GameObject gameObject)
+	private Queue<string> skillQueue;
+	private State nextState;
+	
+	public SkillState(string name, State nextState, GameObject gameObject)
 	:base(name, gameObject, WrapMode.Once)
 	{
+		skillQueue = new Queue<string>();
+		this.nextState = nextState;
 	}
 	
 	public override void Entry( bool crossFade = true )
@@ -162,24 +165,21 @@ public class SkillState: State
 			
 	}
 	
-	public override State Evaluate(StateParams stateParams)
+	public override State Evaluate(ref StateParams stateParams)
 	{
-		// Once a skill has been commanded, it won't stop till the animation ends
-		if( animation.IsPlaying(clipName) )
+		// if there is a skill pending
+		if(stateParams.nextSkill != "")
 		{
-			// if there is a skill pending
-			if(stateParams.nextSkill != "")
-			{
-				// enqueue and consume it
-				skillQueue.Enqueue(stateParams.nextSkill);
-				stateParams.nextSkill = "";
-			}
-			
+			// enqueue and consume it
+			skillQueue.Enqueue(stateParams.nextSkill);
+			stateParams.nextSkill = "";
 		}
-		else
+		
+		// Once a skill has been commanded, it won't stop till the animation ends
+		if( !animation.IsPlaying(clipName) )
 		{
 			// First, make sure we are still in this state
-			State result = base.Evaluate( stateParams );
+			State result = base.Evaluate(ref stateParams );
 			
 			if(result!=this)
 				return result;
@@ -190,6 +190,10 @@ public class SkillState: State
 				// Play the next skill in the queue (without crossfade)
 				clipName = skillQueue.Dequeue();
 				base.Entry(false);
+			}
+			else
+			{
+				return nextState;
 			}
 
 		}
@@ -219,8 +223,8 @@ public class AttackMachine: State
 		defaultAttacks.Add ("attack2");
 		defaultAttacks.Add("attack3");
 		states.Add ("defaultAttack", new MultiAnimationState(defaultAttacks, gameObject));
-		states.Add ("skill", new State("skill", gameObject));
-		states.Add ("chase", new State("walk", gameObject));
+		states.Add ("skill", new SkillState("skill", states["defaultAttack"], gameObject));
+		states.Add ("chase", new State("run", gameObject));
 	
 		// connect every state to every other state
 		states["defaultAttack"].connections.Add (new StateConnection(states["skill"], "skill"));
@@ -234,13 +238,18 @@ public class AttackMachine: State
 	
 	public override void Entry( bool crossFade = false )
 	{
-		currentState = states["chase"];
+		currentState = states["defaultAttack"];
 		currentState.Entry();
 	}
 	
-	public override State Evaluate( StateParams stateParams )
+	public override State Evaluate( ref StateParams stateParams )
 	{
-		State result = currentState.Evaluate(stateParams);
+		State result = base.Evaluate( ref stateParams );
+		if( result != this )
+			return result;
+		
+		
+		result = currentState.Evaluate( ref stateParams);
 		
 		if(result != currentState)
 		{
@@ -306,9 +315,9 @@ public class PlayerState : State
 		currentState.Exit( crossFade );
 	}
 	
-	public override State Evaluate(StateParams stateParams)
+	public override State Evaluate(ref StateParams stateParams)
 	{	
-		State result = currentState.Evaluate(stateParams);
+		State result = currentState.Evaluate(ref stateParams);
 		
 		if(result != currentState)
 		{

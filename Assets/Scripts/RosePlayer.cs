@@ -135,6 +135,7 @@ public class RosePlayer
 		const string stand = "Assets/3DData/Motion/Avatar/EMPTY_STAND_M1.zmo";
 		const string standing = "Assets/3DData/Motion/Avatar/EMPTY_STOP1_M1.zmo";
 		const string walk = "Assets/3DData/Motion/Avatar/EMPTY_WALK_M1.zmo";
+		const string run = "Assets/3DData/Motion/Avatar/TWOHAND_RUN_M1.zmo";
 		const string attack1 = "Assets/3DData/Motion/Avatar/KARTAR_ATTACK01_M1.zmo";
 		const string attack2 = "Assets/3DData/Motion/Avatar/KARTAR_ATTACK02_M1.zmo";
 		const string attack3 = "Assets/3DData/Motion/Avatar/KARTAR_ATTACK03_M1.zmo";
@@ -155,6 +156,7 @@ public class RosePlayer
 		animation.AddClip(new ZMO(stand).buildAnimationClip(skeleton), "stand");
 		animation.AddClip(new ZMO(standing).buildAnimationClip(skeleton), "standing");
 		animation.AddClip(new ZMO(walk).buildAnimationClip(skeleton), "walk");
+		animation.AddClip(new ZMO(run).buildAnimationClip(skeleton), "run");
 		animation.AddClip(new ZMO(attack1).buildAnimationClip(skeleton), "attack1");	
 		animation.AddClip(new ZMO(attack2).buildAnimationClip(skeleton), "attack2");	
 		animation.AddClip(new ZMO(attack3).buildAnimationClip(skeleton), "attack3");
