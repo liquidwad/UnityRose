@@ -4,6 +4,32 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
+
+//this is just for testing need to create a class with all needed enums for the whole game
+//in original code all the enums are defined in a single file and can be used from the whole solution
+public enum States
+{
+    STANDING = 0,
+    TIRED,
+    WALK,
+    RUN,
+    SIT,
+    SITTING,
+    STANDUP,
+    WARNING,
+    ATTACK1,
+    ATTACK2,
+    ATTACK3,
+    HIT,
+    FALL,
+    DIE,
+    RAISE,
+    JUMP1,
+    JUMP2,
+    PICKUP,
+};
+
+/*
 public struct StateParams
 {
 	public bool sitting;
@@ -15,22 +41,31 @@ public struct StateParams
 	public bool defaultAttack;
 	public string nextSkill;
 }
-
+*/
 
 public class StateConnection
 {
+    public States activeState;
 	public State nextState;
 	private string paramName;
 	
-	public bool condition(StateParams stateParams)
+	public bool condition(States state, States current)
 	{
-		Type type = typeof(StateParams);
-		bool value = (bool)type.GetField(paramName).GetValue(stateParams);
-		return value;	
+
+        if (state != current)
+            return true;
+
+        return false;
+		//Type type = typeof(StateParams);
+		//bool value = (bool)type.GetField(paramName).GetValue(stateParams);
+		//return value;	
+
+
 	} 
 	
-	public StateConnection(State nextState, string parameter)
+	public StateConnection(States activeState,State nextState, string parameter)
 	{
+        this.activeState = activeState;
 		this.nextState = nextState;
 		this.paramName = parameter;
 		
@@ -40,17 +75,19 @@ public class StateConnection
 
 public class State
 {
-	
-	public string Name { get; set; }
+
+    public States activeState;
+ 	public string Name { get; set; }
 	public GameObject gameObject { get; set; }
-	public StateParams stateParams { get; set; }
+	
 	protected string clipName { get; set; }
 	public List<StateConnection> connections { get; set; }
 	protected Animation animation;
 	protected WrapMode wrapMode;
 	
-	public State(string name, GameObject gameObject, WrapMode wrapMode = WrapMode.Loop)
+	public State(States activeState,string name, GameObject gameObject, WrapMode wrapMode = WrapMode.Loop)
 	{
+        this.activeState = activeState;
 		clipName = Name = name;
 		this.gameObject = gameObject;
 		this.wrapMode = wrapMode;
@@ -77,11 +114,19 @@ public class State
 		}
 	}
 	
-	public virtual State Evaluate(ref StateParams stateParams) { 
+	public virtual State Evaluate(States s ) { 
 		foreach(StateConnection connection in connections)
 		{
+            /*
 			if(connection.condition(stateParams))
 				return connection.nextState;
+             */
+
+            if (s != this.activeState && s == connection.activeState)
+            {
+                return connection.nextState;
+            }
+                
 		}
 		
 		return this; 
@@ -93,13 +138,13 @@ public class State
 public class TransitionState : State
 {
 	private State nextState;
-	public TransitionState(string name, State nextState, GameObject gameObject)
-		:base(name, gameObject, WrapMode.Once)
+	public TransitionState(States activeState,string name, State nextState, GameObject gameObject)
+        : base(activeState, name, gameObject, WrapMode.Once)
 	{
 		this.nextState = nextState;
 	}
 	
-	public override State Evaluate(ref StateParams stateParams)
+	public override State Evaluate(States state)
 	{
 		if(animation.IsPlaying(clipName))
 			return this;
@@ -108,6 +153,7 @@ public class TransitionState : State
 	}
 }
 
+/*
 public class MultiAnimationState : State
 {
 	private List<string> clips;
@@ -267,46 +313,49 @@ public class AttackMachine: State
 	}
 	
 }
+ * 
+ * */
+
 public class PlayerState : State
-{
+{ 
 	private Dictionary<string, State> states;
 	private State currentState;
 	
-	public PlayerState(string name, GameObject gameObject)
-		:base(name, gameObject)
+	public PlayerState(States cState,string name, GameObject gameObject)
+		:base(  cState, name, gameObject)
 	{
 		// Generate list of states
 		states = new Dictionary<string, State>();
-		states.Add ("standing", new State("standing", gameObject));
-		states.Add ("stand", new TransitionState("stand", states["standing"], gameObject));
-		states.Add ("walk", new State("walk", gameObject));
-		states.Add ("standWalk", new TransitionState("stand", states["walk"], gameObject));
-		states.Add ("sitting", new State("sitting", gameObject));
-		states.Add ("sit", new TransitionState("sit", states["sitting"], gameObject));
-		states.Add ("AttackMachine", new AttackMachine("attack", gameObject));
-		states.Add ("standAttack", new TransitionState("stand", states["AttackMachine"], gameObject));
+		states.Add ("STANDING", new State( States.STANDING, "STANDING", gameObject));
+		states.Add ("STANDUP", new TransitionState(States.STANDUP,"STANDUP", states["STANDING"], gameObject));
+		states.Add ("WALK", new State(States.WALK,"WALK", gameObject));
+		states.Add ("standWalk", new TransitionState(States.STANDUP,"STANDUP", states["WALK"], gameObject));
+		states.Add ("SITTING", new State(States.SITTING,"SITTING", gameObject));
+		states.Add ("SIT", new TransitionState(States.SIT,"SIT", states["SITTING"], gameObject));
+		//states.Add ("AttackMachine", new AttackMachine("attack", gameObject));
+		//states.Add ("standAttack", new TransitionState(States.STANDUP,"standup", states["AttackMachine"], gameObject));
 		
 		
-		states["standing"].connections.Add (new StateConnection(states["walk"], "walking"));
-		states["standing"].connections.Add (new StateConnection(states["sit"], "sitting"));
-		states["standing"].connections.Add (new StateConnection(states["AttackMachine"], "targetLocked"));
+		states["STANDING"].connections.Add (new StateConnection(States.WALK, states["WALK"], "walking"));
+		states["STANDING"].connections.Add (new StateConnection(States.SIT,states["SIT"], "sitting"));
+		//states["standing"].connections.Add (new StateConnection(states["AttackMachine"], "targetLocked"));
 		
-		states["sitting"].connections.Add ( new StateConnection(states["standWalk"], "walking"));
-		states["sitting"].connections.Add ( new StateConnection(states["stand"], "standing"));
-		states["sitting"].connections.Add ( new StateConnection(states["standAttack"], "targetLocked"));
+		states["SITTING"].connections.Add ( new StateConnection(States.WALK,states["standWalk"], "walking"));
+		states["SITTING"].connections.Add ( new StateConnection(States.STANDUP,states["STANDUP"], "standup"));
+		//states["sitting"].connections.Add ( new StateConnection(states["standAttack"], "targetLocked"));
 		
-		states["walk"].connections.Add ( new StateConnection(states["standing"], "standing"));
-		states["walk"].connections.Add ( new StateConnection(states["AttackMachine"], "targetLocked"));
+		states["WALK"].connections.Add ( new StateConnection(States.STANDING,states["STANDING"], "standing"));
+		//states["walk"].connections.Add ( new StateConnection(states["AttackMachine"], "targetLocked"));
 		
 		
-		states["AttackMachine"].connections.Add ( new StateConnection(states["standing"], "standing"));
-		states["AttackMachine"].connections.Add ( new StateConnection(states["walk"], "walking"));
+		//states["AttackMachine"].connections.Add ( new StateConnection(states["standing"], "standing"));
+		//states["AttackMachine"].connections.Add ( new StateConnection(states["walk"], "walking"));
 		
 	}
 	
 	public override void Entry(bool crossFade = false)
 	{	
-		currentState = states["standing"];
+		currentState = states["STANDING"];
 		currentState.Entry();
 	}
 	
@@ -315,9 +364,9 @@ public class PlayerState : State
 		currentState.Exit( crossFade );
 	}
 	
-	public override State Evaluate(ref StateParams stateParams)
+	public override State Evaluate(States s)
 	{	
-		State result = currentState.Evaluate(ref stateParams);
+		State result = currentState.Evaluate(s);
 		
 		if(result != currentState)
 		{

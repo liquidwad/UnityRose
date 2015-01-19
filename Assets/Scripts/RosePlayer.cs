@@ -1,10 +1,11 @@
+using System;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityRose.Formats;
 using System.IO;
 using UnityEditor;
-
+using UnityRose;
 
 public class RosePlayer
 {
@@ -14,14 +15,20 @@ public class RosePlayer
 	private ZMD skeleton;
 	// Items
 	// Animations
-	
+     
+
 	private Gender gender;
 	
 	public RosePlayer(Gender gender)
 	{
 		this.gender = gender;
 		LoadMale(14,14,14,1,1,231,14);
-		LoadAnimations(0);
+
+
+        RoseData.LoadSTB();
+		
+        
+        LoadAnimations(RoseData.AniWeaponType.EMPTY);
 		//LoadFemale (0,0,0);
 	}
 	
@@ -128,49 +135,22 @@ public class RosePlayer
 
 	}
 	
-	public void LoadAnimations(int weapon)
+    /// <summary>
+    /// Loads all animations for equiped weapon type
+    /// </summary>
+    /// <param name="WeaponType"></param>
+	public void LoadAnimations(RoseData.AniWeaponType WeaponType)
 	{
-		const string sit = "Assets/3DData/Motion/Avatar/EMPTY_SIT_M1.zmo";
-		const string sitting = "Assets/3DData/Motion/Avatar/EMPTY_SITING_M1.zmo";
-		const string stand = "Assets/3DData/Motion/Avatar/EMPTY_STAND_M1.zmo";
-		const string standing = "Assets/3DData/Motion/Avatar/EMPTY_STOP1_M1.zmo";
-		const string walk = "Assets/3DData/Motion/Avatar/EMPTY_WALK_M1.zmo";
-		const string run = "Assets/3DData/Motion/Avatar/TWOHAND_RUN_M1.zmo";
-		const string attack1 = "Assets/3DData/Motion/Avatar/KARTAR_ATTACK01_M1.zmo";
-		const string attack2 = "Assets/3DData/Motion/Avatar/KARTAR_ATTACK02_M1.zmo";
-		const string attack3 = "Assets/3DData/Motion/Avatar/KARTAR_ATTACK03_M1.zmo";
-		const string skill1 = "Assets/3DData/Motion/Avatar/KARTAR_2ATTACK_M1.zmo";
-		const string skill2 = "Assets/3DData/Motion/Avatar/KARTAR_3ATTACK_M1.zmo";
-		const string skill3 = "Assets/3DData/Motion/Avatar/KARTAR_HEAVYATTACK_M1.zmo";
-		const string skill4 = "Assets/3DData/Motion/Avatar/KARTAR_HEAVYCAST_M1.zmo";
-		const string skill5 = "Assets/3DData/Motion/Avatar/KARTAR_HEAVYROTATE_M1.zmo";
-		const string skill6 = "Assets/3DData/Motion/Avatar/KARTAR_LEAPATTACK_M1.zmo";
-		const string skill7 = "Assets/3DData/Motion/Avatar/KARTAR_WARNING_M1.zmo";
-		const string skill8 = "Assets/3DData/Motion/Avatar/KARTAR_HEAVYATTACK_M1.zmo";
-		
-		
-		Animation animation = player.AddComponent<Animation>();
-		
-		animation.AddClip(new ZMO(sit).buildAnimationClip(skeleton), "sit");
-		animation.AddClip(new ZMO(sitting).buildAnimationClip(skeleton), "sitting");
-		animation.AddClip(new ZMO(stand).buildAnimationClip(skeleton), "stand");
-		animation.AddClip(new ZMO(standing).buildAnimationClip(skeleton), "standing");
-		animation.AddClip(new ZMO(walk).buildAnimationClip(skeleton), "walk");
-		animation.AddClip(new ZMO(run).buildAnimationClip(skeleton), "run");
-		animation.AddClip(new ZMO(attack1).buildAnimationClip(skeleton), "attack1");	
-		animation.AddClip(new ZMO(attack2).buildAnimationClip(skeleton), "attack2");	
-		animation.AddClip(new ZMO(attack3).buildAnimationClip(skeleton), "attack3");
-		
-		animation.AddClip(new ZMO(skill1).buildAnimationClip(skeleton), "skill1");	
-		animation.AddClip(new ZMO(skill2).buildAnimationClip(skeleton), "skill2");
-		animation.AddClip(new ZMO(skill3).buildAnimationClip(skeleton), "skill3");
-		animation.AddClip(new ZMO(skill4).buildAnimationClip(skeleton), "skill4");
-		animation.AddClip(new ZMO(skill5).buildAnimationClip(skeleton), "skill5");
-		animation.AddClip(new ZMO(skill6).buildAnimationClip(skeleton), "skill6");
-		animation.AddClip(new ZMO(skill7).buildAnimationClip(skeleton), "skill7");
-		animation.AddClip(new ZMO(skill8).buildAnimationClip(skeleton), "skill8");
-		
+
+        Animation animation = player.AddComponent<Animation>();
+
+        foreach ( RoseData.AniAction action in Enum.GetValues(typeof(RoseData.AniAction)))
+        {
+            animation.AddClip(new ZMO("Assets\\" +  RoseData.GetAnimationFile(WeaponType, action, RoseData.AniGender.MALE)).buildAnimationClip(skeleton), action.ToString());
+        }
+      
 		player.AddComponent<PlayerController>();
+
 	}
 
 	public void LoadObject(ZSC zsc, int id, ZMD skelton,Transform parent, bool backItem=false )
