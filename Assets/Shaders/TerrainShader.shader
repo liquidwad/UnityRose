@@ -6,7 +6,8 @@
 		_ColorTint ("Tint", Color) = (1.0, 0.6, 0.6, 1.0)
 	}
 	SubShader {
-		Tags { "RenderType"="Opaque" }
+		Tags { "IgnoreProjector"="True" "RenderType"="Opaque" }
+
 		LOD 200
 		
 		CGPROGRAM
@@ -29,7 +30,7 @@
 			half4 light = tex2D (_LightTex, IN.uv2_LightTex);
 			half4 tint = half4(_ColorTint);
 			o.Albedo = bottom.rgb*(1.0f - top.a) + tint.rgb*0.0f + top.rgb*top.a;
-			o.Emission = o.Albedo*light*1.5;
+			o.Emission = o.Albedo*light*2.0;
 		}
 		ENDCG
 	} 

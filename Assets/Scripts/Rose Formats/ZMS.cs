@@ -43,52 +43,6 @@ namespace UnityRose.Formats
 	/// </summary>
 	public class ZMS
 	{
-		/// <summary>
-		/// ZMS Vertex structure.
-		/// </summary>
-		public struct Vertex
-		{
-			/// <summary>
-			/// Size of the vertex.
-			/// </summary>
-			public const int SIZE_IN_BYTES = sizeof(float) * 11;
-			
-			
-			#region Member Declarations
-			
-			/// <summary>
-			/// Gets or sets the position.
-			/// </summary>
-			/// <value>The position.</value>
-			public Vector3 Position { get; set; }
-			
-			/// <summary>
-			/// Gets or sets the normal.
-			/// </summary>
-			/// <value>The normal.</value>
-			public Vector3 Normal { get; set; }
-			
-			/// <summary>
-			/// Gets or sets the texture coordinate.
-			/// </summary>
-			/// <value>The texture coordinate.</value>
-			public Vector2 TextureCoordinate { get; set; }
-			
-			/// <summary>
-			/// Gets or sets the lightmap coordinate.
-			/// </summary>
-			/// <value>The lightmap coordinate.</value>
-			public Vector2 LightmapCoordinate { get; set; }
-			
-			/// <summary>
-			/// Gets or sets the alpha.
-			/// </summary>
-			/// <value>The alpha.</value>
-			public Color Alpha { get; set; }
-			
-			#endregion
-		};
-		
 		public class Support{
 			public bool vertices;
 			public bool normals;
@@ -125,14 +79,13 @@ namespace UnityRose.Formats
 		
 		public Vector3[] normals { get; set; }
 		
-		public Vector2[] uvs_tex { get; set; }
-		
-		public Vector2[] uvs_light { get; set; }
-		
 		public Vector2[] uv0 { get; set; }
 		public Vector2[] uv1 { get; set; }
 		public Vector2[] uv2 { get; set; }
 		public Vector2[] uv3 { get; set; }
+
+        public Vector2 lmOffset { get; set; }
+        public Vector2 lmScale { get; set; }
 		
 		public short[] materials {get; set;}
 		public short[] strips {get; set;}
@@ -174,8 +127,17 @@ namespace UnityRose.Formats
 		/// <param name="filePath">The file path.</param>
 		public ZMS(string filePath)
 		{
-			Load(filePath);
+            this.lmScale = new Vector2(1.0f, 1.0f);
+            this.lmOffset = new Vector2(0.0f, 0.0f);
+            Load(filePath);
 		}
+
+        public ZMS(string filePath, Vector2 lmScale, Vector2 lmOffset)
+        {
+            this.lmScale = lmScale;
+            this.lmOffset = lmOffset;
+            Load(filePath);  
+        }
 		
 		public Mesh getMesh()
 		{
@@ -185,7 +147,7 @@ namespace UnityRose.Formats
 			mesh.normals = normals;
 			mesh.uv = uv0;
 			mesh.uv1 = uv1;
-			mesh.uv2 = uv2;
+			//mesh.uv2 = uv2;
 			mesh.boneWeights = boneWeights;
 			if(RecalcNormals)
 			{
@@ -342,78 +304,34 @@ namespace UnityRose.Formats
 			// tangents
 			if ((format & 64) > 0)
 				fh.Seek(12 * VertexCount, SeekOrigin.Current);
-				
-			/*
-			
-			int uvMaps = 0;
-			
-			if ((format & 128) > 0) uvMaps++;
-			if ((format & 256) > 0) uvMaps++;
-			if ((format & 512) > 0) uvMaps++;
-			if ((format & 1024) > 0) uvMaps++;
-			
-			// UV textures
-			if (uvMaps >= 1)
-			{
-				support.uvTex = true;
-				uvs_tex = new Vector2[VertexCount];
-				for (int i = 0; i < VertexCount; i++)
-					uvs_tex[i] = new Vector2()
-				{
-					x = fh.Read<float>(),
-					y = 1.0f - fh.Read<float>()
-				};
-				
-				//fh.Read<Vector2>();
-			}
-			
-			// UV light map
-			if (uvMaps >= 2)
-			{
-				support.uvLight = true;
-				uvs_light = new Vector2[VertexCount];
-				for (int i = 0; i < VertexCount; i++)
-					uvs_light[i] = new Vector2()
-				{
-					x = fh.Read<float>(),
-					y = 1.0f - fh.Read<float>()
-				};
-				
-				//fh.Read<Vector2>();
-			}
-			
-			IndexCount = fh.Read<short>();
-			
-			triangles = new int[IndexCount * 3];
-			
-			for (int i = 0; i < IndexCount; i++)
-			{
-				triangles[i * 3 + 0] = (int) fh.Read<short>();
-				triangles[i * 3 + 1] = (int) fh.Read<short>();
-				triangles[i * 3 + 2] = (int) fh.Read<short>();
-			}
-			*/
 			
 			if ((format & 128) > 0) {
 				support.uv0 = true;
 				uv0 = new Vector2[VertexCount];
-				for (int i = 0; i < VertexCount; i++)
-					uv0[i] = new Vector2()
-				{
-					x = fh.Read<float>(),
-					y = 1.0f - fh.Read<float>()
-				};
+                for (int i = 0; i < VertexCount; i++)
+                {
+                    uv0[i] = new Vector2()
+                    {
+                        x = fh.Read<float>(),
+                        y = 1.0f - fh.Read<float>()
+                    };
+                }
 			}
 			
 			if ((format & 256) > 0) {
 				support.uv1 = true;
 				uv1 = new Vector2[VertexCount];
-				for (int i = 0; i < VertexCount; i++)
-					uv1[i] = new Vector2()
-				{
-					x = fh.Read<float>(),
-					y = 1.0f - fh.Read<float>()
-				};
+                for (int i = 0; i < VertexCount; i++)
+                {
+                    uv1[i] = new Vector2()
+                    {
+                        x = fh.Read<float>(),
+                        y = fh.Read<float>()
+                    };
+
+                    uv1[i] =  Vector2.Scale(uv1[i], lmScale) + lmOffset;
+                    uv1[i].y = 1.0f - uv1[i].y;
+                }
 			}
 			
 			if ((format & 512) > 0) {

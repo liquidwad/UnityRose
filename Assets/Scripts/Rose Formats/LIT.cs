@@ -170,6 +170,7 @@ namespace UnityRose.Formats
         /// <param name="device">The device.</param>
         public void Load(string filePath)
         {
+          /*
             if (!Directory.Exists(filePath))
             {
 				Debug.LogError(string.Format(@"Missing File: {0}", filePath));
@@ -178,7 +179,8 @@ namespace UnityRose.Formats
 
                 return;
             }
-
+            
+            */
             Folder = Path.GetDirectoryName(filePath);
 
             try
