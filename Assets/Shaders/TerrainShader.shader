@@ -1,4 +1,4 @@
-﻿Shader "Custom/TerrainShader" {
+﻿﻿Shader "Custom/TerrainShader" {
 	Properties {
 		_BottomTex ("Bottom (RGBA)", 2D) = "white" {}
 		_TopTex ("Top (RGBA)", 2D) = "black" {}

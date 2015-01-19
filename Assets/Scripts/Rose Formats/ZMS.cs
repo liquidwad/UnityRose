@@ -11,18 +11,19 @@ namespace UnityRose.Formats
 
 	
 	
-	public class WeightIdPair: IComparable
+    public class WeightIdPair : IComparable
 	{
 		public float weight;
 		public int id;
 		
-		int IComparable.CompareTo( object obj )  {
+        int IComparable.CompareTo(object obj)
+        {
 			WeightIdPair a = this;
-			WeightIdPair b = (WeightIdPair) obj;
+            WeightIdPair b = (WeightIdPair)obj;
 			
-			if(a.weight > b.weight)
+            if (a.weight > b.weight)
 				return 1;
-			else if(a.weight < b.weight)
+            else if (a.weight < b.weight)
 				return -1;
 			else
 				return 0;
@@ -83,7 +84,7 @@ namespace UnityRose.Formats
 		public Vector2[] uv1 { get; set; }
 		public Vector2[] uv2 { get; set; }
 		public Vector2[] uv3 { get; set; }
-
+		
         public Vector2 lmOffset { get; set; }
         public Vector2 lmScale { get; set; }
 		
@@ -92,9 +93,9 @@ namespace UnityRose.Formats
 		
 		public Support support { get; set; }
 		
-		public short MaterialCount {get; set;}
-		public short StripCount {get; set;}
-		public short PoolType {get; set;}
+        public short MaterialCount { get; set; }
+        public short StripCount { get; set; }
+        public short PoolType { get; set; }
 		
 		
 		/// <summary>
@@ -129,9 +130,9 @@ namespace UnityRose.Formats
 		{
             this.lmScale = new Vector2(1.0f, 1.0f);
             this.lmOffset = new Vector2(0.0f, 0.0f);
-            Load(filePath);
+			Load(filePath);
 		}
-
+		
         public ZMS(string filePath, Vector2 lmScale, Vector2 lmOffset)
         {
             this.lmScale = lmScale;
@@ -149,27 +150,27 @@ namespace UnityRose.Formats
 			mesh.uv1 = uv1;
 			//mesh.uv2 = uv2;
 			mesh.boneWeights = boneWeights;
-			if(RecalcNormals)
+            if (RecalcNormals)
 			{
 				mesh.RecalculateNormals();
 				
 				Vector3[] normals2 = new Vector3[mesh.vertexCount];
 				Dictionary<String, List<int>> vertexLookup = new Dictionary<String, List<int>>();
 				// 1. and 2.
-				for(int i = 0; i < mesh.vertexCount; i++)
+                for (int i = 0; i < mesh.vertexCount; i++)
 					Utils.Utils.addVertexToLookup(vertexLookup, mesh.vertices[i].ToString(), i);
 				
 				// traverse the shared vertex list and calculate new normals
 				
-				foreach(KeyValuePair<String, List<int>> entry in vertexLookup)
+                foreach (KeyValuePair<String, List<int>> entry in vertexLookup)
 				{
 					Vector3 avg = Vector3.zero;
-					foreach(int id in entry.Value)
+                    foreach (int id in entry.Value)
 					{
 						avg = mesh.normals[id];
-						foreach(int id2 in entry.Value)
+                        foreach (int id2 in entry.Value)
 						{
-							if(Math.Abs(Vector3.Angle(mesh.normals[id], mesh.normals[id2])) <= 80.0f)
+                            if (Math.Abs(Vector3.Angle(mesh.normals[id], mesh.normals[id2])) <= 80.0f)
 								avg += mesh.normals[id2];
 						}
 						avg.Normalize();
@@ -206,7 +207,7 @@ namespace UnityRose.Formats
 			
 			bones = new short[boneCount];
 			
-			for(int i=0; i< boneCount; i++)
+            for (int i = 0; i < boneCount; i++)
 				bones[i] = fh.Read<short>();
 			
 			VertexCount = fh.Read<short>();
@@ -218,9 +219,10 @@ namespace UnityRose.Formats
 				vertices = new Vector3[VertexCount];
 				for (int i = 0; i < VertexCount; i++)
 				{
-					if(version <=6 )
+                    if (version <= 6)
 						fh.Read<short>();
-					vertices[i] = new Vector3(){
+                    vertices[i] = new Vector3()
+                    {
 						x = fh.Read<float>(),
 						y = fh.Read<float>(),
 						z = fh.Read<float>()
@@ -238,9 +240,10 @@ namespace UnityRose.Formats
 				RecalcNormals = false;
 				for (int i = 0; i < VertexCount; i++)
 				{
-					if(version <=6 )
+                    if (version <= 6)
 						fh.Read<short>();
-					normals[i] = new Vector3(){
+                    normals[i] = new Vector3()
+                    {
 						x = fh.Read<float>(),
 						y = fh.Read<float>(),
 						z = fh.Read<float>()
@@ -261,9 +264,9 @@ namespace UnityRose.Formats
 			{
 				support.bones = true;
 				boneWeights = new BoneWeight[VertexCount];
-				for(int i=0; i< VertexCount; i++)
+                for (int i = 0; i < VertexCount; i++)
 				{
-					if(version <=6 )
+                    if (version <= 6)
 						fh.Read<short>();
 					
 					BoneWeight weight = new BoneWeight();
@@ -280,10 +283,10 @@ namespace UnityRose.Formats
 					
 					
 					List<WeightIdPair> weightIdList = new List<WeightIdPair>(4);
-					weightIdList.Add (new WeightIdPair(weight.boneIndex0, weight.weight0));
-					weightIdList.Add (new WeightIdPair(weight.boneIndex1, weight.weight1));
-					weightIdList.Add (new WeightIdPair(weight.boneIndex2, weight.weight2));
-					weightIdList.Add (new WeightIdPair(weight.boneIndex3, weight.weight3));
+                    weightIdList.Add(new WeightIdPair(weight.boneIndex0, weight.weight0));
+                    weightIdList.Add(new WeightIdPair(weight.boneIndex1, weight.weight1));
+                    weightIdList.Add(new WeightIdPair(weight.boneIndex2, weight.weight2));
+                    weightIdList.Add(new WeightIdPair(weight.boneIndex3, weight.weight3));
 					
 					weightIdList.Sort();
 					
@@ -304,37 +307,39 @@ namespace UnityRose.Formats
 			// tangents
 			if ((format & 64) > 0)
 				fh.Seek(12 * VertexCount, SeekOrigin.Current);
-			
+				
 			if ((format & 128) > 0) {
 				support.uv0 = true;
 				uv0 = new Vector2[VertexCount];
-                for (int i = 0; i < VertexCount; i++)
+				for (int i = 0; i < VertexCount; i++)
                 {
-                    uv0[i] = new Vector2()
-                    {
-                        x = fh.Read<float>(),
-                        y = 1.0f - fh.Read<float>()
-                    };
-                }
+					uv0[i] = new Vector2()
+				{
+					x = fh.Read<float>(),
+					y = 1.0f - fh.Read<float>()
+				};
+			}
 			}
 			
-			if ((format & 256) > 0) {
+            if ((format & 256) > 0)
+            {
 				support.uv1 = true;
 				uv1 = new Vector2[VertexCount];
-                for (int i = 0; i < VertexCount; i++)
+				for (int i = 0; i < VertexCount; i++)
                 {
-                    uv1[i] = new Vector2()
-                    {
-                        x = fh.Read<float>(),
+					uv1[i] = new Vector2()
+				{
+					x = fh.Read<float>(),
                         y = fh.Read<float>()
-                    };
+				};
 
                     uv1[i] =  Vector2.Scale(uv1[i], lmScale) + lmOffset;
                     uv1[i].y = 1.0f - uv1[i].y;
                 }
 			}
 			
-			if ((format & 512) > 0) {
+            if ((format & 512) > 0)
+            {
 				support.uv2 = true;
 				uv2 = new Vector2[VertexCount];
 				for (int i = 0; i < VertexCount; i++)
@@ -345,7 +350,8 @@ namespace UnityRose.Formats
 				};
 			}
 			
-			if ((format & 1024) > 0) {
+            if ((format & 1024) > 0)
+            {
 				support.uv3 = true;
 				uv3 = new Vector2[VertexCount];
 				for (int i = 0; i < VertexCount; i++)
@@ -360,24 +366,27 @@ namespace UnityRose.Formats
 			triangles = new int[IndexCount * 3];
 			for (int i = 0; i < IndexCount; i++)
 			{
-				triangles[i * 3 + 0] = (int) fh.Read<short>();
-				triangles[i * 3 + 1] = (int) fh.Read<short>();
-				triangles[i * 3 + 2] = (int) fh.Read<short>();
+                triangles[i * 3 + 0] = (int)fh.Read<short>();
+                triangles[i * 3 + 1] = (int)fh.Read<short>();
+                triangles[i * 3 + 2] = (int)fh.Read<short>();
 			}
 			
 			MaterialCount = fh.Read<short>();
 			materials = new short[MaterialCount];
-			for (int i = 0; i < MaterialCount; i++) {
+            for (int i = 0; i < MaterialCount; i++)
+            {
 				materials[i] = fh.Read<short>();
 			}
 			
 			StripCount = fh.Read<short>();
 			strips = new short[StripCount];
-			for (int i = 0; i < StripCount; i++) {
+            for (int i = 0; i < StripCount; i++)
+            {
 				strips[i] = fh.Read<short>();
 			}
 			
-			if (version >= 8) {
+            if (version >= 8)
+            {
 				PoolType = fh.Read<short>();
 			}
 			

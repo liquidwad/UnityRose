@@ -223,8 +223,8 @@ public class RosePlayer
 		LoadObject (body_zsc, chest, skeleton, player.transform);
 		LoadObject (arms_zsc, arms, skeleton, player.transform);
 		LoadObject (foot_zsc, foot, skeleton, player.transform);
-		LoadObject(face_zsc, face, skeleton, skeleton.findBone("b1_neck").boneObject.transform);
-		LoadObject(hair_zsc, hair, skeleton, skeleton.findBone("b1_neck").boneObject.transform);
+		LoadObject(face_zsc, face, skeleton, skeleton.findBone("b1_head").boneObject.transform);
+		LoadObject(hair_zsc, hair, skeleton, skeleton.findBone("b1_head").boneObject.transform);
 		LoadObject(cap_zsc, cap, skeleton, skeleton.findDummy("p_06").boneObject.transform);
 		LoadObject(back_zsc, back , skeleton, skeleton.findDummy("p_03").boneObject.transform, true);	
 
