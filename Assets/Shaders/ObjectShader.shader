@@ -27,7 +27,7 @@ void surf (Input IN, inout SurfaceOutput o) {
 	half4 l = tex2D(_LightTex, IN.uv2_LightTex);
 	o.Albedo = c.rgb;
 	o.Alpha = c.a;
-	o.Emission = o.Albedo*l*2.0;
+	o.Emission = o.Albedo*l*1.3;
 }
 ENDCG
 }

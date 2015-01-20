@@ -21,14 +21,17 @@ public class RosePlayer
 	
 	public RosePlayer(Gender gender)
 	{
-		this.gender = gender;
-		LoadMale(14,14,14,1,1,231,14);
-
 
         RoseData.LoadSTB();
+
+		this.gender = gender;
+		LoadMale(16,16,16,1,1,231,16);
+
+
+        
 		
         
-        LoadAnimations(RoseData.AniWeaponType.EMPTY);
+       
 		//LoadFemale (0,0,0);
 	}
 	
@@ -148,8 +151,6 @@ public class RosePlayer
         {
             animation.AddClip(new ZMO("Assets\\" +  RoseData.GetAnimationFile(WeaponType, action, RoseData.AniGender.MALE)).buildAnimationClip(skeleton), action.ToString());
         }
-      
-		player.AddComponent<PlayerController>();
 
 	}
 
@@ -184,22 +185,15 @@ public class RosePlayer
 		ZSC cap_zsc = new ZSC(path_cap);
 		ZSC back_zsc = new ZSC(path_back);
 		
+
+
 		skeleton = new ZMD("Assets/3DData/Avatar/MALE.ZMD");
 		player = new GameObject("player");
 		skeleton.buildSkeleton(player, false);
-		/*
-		LoadModel(body_zsc, chest, skeleton);
-		LoadModel(body_zsc, legs, skeleton);
-		LoadModel(arms_zsc, arms, skeleton);
-		LoadModel(foot_zsc, foot, skeleton);
-		LoadModel(hair_zsc, hair, skeleton);
-		LoadModel(face_zsc, face, skeleton);
-		LoadModel(cap_zsc, face, skeleton, true);
-		LoadModel(back_zsc, back, skeleton, true);
-		*/
-		
-		//load all objects
+		 
 
+
+		//load all objects
 		LoadObject (body_zsc, chest, skeleton, player.transform);
 		LoadObject (arms_zsc, arms, skeleton, player.transform);
 		LoadObject (foot_zsc, foot, skeleton, player.transform);
@@ -209,7 +203,42 @@ public class RosePlayer
 		LoadObject(back_zsc, back , skeleton, skeleton.findDummy("p_03").boneObject.transform, true);	
 
 		player.transform.Rotate(-90.0f, 0.0f, 180.0f);
-		
+
+
+
+        //load animations
+        LoadAnimations(RoseData.AniWeaponType.EMPTY);
+
+        //add PlayerController script
+        player.AddComponent<PlayerController>();
+
+        //add rigidBody
+        Rigidbody r = player.AddComponent<Rigidbody>();
+
+        //add collider
+        CapsuleCollider c = player.AddComponent<CapsuleCollider>();
+        c.center = new Vector3(0,0,1);
+        c.height = 2;
+        c.direction = 2; // direction z
+        
+
+        //Create the camera
+        GameObject cameraObject = new GameObject("Main Camera");
+
+        CameraController cameraController =  cameraObject.AddComponent<CameraController>();
+        cameraController.target = player;
+
+        Camera camera = cameraObject.AddComponent<Camera>();
+        camera.tag = "MainCamera";
+
+        
+
+        
+        
+        
+
+
+
 		/*
 		ZMO zmo = new ZMO("Assets/3ddata/motion/avatar/dance_chacha_m1.zmo", false, true);
 		Animation animation = player.AddComponent<Animation>();
