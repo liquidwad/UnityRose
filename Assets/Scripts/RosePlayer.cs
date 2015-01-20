@@ -25,7 +25,7 @@ public class RosePlayer
         RoseData.LoadSTB();
 
 		this.gender = gender;
-		LoadMale(16,16,16,1,1,231,16);
+		LoadMale(97,97,97,2,3,231,97);
 
 
         
