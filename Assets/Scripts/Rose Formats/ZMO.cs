@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityRose.File;
 using System.Collections.Generic;
+using UnityRose.Utils;
 
 namespace UnityRose.Formats
 {
@@ -368,27 +369,27 @@ namespace UnityRose.Formats
                     {
                         case ChannelType.Position:
                             {
-                                Frames[i].Channels[j].Position = fh.Read<Vector3>();
+                                Frames[i].Channels[j].Position = Utils.Utils.r2uPosition(fh.Read<Vector3>());
 
                                 if (camera && (j == 0 || j == 1))
-                                    Frames[i].Channels[j].Position = (fh.Read<Vector3>() + new Vector3(520000.0f, 520000.0f, 0.0f)) / 100.0f;
+                                    Frames[i].Channels[j].Position = (Utils.Utils.r2uPosition(fh.Read<Vector3>()) + new Vector3(520000.0f, 0.0f, 520000.0f)) / 100.0f;
                                 else if (divide)
                                     Frames[i].Channels[j].Position /= 100.0f;
                             }
                             break;
                         case ChannelType.Rotation:
                             {
-                                Frames[i].Channels[j].Rotation = new Quaternion()
+                                Frames[i].Channels[j].Rotation = Utils.Utils.r2uRotation(new Quaternion()
                                 {
                                     w = fh.Read<float>(),
                                     x = fh.Read<float>(),
                                     y = fh.Read<float>(),
                                     z = fh.Read<float>()
-                                };
+                                });
                             }
                             break;
                         case ChannelType.Normal:
-                            Frames[i].Channels[j].Normal = fh.Read<Vector3>();
+                            Frames[i].Channels[j].Normal = Utils.Utils.r2uPosition(fh.Read<Vector3>());
                             break;
                         case ChannelType.Alpha:
                             Frames[i].Channels[j].Alpha = fh.Read<float>();

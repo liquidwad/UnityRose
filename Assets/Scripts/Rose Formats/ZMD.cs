@@ -149,16 +149,16 @@ namespace UnityRose.Formats
 				node.Position = new Vector3()
 				{
 					x = fh.Read<float>() * zz_scale,
-					y = fh.Read<float>() * zz_scale,
-					z = fh.Read<float>() * zz_scale
+					z = fh.Read<float>() * zz_scale,
+					y = fh.Read<float>() * zz_scale
 				};
-				node.Rotation = new Quaternion()
-				{
-					w = fh.Read<float>(),
-					x = fh.Read<float>(),
-					y = fh.Read<float>(),
-					z = fh.Read<float>()
-				};
+                node.Rotation = Utils.Utils.r2uRotation(new Quaternion()
+                {
+                    w = fh.Read<float>(),
+                    x = fh.Read<float>(),
+                    y = fh.Read<float>(),
+                    z = fh.Read<float>()
+                });
 				
 				bones.Add (node);
 			}
@@ -178,19 +178,19 @@ namespace UnityRose.Formats
 				node.Position = new Vector3()
 				{
 					x = fh.Read<float>() * zz_scale,
-					y = fh.Read<float>() * zz_scale,
-					z = fh.Read<float>() * zz_scale
+					z = fh.Read<float>() * zz_scale,
+					y = fh.Read<float>() * zz_scale
 				};
 				
 				if(version == 3)
 				{
-					node.Rotation = new Quaternion()
-					{
-						w = fh.Read<float>(),
-						x = fh.Read<float>(),
-						y = fh.Read<float>(),
-						z = fh.Read<float>()
-					};
+                    node.Rotation = Utils.Utils.r2uRotation(new Quaternion()
+                    {
+                        w = fh.Read<float>(),
+                        x = fh.Read<float>(),
+                        y = fh.Read<float>(),
+                        z = fh.Read<float>()
+                    });
 				}
 				dummies.Add(node);
 			}

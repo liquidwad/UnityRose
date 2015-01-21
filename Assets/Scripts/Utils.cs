@@ -5,8 +5,22 @@ using UnityEngine;
 
 namespace UnityRose.Utils
 {
+    
 	public class Utils
 	{
+        public static Quaternion r2uRotation(Quaternion q)
+        {
+            Vector3 axis;
+            float angle;
+            q.ToAngleAxis(out angle, out axis);
+            return Quaternion.AngleAxis(-angle, new Vector3(axis.x, axis.z, axis.y));
+        }
+
+        public static Vector3 r2uPosition(Vector3 v)
+        {
+            return new Vector3(v.x, v.z, v.y);
+        }
+
 		public static void addVertexToLookup(Dictionary<String,List<int>> lookup, String vertex, int index)
 		{
 			if(!lookup.ContainsKey(vertex))

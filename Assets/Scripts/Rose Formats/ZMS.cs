@@ -153,7 +153,7 @@ namespace UnityRose.Formats
             if (RecalcNormals)
 			{
 				mesh.RecalculateNormals();
-				
+				/*
 				Vector3[] normals2 = new Vector3[mesh.vertexCount];
 				Dictionary<String, List<int>> vertexLookup = new Dictionary<String, List<int>>();
 				// 1. and 2.
@@ -177,9 +177,9 @@ namespace UnityRose.Formats
 						normals2[id] = avg;
 					}	
 				}
-				
-				
+
 				mesh.normals = normals2;
+                 * */
 			}
 			mesh.RecalculateBounds();
 			mesh.Optimize();
@@ -224,8 +224,8 @@ namespace UnityRose.Formats
                     vertices[i] = new Vector3()
                     {
 						x = fh.Read<float>(),
-						y = fh.Read<float>(),
-						z = fh.Read<float>()
+						z = fh.Read<float>(),
+						y = fh.Read<float>()
 					};
 					
 					//Vertices[i].Alpha = new Color(0, 0, 0, 255);
@@ -245,8 +245,8 @@ namespace UnityRose.Formats
                     normals[i] = new Vector3()
                     {
 						x = fh.Read<float>(),
-						y = fh.Read<float>(),
-						z = fh.Read<float>()
+						z = fh.Read<float>(),
+						y = fh.Read<float>()
 					};
 				}
 				//fh.Read<Vector3>();
@@ -366,9 +366,9 @@ namespace UnityRose.Formats
 			triangles = new int[IndexCount * 3];
 			for (int i = 0; i < IndexCount; i++)
 			{
-                triangles[i * 3 + 0] = (int)fh.Read<short>();
-                triangles[i * 3 + 1] = (int)fh.Read<short>();
                 triangles[i * 3 + 2] = (int)fh.Read<short>();
+                triangles[i * 3 + 1] = (int)fh.Read<short>();
+                triangles[i * 3 + 0] = (int)fh.Read<short>();
 			}
 			
 			MaterialCount = fh.Read<short>();
