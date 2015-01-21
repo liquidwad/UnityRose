@@ -18,9 +18,13 @@ namespace UnityRose.Utils
 
         public static Vector3 r2uPosition(Vector3 v)
         {
-            return new Vector3(v.x, v.z, v.y);
+            return new Vector3(v.x, v.z, -v.y);
         }
 
+        public static Vector3 r2uVector(Vector3 v)
+        {
+            return new Vector3(v.x, v.z, -v.y);
+        }
 		public static void addVertexToLookup(Dictionary<String,List<int>> lookup, String vertex, int index)
 		{
 			if(!lookup.ContainsKey(vertex))

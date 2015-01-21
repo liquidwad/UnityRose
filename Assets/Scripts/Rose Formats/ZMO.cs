@@ -389,7 +389,7 @@ namespace UnityRose.Formats
                             }
                             break;
                         case ChannelType.Normal:
-                            Frames[i].Channels[j].Normal = Utils.Utils.r2uPosition(fh.Read<Vector3>());
+                            Frames[i].Channels[j].Normal = Utils.Utils.r2uVector(fh.Read<Vector3>());
                             break;
                         case ChannelType.Alpha:
                             Frames[i].Channels[j].Alpha = fh.Read<float>();

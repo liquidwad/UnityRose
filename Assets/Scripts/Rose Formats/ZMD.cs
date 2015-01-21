@@ -149,9 +149,11 @@ namespace UnityRose.Formats
 				node.Position = new Vector3()
 				{
 					x = fh.Read<float>() * zz_scale,
-					z = fh.Read<float>() * zz_scale,
-					y = fh.Read<float>() * zz_scale
+					y = fh.Read<float>() * zz_scale,
+					z = fh.Read<float>() * zz_scale
 				};
+
+                node.Position = Utils.Utils.r2uPosition(node.Position);
                 node.Rotation = Utils.Utils.r2uRotation(new Quaternion()
                 {
                     w = fh.Read<float>(),
@@ -178,9 +180,11 @@ namespace UnityRose.Formats
 				node.Position = new Vector3()
 				{
 					x = fh.Read<float>() * zz_scale,
-					z = fh.Read<float>() * zz_scale,
-					y = fh.Read<float>() * zz_scale
+					y = fh.Read<float>() * zz_scale,
+					z = fh.Read<float>() * zz_scale
 				};
+
+                node.Position = Utils.Utils.r2uPosition(node.Position);
 				
 				if(version == 3)
 				{

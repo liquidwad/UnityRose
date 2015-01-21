@@ -221,12 +221,12 @@ namespace UnityRose.Formats
 				{
                     if (version <= 6)
 						fh.Read<short>();
-                    vertices[i] = new Vector3()
+                    vertices[i] = Utils.Utils.r2uPosition(new Vector3()
                     {
-						x = fh.Read<float>(),
-						z = fh.Read<float>(),
-						y = fh.Read<float>()
-					};
+                        x = fh.Read<float>(),
+                        y = fh.Read<float>(),
+                        z = fh.Read<float>()
+                    });
 					
 					//Vertices[i].Alpha = new Color(0, 0, 0, 255);
 				}
@@ -242,12 +242,12 @@ namespace UnityRose.Formats
 				{
                     if (version <= 6)
 						fh.Read<short>();
-                    normals[i] = new Vector3()
+                    normals[i] = Utils.Utils.r2uVector(new Vector3()
                     {
-						x = fh.Read<float>(),
-						z = fh.Read<float>(),
-						y = fh.Read<float>()
-					};
+                        x = fh.Read<float>(),
+                        y = fh.Read<float>(),
+                        z = fh.Read<float>()
+                    });
 				}
 				//fh.Read<Vector3>();
 			}
@@ -366,9 +366,9 @@ namespace UnityRose.Formats
 			triangles = new int[IndexCount * 3];
 			for (int i = 0; i < IndexCount; i++)
 			{
-                triangles[i * 3 + 2] = (int)fh.Read<short>();
-                triangles[i * 3 + 1] = (int)fh.Read<short>();
                 triangles[i * 3 + 0] = (int)fh.Read<short>();
+                triangles[i * 3 + 1] = (int)fh.Read<short>();
+                triangles[i * 3 + 2] = (int)fh.Read<short>();
 			}
 			
 			MaterialCount = fh.Read<short>();

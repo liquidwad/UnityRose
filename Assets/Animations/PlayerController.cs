@@ -120,12 +120,8 @@ namespace UnityRose
                 //now here transformDirecttion should have  Vector3.Forward and not this values 
                 //if u use vector3forward the char try to go on Y axis and not the right one cus forward is vector3(0,0,1)
                 //so basically i did many tets to get the one that works with this model , am thikning its all rotation problem ok 
-                Vector3 forward =  transform.TransformDirection( Vector3.forward );//transform.TransformDirection(0.0f, -1.0f, 1.0f);
                // float curSpeed = speed * Input.GetAxis("Horizontal");
-                controller.SimpleMove(forward * speed);
-
-
-                Debug.Log(forward * speed * Time.deltaTime);
+                controller.SimpleMove(transform.forward * speed);
                 isWalking = true;
             }
             else

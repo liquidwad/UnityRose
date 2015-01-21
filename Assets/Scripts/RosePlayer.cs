@@ -212,14 +212,15 @@ public class RosePlayer
         //add PlayerController script
         player.AddComponent<PlayerController>();
 
-        //add rigidBody
-        Rigidbody r = player.AddComponent<Rigidbody>();
+        //add Character controller
+        CharacterController charController = player.AddComponent<CharacterController>();
+        charController.center = new Vector3(0.0f, 1.0f, 0.0f);
 
         //add collider
         CapsuleCollider c = player.AddComponent<CapsuleCollider>();
-        c.center = new Vector3(0,0,1);
+        c.center = new Vector3(0,1,0);
         c.height = 2;
-        c.direction = 2; // direction z
+        c.direction = 1; // direction y
         
 
         //Create the camera
