@@ -28,6 +28,7 @@ void surf (Input IN, inout SurfaceOutput o) {
 	o.Albedo = c.rgb;
 	o.Alpha = c.a;
 	o.Emission = o.Albedo*l*2.0;
+	//o.Albedo = o.Albedo*l*2;
 }
 ENDCG
 }

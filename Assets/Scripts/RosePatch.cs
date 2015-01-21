@@ -401,7 +401,7 @@ namespace UnityRose.Game
 			
 			m_mesh.RecalculateNormals();
 			
-			bool blendNormals = false; // set to true to blend normals
+			bool blendNormals = true; // set to true to blend normals
 			if(blendNormals)
 			{
 				// CalculateSharedNormals: fix all normals as follows:
@@ -449,7 +449,9 @@ namespace UnityRose.Game
 			patchObject.AddComponent<MeshRenderer>();
 			patchObject.AddComponent<MeshCollider>();
             patchObject.name = "patch_" + this.m_name;
-			patchObject.GetComponent<MeshRenderer>().materials = materials; 
+            MeshRenderer patchRenderer = patchObject.GetComponent<MeshRenderer>();
+			patchRenderer.materials = materials;
+            patchRenderer.castShadows = false;
 			patchObject.transform.parent = terrainParent;
 			
 			
@@ -509,7 +511,9 @@ namespace UnityRose.Game
 					modelObject.AddComponent<MeshFilter>().mesh = zms.getMesh();
 					modelObject.AddComponent<MeshRenderer>();
                     modelObject.name = new DirectoryInfo(zmsPath).Name;
-					modelObject.GetComponent<MeshRenderer>().material = mat; 
+                    MeshRenderer renderer = modelObject.GetComponent<MeshRenderer>();
+                    renderer.material = mat;
+                    renderer.castShadows = false;
 					modelObject.AddComponent<MeshCollider>();
 
 					string zmoPath = model.Motion;
@@ -594,7 +598,9 @@ namespace UnityRose.Game
 					modelObject.AddComponent<MeshFilter>().mesh = zms.getMesh();
 					modelObject.AddComponent<MeshRenderer>();
                     modelObject.name = new DirectoryInfo(zmsPath).Name;
-					modelObject.GetComponent<MeshRenderer>().material = mat; 
+                    MeshRenderer renderer = modelObject.GetComponent<MeshRenderer>();
+                    renderer.material = mat;
+                    renderer.castShadows = false; 
 					modelObject.AddComponent<MeshCollider>();
 
 

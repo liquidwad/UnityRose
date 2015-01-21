@@ -30,7 +30,8 @@
 			half4 light = tex2D (_LightTex, IN.uv2_LightTex);
 			half4 tint = half4(_ColorTint);
 			o.Albedo = bottom.rgb*(1.0f - top.a) + tint.rgb*0.0f + top.rgb*top.a;
-			o.Emission = o.Albedo*light*2.0;
+			//o.Emission = o.Albedo*light*2.0;
+			o.Albedo = o.Albedo*light*2.0;
 		}
 		ENDCG
 	} 
