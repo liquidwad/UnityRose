@@ -21,21 +21,12 @@ public class RosePlayer
 	
 	public RosePlayer(Gender gender)
 	{
-
         RoseData.LoadSTB();
-
 		this.gender = gender;
 		LoadMale(97,97,97,2,3,231,97);
-
-
-        
-		
-        
-       
-		//LoadFemale (0,0,0);
 	}
 	
-	private void LoadPart(string zmsPath, string texPath, ZMD skeleton, Transform parent, bool backItem = false)
+	private Bounds LoadPart(string zmsPath, string texPath, ZMD skeleton, Transform parent, bool backItem = false)
 	{
 		// load ZMS
 		zmsPath = "Assets/" + zmsPath.Replace("\\","/");
@@ -76,67 +67,10 @@ public class RosePlayer
 			renderer.material = mat;
 		}
 		
-		//modelObject.AddComponent<MeshCollider>().sharedMesh = mesh;
+		return mesh.bounds;
 	
 	}
 	
-	public void LoadModel(ZSC zsc, int id, ZMD skeleton, bool dummy = false)
-	{
-	
-		foreach(ZSC.Object.Model model in zsc.Objects[id].Models)
-		{
-			string zmsPath = zsc.Models[model.ModelID];
-			ZSC.Texture texture = zsc.Textures[model.TextureID];
-			string texPath = texture.Path;
-			
-			zmsPath = "Assets/" + zmsPath.Replace("\\","/");
-			texPath = "Assets/" + texPath.Replace("\\","/");
-			
-			string shader = "Diffuse";
-			if(texture.AlphaEnabled)
-				shader = "Transparent/Cutout/Diffuse";
-			
-			// TODO: pick correct shader based on alpha and glow
-			Material mat = new Material(Shader.Find(shader));
-			Texture2D tex = Resources.LoadAssetAtPath<Texture2D>(texPath);
-			mat.SetTexture("_MainTex", tex);
-			
-			
-			GameObject modelObject = new GameObject();
-			Transform parent;
-			if(!dummy)
-				parent = skeleton.bones[(int)model.BoneIndex].boneObject.transform;
-			else
-				parent = skeleton.dummies[(int)model.DummyIndex].boneObject.transform;
-			
-			modelObject.transform.parent = parent;
-			modelObject.transform.localPosition = model.Position; //Vector3.zero;
-			modelObject.transform.localRotation = model.Rotation; //Quaternion.identity;
-			modelObject.transform.localScale = model.Scale;//Vector3.one;
-			modelObject.name = new DirectoryInfo(zmsPath).Name;
-			
-			ZMS zms = new ZMS(zmsPath);
-			Mesh mesh = zms.getMesh();
-			
-			if(zms.support.bones)
-			{
-				SkinnedMeshRenderer renderer = modelObject.AddComponent<SkinnedMeshRenderer>();
-				mesh.bindposes = skeleton.bindposes;
-				renderer.sharedMesh = mesh;
-				renderer.material = mat; 
-				renderer.bones = skeleton.boneTransforms;
-				
-			}
-			else
-			{
-				modelObject.AddComponent<MeshFilter>().mesh = mesh;
-				MeshRenderer renderer = modelObject.AddComponent<MeshRenderer>();
-				renderer.material = mat;
-			}
-				
-		}
-
-	}
 	
     /// <summary>
     /// Loads all animations for equiped weapon type
@@ -144,25 +78,25 @@ public class RosePlayer
     /// <param name="WeaponType"></param>
 	public void LoadAnimations(RoseData.AniWeaponType WeaponType)
 	{
-
         Animation animation = player.AddComponent<Animation>();
-
         foreach ( RoseData.AniAction action in Enum.GetValues(typeof(RoseData.AniAction)))
         {
             animation.AddClip(new ZMO("Assets\\" +  RoseData.GetAnimationFile(WeaponType, action, RoseData.AniGender.MALE)).buildAnimationClip(skeleton), action.ToString());
         }
-
 	}
 
-	public void LoadObject(ZSC zsc, int id, ZMD skelton,Transform parent, bool backItem=false )
+	public Bounds LoadObject(ZSC zsc, int id, ZMD skelton,Transform parent, bool backItem=false )
 	{
+        Bounds objectBounds = new Bounds(parent.position, Vector3.zero);
 		for (int i = 0; i < zsc.Objects[id].Models.Count; i++)
 		{
 			int ModelID = zsc.Objects[id].Models[i].ModelID;
 			int TextureID = zsc.Objects[id].Models[i].TextureID;
 			
-			LoadPart( zsc.Models[ModelID], zsc.Textures[TextureID].Path,skelton, parent, backItem);
+			Bounds partBounds = LoadPart( zsc.Models[ModelID], zsc.Textures[TextureID].Path,skelton, parent, backItem);
+            objectBounds.Encapsulate(partBounds);
 		}
+        return objectBounds;
 	}
 	
 	public void LoadMale(int chest, int arms, int foot, int hair, int face, int back, int cap)
@@ -194,17 +128,14 @@ public class RosePlayer
 
 
 		//load all objects
-		LoadObject (body_zsc, chest, skeleton, player.transform);
-		LoadObject (arms_zsc, arms, skeleton, player.transform);
-		LoadObject (foot_zsc, foot, skeleton, player.transform);
-		LoadObject(face_zsc, face, skeleton, skeleton.findBone("b1_head").boneObject.transform);
-		LoadObject(hair_zsc, hair, skeleton, skeleton.findBone("b1_head").boneObject.transform);
+        Bounds playerBounds = new Bounds(player.transform.position, Vector3.zero);
+        playerBounds.Encapsulate(LoadObject(body_zsc, chest, skeleton, player.transform));
+        playerBounds.Encapsulate(LoadObject(arms_zsc, arms, skeleton, player.transform));
+		playerBounds.Encapsulate(LoadObject (foot_zsc, foot, skeleton, player.transform));
+		playerBounds.Encapsulate(LoadObject(face_zsc, face, skeleton, skeleton.findBone("b1_head").boneObject.transform));
+		playerBounds.Encapsulate(LoadObject(hair_zsc, hair, skeleton, skeleton.findBone("b1_head").boneObject.transform));
 		LoadObject(cap_zsc, cap, skeleton, skeleton.findDummy("p_06").boneObject.transform);
 		LoadObject(back_zsc, back , skeleton, skeleton.findDummy("p_03").boneObject.transform, true);	
-
-		//player.transform.Rotate(-90.0f, 0.0f, 180.0f);
-        player.transform.position = new Vector3(5200.0f, 0.0f, 5653.0f);
-
 
         //load animations
         LoadAnimations(RoseData.AniWeaponType.EMPTY);
@@ -213,114 +144,37 @@ public class RosePlayer
         player.AddComponent<PlayerController>();
 
         //add Character controller
+        Vector3 center = player.transform.FindChild("b1_pelvis").localPosition; //playerBounds.center;
+        center.y = 0.95f;
+        float height = 1.7f;
+        float radius = Math.Max(playerBounds.extents.x, playerBounds.extents.y) / 2.0f;
         CharacterController charController = player.AddComponent<CharacterController>();
-        charController.center = new Vector3(0.0f, 1.0f, 0.0f);
+        charController.center = center;
+        charController.height = height;
+        charController.radius = radius;
 
         //add collider
         CapsuleCollider c = player.AddComponent<CapsuleCollider>();
-        c.center = new Vector3(0,1,0);
-        c.height = 2;
+        c.center =  center;
+        c.height = height;
+        c.radius = radius;
         c.direction = 1; // direction y
-        
 
-        //Create the camera
-        GameObject cameraObject = new GameObject("Main Camera");
+        player.transform.position = new Vector3(5200.0f, 0.0f, 5653.0f);
 
+        //Create the camera if it isn't already there
+        GameObject cameraObject = GameObject.Find("Main Camera");
+        if(  cameraObject == null )
+            cameraObject = new GameObject("Main Camera");
+
+        cameraObject.transform.position = player.transform.position + new Vector3(-6.0f, 2.0f, -6.0f);
+        cameraObject.transform.LookAt(player.transform);
         CameraController cameraController =  cameraObject.AddComponent<CameraController>();
         cameraController.target = player;
 
         Camera camera = cameraObject.AddComponent<Camera>();
+        camera.farClipPlane = 300.0f;
         camera.tag = "MainCamera";
-
-        
-
-        
-        
-        
-
-
-
-		/*
-		ZMO zmo = new ZMO("Assets/3ddata/motion/avatar/dance_chacha_m1.zmo", false, true);
-		Animation animation = player.AddComponent<Animation>();
-		AnimationClip clip = zmo.buildAnimationClip(skeleton);
-		clip.name = "dance_cha_cha_m1";
-		
-		//AssetDatabase.CreateAsset(clip, "Assets/Animations/dance_cha_cha_m1.asset");
-		animation.AddClip(clip, "dance_cha_cha_m1");
-		animation.clip = clip;
-		//animation.playAutomatically = true;
-		//animation.wrapMode = WrapMode.Loop;
-		//AssetDatabase.CreateAsset(animation, "Assets/Animations/dance_cha_cha_m1.anim");
-		
-		player.transform.Rotate(-90.0f, 0.0f, 180.0f);
-		
-		Animator animator = player.AddComponent<Animator>();
-		
-		HumanDescription config = new HumanDescription();
-		config.armStretch = 0.5f;
-		config.feetSpacing = 0.5f;
-		config.legStretch = 0.5f;
-		config.lowerArmTwist = 0.5f;
-		config.upperArmTwist = 0.5f;
-		config.lowerLegTwist = 0.5f;
-		config.upperArmTwist = 0.5f;
-		
-		SkeletonBone[] bones = new SkeletonBone[skeleton.bones.Count+1];
-		bones[0] = new SkeletonBone();
-		bones[0].name = "player";
-		bones[0].position = player.transform.position;
-		bones[0].rotation = player.transform.rotation;
-		bones[0].scale = player.transform.localScale;
-		
-		for(int i=1; i<bones.Length; i++)
-		{
-			bones[i] = new SkeletonBone();
-			bones[i].name = skeleton.bones[i-1].Name;
-			bones[i].position = skeleton.boneTransforms[i].localPosition;// skeleton.bones[i].Position;
-			bones[i].rotation = skeleton.boneTransforms[i].localRotation;//skeleton.bones[i].Rotation;
-			bones[i].scale = skeleton.boneTransforms[i].localScale;
-		}
-		config.skeleton = bones;
-		
-		Dictionary<string, string> unity2rose = new Dictionary<string,string>(15);
-		unity2rose.Add ("Hips", skeleton.findBone("b1_pelvis").Name);
-		unity2rose.Add ("LeftUpperLeg", skeleton.findBone("b1_lthigh").Name);
-		unity2rose.Add ("RightUpperLeg", skeleton.findBone("b1_rthigh").Name);
-		unity2rose.Add ("LeftLowerLeg", skeleton.findBone("b1_lcalf").Name);
-		unity2rose.Add ("RightLowerLeg", skeleton.findBone("b1_rcalf").Name);
-		unity2rose.Add ("LeftFoot", skeleton.findBone("b1_lfoot").Name);
-		unity2rose.Add ("RightFoot", skeleton.findBone("b1_rfoot").Name);
-		unity2rose.Add ("Spine", skeleton.findBone("b1_chest").Name);
-		unity2rose.Add ("Head", skeleton.findBone("b1_head").Name);
-		unity2rose.Add ("LeftUpperArm", skeleton.findBone("b1_lupperarm").Name);
-		unity2rose.Add ("RightUpperArm", skeleton.findBone("b1_rupperarm").Name);
-		unity2rose.Add ("LeftLowerArm", skeleton.findBone("b1_lforearm").Name);
-		unity2rose.Add ("RightLowerArm", skeleton.findBone("b1_rforearm").Name);
-		unity2rose.Add ("LeftHand", skeleton.findBone("b1_lhand").Name);
-		unity2rose.Add ("RightHand", skeleton.findBone("b1_rhand").Name);
-
-		
-		config.human = new HumanBone[15];
-		int index = 0;
-		foreach(KeyValuePair<string, string> pair in unity2rose)
-		{
-			HumanBone humanBone = new HumanBone();
-			humanBone.humanName = pair.Key;
-			humanBone.boneName = pair.Value;
-			humanBone.limit = new HumanLimit();
-			humanBone.limit.useDefaultValues = true;
-			config.human[index++] = humanBone;
-		}
-		
-		
-		Avatar male = AvatarBuilder.BuildHumanAvatar(player, config);
-		male.name = "MalePlayer";
-		
-		//animator.avatar = male;
-		
-		AssetDatabase.CreateAsset(male, "Assets/Animations/MaleAvatar.asset");
-		*/
 	}
 	
 	

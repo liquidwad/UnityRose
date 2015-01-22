@@ -372,7 +372,7 @@ namespace UnityRose.Formats
                                 Frames[i].Channels[j].Position = Utils.Utils.r2uPosition(fh.Read<Vector3>());
 
                                 if (camera && (j == 0 || j == 1))
-                                    Frames[i].Channels[j].Position = (Utils.Utils.r2uPosition(fh.Read<Vector3>()) + new Vector3(520000.0f, 0.0f, 520000.0f)) / 100.0f;
+                                    Frames[i].Channels[j].Position = Utils.Utils.r2uPosition(fh.Read<Vector3>() + new Vector3(52000.0f, 52000.0f, 0.0f)) / 100.0f;
                                 else if (divide)
                                     Frames[i].Channels[j].Position /= 100.0f;
                             }

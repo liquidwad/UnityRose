@@ -13,7 +13,7 @@ namespace UnityRose.Utils
             Vector3 axis;
             float angle;
             q.ToAngleAxis(out angle, out axis);
-            return Quaternion.AngleAxis(-angle, new Vector3(axis.x, axis.z, axis.y));
+            return Quaternion.AngleAxis(angle, new Vector3(axis.x, axis.z, -axis.y));
         }
 
         public static Vector3 r2uPosition(Vector3 v)
@@ -25,6 +25,19 @@ namespace UnityRose.Utils
         {
             return new Vector3(v.x, v.z, -v.y);
         }
+
+
+
+        public static Bounds GetMaxBounds(GameObject g)
+        {
+            var b = new Bounds(g.transform.position, Vector3.zero);
+            foreach (Renderer r in g.GetComponentsInChildren<Renderer>())
+            {
+                b.Encapsulate(r.bounds);
+            }
+            return b;
+        }
+
 		public static void addVertexToLookup(Dictionary<String,List<int>> lookup, String vertex, int index)
 		{
 			if(!lookup.ContainsKey(vertex))
