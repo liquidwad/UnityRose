@@ -314,23 +314,23 @@ namespace UnityRose.Game
 					
                     if (y == 0)
 					{
-						Utils.Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), a);
-						Utils.Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), b);
+						Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), a);
+						Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), b);
 					}
                     if (y == m_HIM.Width - 1)
 					{
-						Utils.Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), d);
-						Utils.Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), c);
+						Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), d);
+						Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), c);
 					}
                     if (x == 0)
 					{
-						Utils.Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), a);
-						Utils.Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), d);
+						Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), a);
+						Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), d);
 					}
                     if (x == m_HIM.Length - 1)
 					{
-						Utils.Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), b);
-						Utils.Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), c);
+						Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), b);
+						Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), c);
 					}
 					
 					
@@ -417,7 +417,7 @@ namespace UnityRose.Game
 				Dictionary<String, List<int>> vertexLookup = new Dictionary<String, List<int>>();
 				// 1. and 2.
                 for (int i = 0; i < m_mesh.vertexCount; i++)
-					Utils.Utils.addVertexToLookup(vertexLookup, m_mesh.vertices[i].ToString(), i);
+					Utils.addVertexToLookup(vertexLookup, m_mesh.vertices[i].ToString(), i);
 				
 				// traverse the shared vertex list and calculate new normals
 				

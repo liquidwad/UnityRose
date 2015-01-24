@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityRose.File;
-using UnityRose.Utils;
 
 namespace UnityRose.Formats
 {
@@ -221,7 +220,7 @@ namespace UnityRose.Formats
 				{
                     if (version <= 6)
 						fh.Read<short>();
-                    vertices[i] = Utils.Utils.r2uPosition(new Vector3()
+                    vertices[i] = Utils.r2uPosition(new Vector3()
                     {
                         x = fh.Read<float>(),
                         y = fh.Read<float>(),
@@ -242,7 +241,7 @@ namespace UnityRose.Formats
 				{
                     if (version <= 6)
 						fh.Read<short>();
-                    normals[i] = Utils.Utils.r2uVector(new Vector3()
+                    normals[i] = Utils.r2uVector(new Vector3()
                     {
                         x = fh.Read<float>(),
                         y = fh.Read<float>(),

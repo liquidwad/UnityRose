@@ -29,9 +29,13 @@ public class RosePlayer
 	private Bounds LoadPart(string zmsPath, string texPath, ZMD skeleton, Transform parent, bool backItem = false)
 	{
 		// load ZMS
-		zmsPath = "Assets/" + zmsPath.Replace("\\","/");
-		texPath = "Assets/" + texPath.Replace("\\","/");
+		zmsPath = Utils.FixPath("Assets/" + zmsPath);
+		texPath = Utils.FixPath("Assets/" + texPath);
+		
 		ZMS zms = new ZMS(zmsPath);
+		
+		DirectoryInfo texDir = new DirectoryInfo(texPath);
+		DirectoryInfo meshDir = new DirectoryInfo(zmsPath);
 		
 		// Create material
 		
@@ -39,7 +43,10 @@ public class RosePlayer
 		if(backItem)
 			shader = "Transparent/Cutout/Diffuse";
 		Material mat = new Material(Shader.Find(shader));
-		Texture2D tex = Resources.LoadAssetAtPath<Texture2D>(texPath);
+		
+		mat = (Material)Utils.SaveReloadAsset(mat, texPath, ".mat");
+		
+		Texture2D tex = Utils.CopyReloadTexAsset(texPath); 
 		mat.SetTexture("_MainTex", tex);
 		
 		GameObject modelObject = new GameObject();
@@ -50,6 +57,7 @@ public class RosePlayer
 		modelObject.name =  new DirectoryInfo(zmsPath).Name;
 		
 		Mesh mesh = zms.getMesh();
+		mesh = (Mesh)Utils.SaveReloadAsset(mesh, zmsPath);
 		
 		if(zms.support.bones)
 		{
@@ -58,7 +66,6 @@ public class RosePlayer
 			renderer.sharedMesh = mesh;
 			renderer.material = mat; 
 			renderer.bones = skeleton.boneTransforms;
-			
 		}
 		else
 		{
@@ -78,14 +85,19 @@ public class RosePlayer
     /// <param name="WeaponType"></param>
 	public void LoadAnimations(RoseData.AniWeaponType WeaponType)
 	{
-        Animation animation = player.AddComponent<Animation>();
-        foreach ( RoseData.AniAction action in Enum.GetValues(typeof(RoseData.AniAction)))
+		Animation animation = player.AddComponent<Animation>() ;
+		animation = (Animation) Utils.SaveReloadAsset( animation, "Assets/GameData/animations/MALE/" + WeaponType.ToString() + ".asset" );
+		foreach ( RoseData.AniAction action in Enum.GetValues(typeof(RoseData.AniAction)))
         {
-            animation.AddClip(new ZMO("Assets\\" +  RoseData.GetAnimationFile(WeaponType, action, RoseData.AniGender.MALE)).buildAnimationClip(skeleton), action.ToString());
+			string zmoPath = Utils.FixPath("Assets\\" + RoseData.GetAnimationFile(WeaponType, action, RoseData.AniGender.MALE));
+			AnimationClip clip = new ZMO(zmoPath).buildAnimationClip(skeleton);
+			clip = (AnimationClip) Utils.SaveReloadAsset(clip, zmoPath, ".anim");
+			animation.AddClip(clip, action.ToString());
         }
+			
 	}
 
-	public Bounds LoadObject(ZSC zsc, int id, ZMD skelton,Transform parent, bool backItem=false )
+	public Bounds LoadObject(ZSC zsc, int id, ZMD skeleton,Transform parent, bool backItem=false )
 	{
         Bounds objectBounds = new Bounds(parent.position, Vector3.zero);
 		for (int i = 0; i < zsc.Objects[id].Models.Count; i++)
@@ -93,7 +105,7 @@ public class RosePlayer
 			int ModelID = zsc.Objects[id].Models[i].ModelID;
 			int TextureID = zsc.Objects[id].Models[i].TextureID;
 			
-			Bounds partBounds = LoadPart( zsc.Models[ModelID], zsc.Textures[TextureID].Path,skelton, parent, backItem);
+			Bounds partBounds = LoadPart( zsc.Models[ModelID], zsc.Textures[TextureID].Path, skeleton, parent, backItem);
             objectBounds.Encapsulate(partBounds);
 		}
         return objectBounds;
@@ -123,20 +135,22 @@ public class RosePlayer
 
 		skeleton = new ZMD("Assets/3DData/Avatar/MALE.ZMD");
 		player = new GameObject("player");
+		
+		//player = Utils.SaveReloadAsset( player, "Assets/Game Objects/player.asset");
 		skeleton.buildSkeleton(player, false);
 		 
 
 
 		//load all objects
         Bounds playerBounds = new Bounds(player.transform.position, Vector3.zero);
-        playerBounds.Encapsulate(LoadObject(body_zsc, chest, skeleton, player.transform));
-        playerBounds.Encapsulate(LoadObject(arms_zsc, arms, skeleton, player.transform));
+//        playerBounds.Encapsulate(LoadObject(body_zsc, chest, skeleton, player.transform));
+//        playerBounds.Encapsulate(LoadObject(arms_zsc, arms, skeleton, player.transform));
 		playerBounds.Encapsulate(LoadObject (foot_zsc, foot, skeleton, player.transform));
-		playerBounds.Encapsulate(LoadObject(face_zsc, face, skeleton, skeleton.findBone("b1_head").boneObject.transform));
-		playerBounds.Encapsulate(LoadObject(hair_zsc, hair, skeleton, skeleton.findBone("b1_head").boneObject.transform));
-		LoadObject(cap_zsc, cap, skeleton, skeleton.findDummy("p_06").boneObject.transform);
-		LoadObject(back_zsc, back , skeleton, skeleton.findDummy("p_03").boneObject.transform, true);	
-
+//		playerBounds.Encapsulate(LoadObject(face_zsc, face, skeleton, skeleton.findBone("b1_head").boneObject.transform));
+//		playerBounds.Encapsulate(LoadObject(hair_zsc, hair, skeleton, skeleton.findBone("b1_head").boneObject.transform));
+//		LoadObject(cap_zsc, cap, skeleton, skeleton.findDummy("p_06").boneObject.transform);
+//		LoadObject(back_zsc, back , skeleton, skeleton.findDummy("p_03").boneObject.transform, true);	
+		
         //load animations
         LoadAnimations(RoseData.AniWeaponType.EMPTY);
 
@@ -175,6 +189,8 @@ public class RosePlayer
         Camera camera = cameraObject.AddComponent<Camera>();
         camera.farClipPlane = 300.0f;
         camera.tag = "MainCamera";
+        
+        AssetDatabase.SaveAssets();
 	}
 	
 	
