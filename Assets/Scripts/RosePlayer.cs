@@ -46,9 +46,13 @@ public class RosePlayer
 		if(backItem)
 			shader = "Transparent/Cutout/Diffuse";
 		Material mat = new Material(Shader.Find(shader));
-		Texture2D tex = Utils.CopyReloadTexAsset(texPath); 
-		mat.SetTexture("_MainTex", tex);
+
         mat = (Material)Utils.SaveReloadAsset(mat, texPath, ".mat");
+
+        Texture2D tex = Utils.CopyReloadTexAsset(texPath);
+        mat.SetTexture("_MainTex", tex);
+
+        AssetDatabase.SaveAssets();
 
 		GameObject modelObject = new GameObject();
 		modelObject.transform.parent = parent;

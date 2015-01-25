@@ -98,6 +98,13 @@ public class Utils
 			
 		return ("assets/" + result);
 	}
+
+    // Trim path preceding /asset
+    public static string GetUnityPath(string path)
+    {
+        DirectoryInfo dir = new DirectoryInfo(path);
+        return GetUnityPath(dir);
+    }
 	
 	// Saves an asset into the GameData folder using AssetDatabase, then loads it back from that path and returns it
 	// The rose file path structure is maintained but 3ddata is replaced by GameData
@@ -125,12 +132,22 @@ public class Utils
             return null;   
 
         return AssetDatabase.LoadMainAssetAtPath(GetUnityPath(unityDir));
-    } 
+    }
+
+    public static string GetUnityTexPath(string rosePath, string extension)
+    {
+        DirectoryInfo unityDir = new DirectoryInfo( rosePath );//r2uDir(rosePath, extension);
+        string texPath = "Assets/GameData/Textures/" + unityDir.Name;
+        // Convert the texture name to the given extensio and create intermediate folders if  not present
+        DirectoryInfo texDir = r2uDir(texPath, extension);
+        return texDir.FullName;
+    }
 	
 	// Copy the texture from 3ddata to GameData (if it doesn't already exist) then load it as a Texture2D and return it
 	public static Texture2D CopyReloadTexAsset( string rosePath )
 	{
-		DirectoryInfo unityDir = r2uDir ( rosePath, ".dds" );
+		/*
+        DirectoryInfo unityDir = r2uDir ( rosePath, ".dds" );
         if ( !File.Exists(unityDir.FullName))
         {
             AssetDatabase.CopyAsset(FixPath(rosePath), GetUnityPath(unityDir));
@@ -138,6 +155,38 @@ public class Utils
         }
 		
 		return (Texture2D) AssetDatabase.LoadMainAssetAtPath( GetUnityPath(unityDir) );
+         * */
+
+        string texPathDDS = GetUnityTexPath(rosePath, ".dds");
+        string texPathPNG = GetUnityTexPath(rosePath, ".png");
+
+        
+        if (!File.Exists(texPathPNG) && !File.Exists(texPathDDS))
+        {
+            // If neither dds nor png are present, move texture to textures folder as dds and load dds
+            AssetDatabase.CopyAsset(FixPath(rosePath), texPathDDS);
+            AssetDatabase.Refresh();
+            return (Texture2D)AssetDatabase.LoadMainAssetAtPath( GetUnityPath(texPathDDS) );
+        }
+        else if( File.Exists(texPathPNG) )
+        {
+            // if both dds and png files are present in the textures folder, delete the dds
+            if( File.Exists(texPathDDS) )
+            {
+                AssetDatabase.DeleteAsset(GetUnityPath(texPathDDS));
+                AssetDatabase.Refresh();
+            }
+
+            return (Texture2D)AssetDatabase.LoadMainAssetAtPath(GetUnityPath(texPathPNG));
+        }
+        else if( File.Exists(texPathDDS) )
+        {
+            // if only dds file exists, return it
+            return (Texture2D)AssetDatabase.LoadMainAssetAtPath(GetUnityPath(texPathDDS));
+        }
+
+        // in case of some failure, return null
+        return null;
 	}
 
 
