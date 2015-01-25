@@ -191,6 +191,10 @@ namespace UnityRose.Formats
 		/// <param name="filePath">The file path.</param>
 		public void Load(string filePath)
 		{
+            // first, check if the file exists in the unity dir, and copy it if it doesn't
+            // Then use the path of the GameData folder
+            //sfilePath = Utils.CopyToGameData(filePath);
+
 			support = new Support();
 			FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Reading, null);
 

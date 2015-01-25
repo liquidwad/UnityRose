@@ -88,7 +88,7 @@ public class State
 	public State(States stateName, GameObject gameObject, WrapMode wrapMode = WrapMode.Loop)
 	{
         this.stateName = stateName;
-        clipName = Name = stateName.ToString();
+        clipName = Name = stateName.ToString().ToLower();
 		this.gameObject = gameObject;
 		this.wrapMode = wrapMode;
 		connections = new List<StateConnection>();

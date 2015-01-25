@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Resources;
 using UnityEngine;
 using UnityEditor;
     
@@ -33,10 +34,10 @@ public static Vector3 r2uVector(Vector3 v)
 	// fixes the path based on platform and returns fixed string
 	public static string FixPath(string file)
 	{
-		if( IsMac() )
-			return file.Replace("\\","/");
-		else
-			return file.Replace ("/","\\");
+        if (IsMac())
+            return file.Replace("\\", "/");
+        else
+            return file.Replace("/", "\\");
 	}
 	
 
@@ -49,7 +50,8 @@ public static Vector3 r2uVector(Vector3 v)
 		// Creat the parent folder path if it doesn't already exist
 		if( !unityDir.Parent.Exists )
 			Directory.CreateDirectory(unityDir.Parent.FullName);
-		
+
+        unityDir.Refresh();
 		return unityDir;
 	}
 	
@@ -65,7 +67,7 @@ public static Vector3 r2uVector(Vector3 v)
 			currentPath = nextPath.Parent;
 		}
 			
-		return FixPath("assets/" + result);
+		return ("assets/" + result);
 	}
 	
 	// Saves an asset into the GameData folder using AssetDatabase, then loads it back from that path and returns it
@@ -73,27 +75,42 @@ public static Vector3 r2uVector(Vector3 v)
 	public static UnityEngine.Object SaveReloadAsset(UnityEngine.Object asset, string rosePath, string extension = ".asset")
 	{
 		DirectoryInfo unityDir = r2uDir ( rosePath, extension );
-		
 		// Only create the asset if it doesn't already exist
-		if( !unityDir.Exists)
+
+        if( !File.Exists(  unityDir.FullName ) )
 		{
 			AssetDatabase.CreateAsset( asset, GetUnityPath(unityDir) );
 			AssetDatabase.SaveAssets();
-			return AssetDatabase.LoadMainAssetAtPath( GetUnityPath(unityDir) );
-		}
-		
-		return asset;
-	} 
+            AssetDatabase.Refresh();
+        }
+
+		return AssetDatabase.LoadMainAssetAtPath( GetUnityPath(unityDir) );
+	}
+
+    // Attempts to load an asset using the unity path. If not present, returns null
+    public static UnityEngine.Object LoadAsset(string rosePath, string extension = ".asset")
+    {
+        DirectoryInfo unityDir = r2uDir(rosePath, extension);
+
+        if (!File.Exists(unityDir.FullName))
+            return null;   
+
+        return AssetDatabase.LoadMainAssetAtPath(GetUnityPath(unityDir));
+    } 
 	
 	// Copy the texture from 3ddata to GameData (if it doesn't already exist) then load it as a Texture2D and return it
 	public static Texture2D CopyReloadTexAsset( string rosePath )
 	{
 		DirectoryInfo unityDir = r2uDir ( rosePath, ".dds" );
-		if( !unityDir.Exists )
-			AssetDatabase.CopyAsset( FixPath(rosePath), GetUnityPath(unityDir) );
+        if ( !File.Exists(unityDir.FullName))
+        {
+            AssetDatabase.CopyAsset(FixPath(rosePath), GetUnityPath(unityDir));
+            AssetDatabase.Refresh();
+        }
 		
 		return (Texture2D) AssetDatabase.LoadMainAssetAtPath( GetUnityPath(unityDir) );
 	}
+
 	
 	public static Bounds GetMaxBounds(GameObject g)
 	{

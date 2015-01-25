@@ -43,20 +43,18 @@ public class RosePlayer
 		if(backItem)
 			shader = "Transparent/Cutout/Diffuse";
 		Material mat = new Material(Shader.Find(shader));
-		
-		mat = (Material)Utils.SaveReloadAsset(mat, texPath, ".mat");
-		
 		Texture2D tex = Utils.CopyReloadTexAsset(texPath); 
 		mat.SetTexture("_MainTex", tex);
-		
+        mat = (Material)Utils.SaveReloadAsset(mat, texPath, ".mat");
+
 		GameObject modelObject = new GameObject();
 		modelObject.transform.parent = parent;
 		modelObject.transform.localPosition = Vector3.zero;
 		modelObject.transform.localRotation = Quaternion.identity;
 		modelObject.transform.localScale = Vector3.one;
 		modelObject.name =  new DirectoryInfo(zmsPath).Name;
-		
-		Mesh mesh = zms.getMesh();
+
+        Mesh mesh = zms.getMesh();
 		mesh = (Mesh)Utils.SaveReloadAsset(mesh, zmsPath);
 		
 		if(zms.support.bones)
@@ -85,16 +83,18 @@ public class RosePlayer
     /// <param name="WeaponType"></param>
 	public void LoadAnimations(RoseData.AniWeaponType WeaponType)
 	{
-		Animation animation = player.AddComponent<Animation>() ;
-		animation = (Animation) Utils.SaveReloadAsset( animation, "Assets/GameData/animations/MALE/" + WeaponType.ToString() + ".asset" );
+        List<AnimationClip> clips = new List<AnimationClip>();
+        
 		foreach ( RoseData.AniAction action in Enum.GetValues(typeof(RoseData.AniAction)))
         {
+            // Attempt to find animation asset, and if not found, load from ZMO
 			string zmoPath = Utils.FixPath("Assets\\" + RoseData.GetAnimationFile(WeaponType, action, RoseData.AniGender.MALE));
-			AnimationClip clip = new ZMO(zmoPath).buildAnimationClip(skeleton);
-			clip = (AnimationClip) Utils.SaveReloadAsset(clip, zmoPath, ".anim");
-			animation.AddClip(clip, action.ToString());
+            AnimationClip clip = R2U.GetClip(zmoPath, skeleton, action.ToString());
+            clips.Add(clip);
         }
-			
+
+        Animation animation = player.GetComponent<Animation>();
+        AnimationUtility.SetAnimationClips(animation, clips.ToArray());
 	}
 
 	public Bounds LoadObject(ZSC zsc, int id, ZMD skeleton,Transform parent, bool backItem=false )
@@ -132,25 +132,24 @@ public class RosePlayer
 		ZSC back_zsc = new ZSC(path_back);
 		
 
-
 		skeleton = new ZMD("Assets/3DData/Avatar/MALE.ZMD");
-		player = new GameObject("player");
-		
-		//player = Utils.SaveReloadAsset( player, "Assets/Game Objects/player.asset");
+        player = new GameObject("player");
+        
 		skeleton.buildSkeleton(player, false);
 		 
-
-
+        
 		//load all objects
         Bounds playerBounds = new Bounds(player.transform.position, Vector3.zero);
-//        playerBounds.Encapsulate(LoadObject(body_zsc, chest, skeleton, player.transform));
-//        playerBounds.Encapsulate(LoadObject(arms_zsc, arms, skeleton, player.transform));
+        playerBounds.Encapsulate(LoadObject(body_zsc, chest, skeleton, player.transform));
+        playerBounds.Encapsulate(LoadObject(arms_zsc, arms, skeleton, player.transform));
 		playerBounds.Encapsulate(LoadObject (foot_zsc, foot, skeleton, player.transform));
-//		playerBounds.Encapsulate(LoadObject(face_zsc, face, skeleton, skeleton.findBone("b1_head").boneObject.transform));
-//		playerBounds.Encapsulate(LoadObject(hair_zsc, hair, skeleton, skeleton.findBone("b1_head").boneObject.transform));
-//		LoadObject(cap_zsc, cap, skeleton, skeleton.findDummy("p_06").boneObject.transform);
-//		LoadObject(back_zsc, back , skeleton, skeleton.findDummy("p_03").boneObject.transform, true);	
-		
+		playerBounds.Encapsulate(LoadObject(face_zsc, face, skeleton, skeleton.findBone("b1_head").boneObject.transform));
+		playerBounds.Encapsulate(LoadObject(hair_zsc, hair, skeleton, skeleton.findBone("b1_head").boneObject.transform));
+		LoadObject(cap_zsc, cap, skeleton, skeleton.findDummy("p_06").boneObject.transform);
+		LoadObject(back_zsc, back , skeleton, skeleton.findDummy("p_03").boneObject.transform, true);
+
+        player.AddComponent<Animation>();
+
         //load animations
         LoadAnimations(RoseData.AniWeaponType.EMPTY);
 
@@ -178,18 +177,20 @@ public class RosePlayer
 
         //Create the camera if it isn't already there
         GameObject cameraObject = GameObject.Find("Main Camera");
-        if(  cameraObject == null )
+        if (cameraObject == null)
+        {
             cameraObject = new GameObject("Main Camera");
+            cameraObject.transform.position = player.transform.position + new Vector3(-6.0f, 2.0f, -6.0f);
+            cameraObject.transform.LookAt(player.transform);
+            CameraController cameraController = cameraObject.AddComponent<CameraController>();
+            cameraController.target = player;
 
-        cameraObject.transform.position = player.transform.position + new Vector3(-6.0f, 2.0f, -6.0f);
-        cameraObject.transform.LookAt(player.transform);
-        CameraController cameraController =  cameraObject.AddComponent<CameraController>();
-        cameraController.target = player;
+            Camera camera = cameraObject.AddComponent<Camera>();
+            camera.farClipPlane = 300.0f;
+            camera.tag = "MainCamera";
+        }
 
-        Camera camera = cameraObject.AddComponent<Camera>();
-        camera.farClipPlane = 300.0f;
-        camera.tag = "MainCamera";
-        
+        PrefabUtility.CreatePrefab("Assets/Prefabs/MalePlayer.prefab", player);
         AssetDatabase.SaveAssets();
 	}
 	
