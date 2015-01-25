@@ -1,5 +1,6 @@
-﻿using UnityEngine;
-using UnityEditor;
+﻿
+#if UNITY_EDITOR
+using UnityEngine;
 using System.Collections;
 using System.IO;
 
@@ -43,3 +44,5 @@ namespace UnityRose.Formats
 
     }
 }
+
+#endif

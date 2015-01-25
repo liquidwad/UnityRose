@@ -1,7 +1,7 @@
-using UnityEditor;
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityRose.Formats;
-
+using UnityEditor;
 public class UtilWindow : EditorWindow {
 	
 	Vector3 p1 = new Vector3(0.0f, 0.0f, 0.0f);
@@ -46,4 +46,6 @@ public class BoneViewer : Editor {
 		Handles.DrawLine(p1, p2);
 	}
 }
+
+#endif
 	

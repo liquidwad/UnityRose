@@ -1,30 +1,59 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Resources;
 using UnityEngine;
+
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
     
 public class Utils
 {
-public static Quaternion r2uRotation(Quaternion q)
-{
-    Vector3 axis;
-    float angle;
-    q.ToAngleAxis(out angle, out axis);
-    return Quaternion.AngleAxis(angle, new Vector3(axis.x, axis.z, -axis.y));
-}
+	public static Quaternion r2uRotation(Quaternion q)
+	{
+	    Vector3 axis;
+	    float angle;
+	    q.ToAngleAxis(out angle, out axis);
+	    return Quaternion.AngleAxis(angle, new Vector3(axis.x, axis.z, -axis.y));
+	}
+	
+	public static Vector3 r2uPosition(Vector3 v)
+	{
+	    return new Vector3(v.x, v.z, -v.y);
+	}
+	
+	public static Vector3 r2uVector(Vector3 v)
+	{
+	    return new Vector3(v.x, v.z, -v.y);
+	}
 
-public static Vector3 r2uPosition(Vector3 v)
-{
-    return new Vector3(v.x, v.z, -v.y);
-}
-
-public static Vector3 r2uVector(Vector3 v)
-{
-    return new Vector3(v.x, v.z, -v.y);
-}
-
+	public static void addVertexToLookup(Dictionary<String,List<int>> lookup, String vertex, int index)
+	{
+		if(!lookup.ContainsKey(vertex))
+		{
+			List<int> ids = new List<int>();
+			ids.Add (index);
+			lookup.Add (vertex.ToString(), ids);
+		}
+		else
+		{
+			lookup[vertex].Add(index);
+		}
+	}
+	
+	public static Bounds GetMaxBounds(GameObject g)
+	{
+		var b = new Bounds(g.transform.position, Vector3.zero);
+		foreach (Renderer r in g.GetComponentsInChildren<Renderer>())
+		{
+			b.Encapsulate(r.bounds);
+		}
+		return b;
+	}
+	
+#if UNITY_EDITOR
 	// Returns true if platform is mac
 	public static bool IsMac()
 	{
@@ -111,31 +140,7 @@ public static Vector3 r2uVector(Vector3 v)
 		return (Texture2D) AssetDatabase.LoadMainAssetAtPath( GetUnityPath(unityDir) );
 	}
 
-	
-	public static Bounds GetMaxBounds(GameObject g)
-	{
-	    var b = new Bounds(g.transform.position, Vector3.zero);
-	    foreach (Renderer r in g.GetComponentsInChildren<Renderer>())
-	    {
-	        b.Encapsulate(r.bounds);
-	    }
-	    return b;
-	}
 
-	public static void addVertexToLookup(Dictionary<String,List<int>> lookup, String vertex, int index)
-	{
-		if(!lookup.ContainsKey(vertex))
-		{
-			List<int> ids = new List<int>();
-			ids.Add (index);
-			lookup.Add (vertex.ToString(), ids);
-		}
-		else
-		{
-			lookup[vertex].Add(index);
-		}
-	}
-	
 	//****************************************************************************************************
 	//  static function DrawLine(rect : Rect) : void
 	//  static function DrawLine(rect : Rect, color : Color) : void
@@ -203,5 +208,6 @@ public static Vector3 r2uVector(Vector3 v)
 		GUI.matrix = matrix;
 		GUI.color = savedColor;
 	}
-}
 
+#endif
+}

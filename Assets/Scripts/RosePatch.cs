@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using UnityEditor;
 using UnityRose.Formats;
 
 namespace UnityRose.Game 

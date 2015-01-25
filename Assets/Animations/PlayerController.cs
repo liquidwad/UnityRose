@@ -97,7 +97,7 @@ namespace UnityRose
 
 
 
-            if ( Vector3.Distance( transform.position , destinationPosition ) > 1 )
+            if ( Vector3.Distance( transform.position , destinationPosition ) > 0.1f )
             {
                 //direction ?
                 Vector3 playerToMouse = destinationPosition - transform.position;
