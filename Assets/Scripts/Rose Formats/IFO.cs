@@ -757,30 +757,31 @@ namespace UnityRose.Formats
                                     ObjectID = fh.Read<int>(),
                                     MapPosition = new Vector2()
                                     {
-                                        x = fh.Read<int>(),
-                                        y = fh.Read<int>()
+                                        y = fh.Read<int>(),
+                                        x = fh.Read<int>()
                                     },
                                    	
                                    	//Rotation = fh.Read<Quaternion>(),
-									Rotation = new Quaternion()
+									Rotation = Utils.r2uRotation(new Quaternion()
 									{
+										//w = fh.Read<float>(),
 										x = fh.Read<float>(),
 										y = fh.Read<float>(),
 										z = fh.Read<float>(),
 										w = fh.Read<float>()
-									},
-                                    Position = new Vector3()
+									}),
+                                    Position = Utils.r2uPosition( new Vector3()
                                     {
 										x = fh.Read<float>(),
 										y = fh.Read<float>(),
 										z = fh.Read<float>()
-                                    },
-                                    Scale = new Vector3()
+                                    }),
+                                    Scale = Utils.r2uScale ( new Vector3()
                                     {
                                     	x = fh.Read<float>(),
                                     	y = fh.Read<float>(),
                                     	z = fh.Read<float>()
-                                    },
+                                    }),
                                     Parent = this
                                 });
                             }
@@ -807,25 +808,25 @@ namespace UnityRose.Formats
                                         x = fh.Read<int>(),
                                         y = fh.Read<int>()
                                     },
-                                    Rotation = new Quaternion()
+                                    Rotation = Utils.r2uRotation(new Quaternion()
 									{
 										w = fh.Read<float>(),
 										x = fh.Read<float>(),
-										z = fh.Read<float>(),
-										y = fh.Read<float>()
-									},
-                                    Position = new Vector3()
+										y = fh.Read<float>(),
+										z = fh.Read<float>()
+									}),
+                                    Position = Utils.r2uPosition(new Vector3()
                                     {
 										x = fh.Read<float>(),
-										z = fh.Read<float>(),
-										y = fh.Read<float>()
-                                    },
-                                    Scale = new Vector3()
+										y = fh.Read<float>(),
+										z = fh.Read<float>()
+                                    }),
+                                    Scale = Utils.r2uScale (new Vector3()
                                     {
                                     	x = fh.Read<float>(),
-                                    	z = fh.Read<float>(),
-                                    	y = fh.Read<float>()
-                                    },
+                                    	y = fh.Read<float>(),
+                                    	z = fh.Read<float>()
+                                    }),
                                     AIPatternIndex = fh.Read<int>(),
                                     Path = fh.Read<BString>(),
                                     Parent = this
@@ -851,29 +852,30 @@ namespace UnityRose.Formats
                                     ObjectID = fh.Read<int>(),
                                     MapPosition = new Vector2()
                                     {
-                                        x = fh.Read<int>(),
-                                        y = fh.Read<int>()
+                                        y = fh.Read<int>(),
+                                        x = fh.Read<int>()
                                     },
                                     
-									Rotation = new Quaternion()
+									Rotation = Utils.r2uRotation( new Quaternion()
 									{
+										//w = fh.Read<float>(),
 										x = fh.Read<float>(),
 										y = fh.Read<float>(),
 										z = fh.Read<float>(),
 										w = fh.Read<float>()
-									},
-									Position = new Vector3()
+									}),
+									Position = Utils.r2uPosition( new Vector3()
 									{
 										x = fh.Read<float>(),
 										y = fh.Read<float>(),
 										z = fh.Read<float>()
-									},
-									Scale = new Vector3()
+									}),
+									Scale = Utils.r2uScale (new Vector3()
 									{
 										x = fh.Read<float>(),
 										y = fh.Read<float>(),
 										z = fh.Read<float>()
-									},
+									}),
                                     Parent = this
                                 });
                             }
@@ -900,25 +902,25 @@ namespace UnityRose.Formats
                                         x = fh.Read<int>(),
                                         y = fh.Read<int>()
                                     },
-                                    Rotation = new Quaternion()
+                                    Rotation = Utils.r2uRotation(new Quaternion()
 									{
 										w = fh.Read<float>(),
 										x = fh.Read<float>(),
-										z = fh.Read<float>(),
-										y = fh.Read<float>()
-									},
-                                    Position = new Vector3()
+										y = fh.Read<float>(),
+										z = fh.Read<float>()
+									}),
+                                    Position = Utils.r2uPosition(new Vector3()
                                     {
 										x = fh.Read<float>(),
-										z = fh.Read<float>(),
-										y = fh.Read<float>()
-                                    },
-                                    Scale = new Vector3()
+										y = fh.Read<float>(),
+										z = fh.Read<float>()
+                                    }),
+                                    Scale = Utils.r2uScale (new Vector3()
                                     {
                                     	x = fh.Read<float>(),
-                                    	z = fh.Read<float>(),
-                                    	y = fh.Read<float>()
-                                    },
+                                    	y = fh.Read<float>(),
+                                    	z = fh.Read<float>()
+                                    }),
                                     Path = fh.Read<BString>(),
                                     Range = fh.Read<int>(),
                                     Interval = fh.Read<int>(),

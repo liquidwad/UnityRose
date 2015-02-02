@@ -15,13 +15,8 @@ namespace UnityRose
         int floorMask;
         float camRayLength = 500f;
 
-
-     
-
         private Vector3 destinationPosition;
         private CharacterController controller;
-
-
        
         Vector3 moveDirection = Vector3.zero;
 
@@ -52,7 +47,21 @@ namespace UnityRose
 
             destinationPosition.y = transform.position.y;
 
-            if (Input.GetMouseButton(0))
+			bool locate = false;
+			switch (Application.platform)
+			{
+				case RuntimePlatform.IPhonePlayer:
+				case RuntimePlatform.Android:
+				case RuntimePlatform.WP8Player:
+					locate = Input.touchCount > 0;
+				break;
+				default:
+					locate = Input.GetMouseButton(0);
+				break;
+				
+			}
+			
+			if ( locate )
             {
                 LocatePosition();
             }
@@ -78,41 +87,47 @@ namespace UnityRose
 
         void LocatePosition()
         {
-             Ray camRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+			Vector2 screenPoint;
+			bool fire = false;
+			switch (Application.platform)
+        	{
+        		case RuntimePlatform.IPhonePlayer:
+        		case RuntimePlatform.Android:
+        		case RuntimePlatform.WP8Player:
+					screenPoint = Input.GetTouch(0).position;
+					fire = (Input.GetTouch(0).tapCount > 0) && (Input.GetTouch(0).phase == TouchPhase.Ended);
+					break;
+				default:
+					screenPoint = Input.mousePosition;
+					fire = true;
+					break;
+			
+			}
+			
+             Ray camRay = Camera.main.ScreenPointToRay( screenPoint );
              RaycastHit floorHit;
 
-
-                // Perform the raycast and if it hits something on the floor layer...
-             if (Physics.Raycast(camRay, out floorHit, camRayLength, floorMask))
-             {
-                 destinationPosition = floorHit.point;
-
-                 
-             }
+			if( fire )
+			{
+				// Perform the raycast and if it hits something on the floor layer...
+				if (Physics.Raycast(camRay, out floorHit, camRayLength, floorMask))
+				 	destinationPosition = floorHit.point;
+			
+            }
         }
 
 
         void MoveToPosition()
         {
 
-
-
-            if ( Vector3.Distance( transform.position , destinationPosition ) > 0.1f )
+            if ( Vector3.Distance( transform.position , destinationPosition ) > 1.0f )
             {
-                //direction ?
                 Vector3 playerToMouse = destinationPosition - transform.position;
-
-
                 playerToMouse.y = 0;
 
-
-
-                //u see that quaternion ? to get that i checked the initial quaternion rotatopn of char when loaded
-                //and then i multiplied the angle to that to get the right rotation cus its fkd up
-
                 // Create a quaternion (rotation) based on looking down the vector from the player to the mouse.
-                Quaternion newRotation = Quaternion.LookRotation(playerToMouse);// *new Quaternion(0.7f, 0f, 0f, -0.7f); // initial rotation
-                transform.rotation = Quaternion.Slerp(transform.rotation, newRotation, Time.deltaTime * rotateSpeed);
+                Quaternion newRotation = Quaternion.LookRotation(playerToMouse);
+                transform.rotation = newRotation; //Quaternion.Slerp(transform.rotation, newRotation, Time.deltaTime * rotateSpeed);
 
                 //check hangout
 

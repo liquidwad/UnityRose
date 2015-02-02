@@ -577,10 +577,12 @@ namespace UnityRose.Formats
                             for (int j = 0; j < textureCount; j++)
                             {
                                 Texture tex = new Texture();
-                                tex.TexPath = RootPath + fh.Read<BString>();
-                                tex.TexPath = tex.TexPath.Replace("\\", "/");
-                                tex.Tex = Resources.LoadAssetAtPath<Texture2D>(tex.TexPath);
-                                Textures.Add(tex);
+                                string path = RootPath + fh.Read<BString>();
+								tex.Tex = Utils.loadTex(ref path); //.ToLower().Replace("\\", "/").Replace(".dds",".png");
+                                // = Resources.LoadAssetAtPath<Texture2D>(tex.TexPath);
+								tex.TexPath = path;
+							
+								Textures.Add(tex);
 
                             }
                         }

@@ -4,6 +4,9 @@
 //      3/14/2014
 //  </authors>
 // ------------------------------------------------------------------------------
+
+#if UNITY_EDITOR
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -107,8 +110,8 @@ namespace UnityRose.Game
 			// original dir: .../3ddata/maps/junon/jpt01/30_30
 			// desired dir: .../3ddata/junon/LIST_CNST_JPT.ZSC
             char[] trimChars = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '_' };
-			string zscPath = m_3dDataDir + "/" + m_assetDir.Parent.Parent.Name.ToUpper() + "/LIST_" + "CNST_" + m_assetDir.Parent.Name.Trim(trimChars).ToUpper() + ".ZSC";
-            string litPath = this.m_assetDir.Parent.FullName + "\\" + this.m_name + "\\LIGHTMAP\\BUILDINGLIGHTMAPDATA.LIT";
+			string zscPath = Utils.FixPath(m_3dDataDir + "/" + m_assetDir.Parent.Parent.Name.ToUpper() + "/LIST_" + "CNST_" + m_assetDir.Parent.Name.Trim(trimChars).ToUpper() + ".ZSC");
+			string litPath = Utils.FixPath(this.m_assetDir.Parent.FullName + "\\" + this.m_name + "\\LIGHTMAP\\BUILDINGLIGHTMAPDATA.LIT");
 			m_ZSC_Cnst = new ZSC(zscPath);
 			m_ZSC_Deco = new ZSC(zscPath.Replace("CNST","DECO"));
             m_LIT_Cnst = new LIT(litPath);
@@ -121,7 +124,36 @@ namespace UnityRose.Game
 		}
 		
 		
-		public bool Import(Transform terrainParent, Transform objectsParent)
+		public void UpdateAtlas(ref Dictionary<string, Rect> atlasRectHash, ref Dictionary<string, Texture2D> atlasTexHash, ref List<Texture2D> textures)
+		{
+			for (int t_x = 0; t_x < 16; t_x++)
+			{
+				for (int t_y = 0; t_y < 16; t_y++)
+				{
+					int tileID = m_TIL.Tiles[t_y, t_x].TileID;
+					string texPath1 = m_ZON.Textures[m_ZON.Tiles[tileID].ID1].TexPath;
+					string texPath2 = m_ZON.Textures[m_ZON.Tiles[tileID].ID2].TexPath;
+					
+					Texture2D tex1 = m_ZON.Textures[m_ZON.Tiles[tileID].ID1].Tex;
+					Texture2D tex2 = m_ZON.Textures[m_ZON.Tiles[tileID].ID2].Tex;
+					// Adding an existing texture to atlas will cause an exception, so catch it but do nothing
+					// as this is expected to happen
+					try {
+						atlasRectHash.Add(texPath1, new Rect());
+						atlasTexHash.Add(texPath1, tex1);
+						textures.Add ( tex1 );
+					} catch( Exception e){}
+					
+					try {
+						atlasRectHash.Add(texPath2, new Rect());
+						atlasTexHash.Add(texPath2, tex2);
+						textures.Add ( tex2 );
+					} catch( Exception e){}
+				}
+			}
+		}
+		
+		public bool Import(Transform terrainParent, Transform objectsParent, Texture2D atlas, Texture2D atlas_normal, Dictionary<string, Rect> atlasRectHash)
 		{
 			
             if (!m_isValid)
@@ -152,9 +184,10 @@ namespace UnityRose.Game
 			
             int nVertices = 64 * 64 * 4;
 			Vector3[] vertices = new Vector3[nVertices];
-			Vector2[] uvs = new Vector2[nVertices];
-            Vector2[] uvs1 = new Vector2[nVertices];
-			//int[] triangles = new int[(m_HIM.Length-1)*(m_HIM.Width-1)*6];
+			Vector2[] uvsBottom = new Vector2[nVertices];
+            Vector2[] uvsTop = new Vector2[nVertices];
+			Color[] uvsLight= new Color[nVertices];
+			int[] triangles = new int[(m_HIM.Length-1)*(m_HIM.Width-1)*6];
 			
 			int i_v = 0;      // vertex index
 			int i_t = 0;     // triangle index
@@ -168,7 +201,7 @@ namespace UnityRose.Game
             center = new Vector2(x_offset + m_xStride * 32.0f, y_offset + m_yStride * 32.0f);
 			
 			m_mesh = new Mesh();
-            m_mesh.subMeshCount = 16 * 16; // each tile is a sub-mesh
+        
 			
 			
 			//  Uv mapping for tiles
@@ -209,66 +242,49 @@ namespace UnityRose.Game
                     uvMatrixRotCW[uv_x, uv_y] = new Vector2(0.25f * (float)uv_y, 1.0f - 0.25f * (float)uv_x);
 				}
 			}
-			
-			
-			
+				
 			m_tiles = new List<Tile>();
-			Material[] materials = new Material[m_mesh.subMeshCount];
 
-            Texture2D tex3 = Resources.LoadAssetAtPath<Texture2D>("Assets/3DDATA/MAPS/JUNON/JPT01/" + m_Col + "_" + m_Row + "/" + m_Col + "_" + m_Row + "_PLANELIGHTINGMAP.dds");
-
+			// Populate tiles with texture references
             for (int t_x = 0; t_x < 16; t_x++)
 			{
                 for (int t_y = 0; t_y < 16; t_y++)
 				{
-					Tile tile = new Tile();
+					Tile tile = new Tile( );
 					int tileID = m_TIL.Tiles[t_y, t_x].TileID;
-					Texture2D tex1 = m_ZON.Textures[m_ZON.Tiles[tileID].ID1].Tex;
-					Texture2D tex2 = m_ZON.Textures[m_ZON.Tiles[tileID].ID2].Tex;
-
-
-                    // The following is done for debugging only
-					ZON.RotationType rot = m_ZON.Tiles[tileID].Rotation;
-					Color rotColor = new Color();
-                    switch (rot)
-					{
-					case ZON.RotationType.Normal:
-						rotColor = Color.clear;
-						break;
-					case ZON.RotationType.LeftRight:
-						rotColor = Color.blue;
-						break;
-					case ZON.RotationType.LeftRightTopBottom:
-						rotColor = Color.green;
-						break;
-					case ZON.RotationType.TopBottom:
-						rotColor = Color.red;
-						break;
-					case ZON.RotationType.Rotate90Clockwise:
-						rotColor = Color.yellow;
-						break;
-					case ZON.RotationType.Rotate90CounterClockwise:
-						rotColor = Color.cyan;
-						break;
-					default:
-						rotColor = Color.clear;
-						break;
-						
-					}
-					// TODO: figure out a way to combine these two textures with alpha blending
-					tile.material.SetTexture("_BottomTex", tex1);
-                    tile.material.SetTexture("_TopTex", tex2);
-                    tile.material.SetTexture("_LightTex", tex3);
-					tile.material.SetColor("_ColorTint", rotColor);
-					// TODO: tile.material.SetTexture("_Bumpmap", bumpMapTex);
+					string texPath1 = m_ZON.Textures[m_ZON.Tiles[tileID].ID1].TexPath;
+					string texPath2 = m_ZON.Textures[m_ZON.Tiles[tileID].ID2].TexPath;
+					tile.bottomTex = texPath1;
+					tile.topTex = texPath2;
 					m_tiles.Add(tile);
 					
 				}
+			}		
+			
+			string lightTexPath = "Assets/3DDATA/MAPS/JUNON/JPT01/" + m_Col + "_" + m_Row + "/" + m_Col + "_" + m_Row + "_PLANELIGHTINGMAP.dds";
+			Texture2D lightTex = Utils.loadTex( ref lightTexPath );// Resources.LoadAssetAtPath<Texture2D>(lightTexPath);  //Utils.loadTex(lightTexPath, "Assets/GameData/Textures/Lightmaps/");                          
+			//Utils.convertTex( lightTexPath, "Assets/GameData/Textures/Lightmaps/", ref lightTex);
+			
+			
+			// copy rects to tiles
+			foreach(Tile tile in m_tiles)
+			{
+				tile.bottomRect = atlasRectHash[tile.bottomTex];
+				tile.topRect = atlasRectHash[tile.topTex];
 			}
-
+			
+			// Generate a material
+			Material material = new Material(Shader.Find("Custom/TerrainShader2"));
+			material.SetTexture("_BottomTex", atlas);
+			material.SetTexture("_TopTex", atlas);
+			material.SetTexture("_NormalMapTop", atlas_normal);
+			material.SetTexture("_NormalMapBottom", atlas_normal);
+			material.SetTexture("_LightTex", lightTex);
+			
             float l = m_HIM.Length - 1;
             float w = m_HIM.Width - 1;
 			
+			int triangleID = 0;
 			// Generate vertices and triangles
             for (int x = 0; x < m_HIM.Length - 1; x++)
 			{
@@ -291,20 +307,15 @@ namespace UnityRose.Game
 					int c = i_v++;
 					int d = i_v++;
 					
-                    /*
-                    uvs1[a] = new Vector2((float)x/l, (float)y/w);
-                    uvs1[b] = new Vector2((float)(x+1)/l, (float)y/w);
-                    uvs1[c] = new Vector2((float)(x+1)/l, (float)(y+1)/w);
-                    uvs1[d] = new Vector2((float)(x)/l, (float)(y+1)/w);
-                    */
 
-                    
-                    uvs1[a] = new Vector2((float)y / w, 1.0f - (float)x / l);
-                    uvs1[b] = new Vector2((float)y / w, 1.0f - (float)(x + 1) / l);
-                    uvs1[c] = new Vector2((float)(y + 1) / w, 1.0f - (float)(x + 1) / l);
-                    uvs1[d] = new Vector2((float)(y + 1) / w, 1.0f - (float)(x) / l);
-                    
 
+                    // Calculate lightmap UV's (placed in color because mesh only has uv and uv2)
+                    uvsLight[a] = new Color((float)y / w, 1.0f - (float)x / l, 0.0f);
+					uvsLight[b] = new Color((float)y / w, 1.0f - (float)(x + 1) / l, 0.0f);
+					uvsLight[c] = new Color((float)(y + 1) / w, 1.0f - (float)(x + 1) / l, 0.0f);
+					uvsLight[d] = new Color((float)(y + 1) / w, 1.0f - (float)(x) / l, 0.0f);
+                    
+					// Calculate vertices
                     vertices[a] = new Vector3(x * m_xStride + x_offset, m_HIM.Heights[x, y] / heightScaler, y * m_yStride + y_offset);
                     vertices[b] = new Vector3((x + 1) * m_xStride + x_offset, m_HIM.Heights[x + 1, y] / heightScaler, y * m_yStride + y_offset);
                     vertices[c] = new Vector3((x + 1) * m_xStride + x_offset, m_HIM.Heights[x + 1, y + 1] / heightScaler, (y + 1) * m_yStride + y_offset);
@@ -368,39 +379,40 @@ namespace UnityRose.Game
 						break;
 						
 					}
+                    
+                    // Get top and bottom UV's using texture atlas and rotation adjustments
+					uvsTop[a] = m_tiles[tileID].GetUVTop(rotMatrix[x % 4, y % 4]);
+					uvsTop[b] = m_tiles[tileID].GetUVTop(rotMatrix[(x % 4 + 1) % 5, y % 4]);
+					uvsTop[c] = m_tiles[tileID].GetUVTop(rotMatrix[(x % 4 + 1) % 5, (y % 4 + 1) % 5]);
+					uvsTop[d] = m_tiles[tileID].GetUVTop(rotMatrix[x % 4, (y % 4 + 1) % 5]);
 					
-                    uvs[a] = rotMatrix[x % 4, y % 4];
-                    uvs[b] = rotMatrix[(x % 4 + 1) % 5, y % 4];
-                    uvs[c] = rotMatrix[(x % 4 + 1) % 5, (y % 4 + 1) % 5];
-                    uvs[d] = rotMatrix[x % 4, (y % 4 + 1) % 5];
+					uvsBottom[a] = m_tiles[tileID].GetUVBottom(rotMatrix[x % 4, y % 4]);
+					uvsBottom[b] = m_tiles[tileID].GetUVBottom(rotMatrix[(x % 4 + 1) % 5, y % 4]);
+					uvsBottom[c] = m_tiles[tileID].GetUVBottom(rotMatrix[(x % 4 + 1) % 5, (y % 4 + 1) % 5]);
+					uvsBottom[d] = m_tiles[tileID].GetUVBottom(rotMatrix[x % 4, (y % 4 + 1) % 5]);
 					
-					m_tiles[tileID].AddTriangleVert(a);
-					m_tiles[tileID].AddTriangleVert(d);
-					m_tiles[tileID].AddTriangleVert(b);
+					triangles[triangleID ++] = a;
+					triangles[triangleID ++] = d;
+					triangles[triangleID ++] = b;
 					
-					m_tiles[tileID].AddTriangleVert(b);
-					m_tiles[tileID].AddTriangleVert(d);
-					m_tiles[tileID].AddTriangleVert(c);
-					
+					triangles[triangleID ++] = b;
+					triangles[triangleID ++] = d;
+					triangles[triangleID ++] = c;
 					
 				}  // for y
 			}    // for x
 			
 			
 			m_mesh.vertices = vertices;
-			m_mesh.uv = uvs;
-            m_mesh.uv1 = uvs1;
+			m_mesh.triangles = triangles;
+			m_mesh.uv = uvsBottom;
+            m_mesh.uv2 = uvsTop;
+            m_mesh.colors = uvsLight;
 			
-			// third pass:  loop through all tiles and assign to mesh
-            for (int i = 0; i < 16 * 16; i++)
-			{
-				m_mesh.SetTriangles(m_tiles[i].triangles, i);
-				materials[i] = m_tiles[i].material;
-			}
 			
 			m_mesh.RecalculateNormals();
 			
-			bool blendNormals = true; // set to true to blend normals
+			bool blendNormals = false; // set to true to blend normals
 			if(blendNormals)
 			{
 				// CalculateSharedNormals: fix all normals as follows:
@@ -443,15 +455,20 @@ namespace UnityRose.Game
 			m_mesh.Optimize();
 			
 			
+			
 			GameObject patchObject = new GameObject();
+			patchObject.name = "patch_" + this.m_name;
+			
 			patchObject.AddComponent<MeshFilter>().mesh = m_mesh;
 			patchObject.AddComponent<MeshRenderer>();
 			patchObject.AddComponent<MeshCollider>();
-            patchObject.name = "patch_" + this.m_name;
+            
             MeshRenderer patchRenderer = patchObject.GetComponent<MeshRenderer>();
-			patchRenderer.materials = materials;
+			patchRenderer.material = material;
             patchRenderer.castShadows = false;
 			patchObject.transform.parent = terrainParent;
+			
+			
 			
 			
 			//================== TERRAIN OBJECTS==========================
@@ -477,7 +494,7 @@ namespace UnityRose.Game
                     ZSC.Object.Model model = m_ZSC_Deco.Objects[ifo.ObjectID].Models[part];
 					// load ZMS
                     string zmsPath = m_3dDataDir.Parent.FullName + "/" + m_ZSC_Deco.Models[model.ModelID].Replace("\\", "/");
-                    string texPath = "Assets/" + m_ZSC_Deco.Textures[model.TextureID].Path.Replace("\\", "/");
+                    string texPath = "Assets/" + m_ZSC_Deco.Textures[model.TextureID].Path;
                     string lightPath = "Assets/3ddata/Maps/Junon/jpt01/" + m_Col + "_" + m_Row + "/LIGHTMAP/" + m_LIT_Deco.Objects[obj].Parts[part].DDSName;
                     LIT.Object.Part lmData = m_LIT_Deco.Objects[obj].Parts[part];
 					
@@ -491,14 +508,14 @@ namespace UnityRose.Game
 
                     ZMS zms = new ZMS(zmsPath, lmScale, lmOffset);
 
-					// Create material
+					// Create material	
+					Texture2D mainTex = Utils.loadTex( ref texPath);  
+					Texture2D lightTexture = Utils.loadTex ( ref lightPath);
 					
-                    Material mat = new Material(Shader.Find("Custom/ObjectShader"));
-                    Texture2D mainTex = Resources.LoadAssetAtPath<Texture2D>(texPath);
-                    Texture2D lightTex = Resources.LoadAssetAtPath<Texture2D>(lightPath);
 					
+					Material mat = new Material(Shader.Find("Custom/ObjectShader"));
                     mat.SetTexture("_MainTex", mainTex);
-                    mat.SetTexture("_LightTex", lightTex);
+                    mat.SetTexture("_LightTex", lightTexture);
 
 					GameObject modelObject = new GameObject();
 					modelObject.transform.parent = terrainObject.transform;
@@ -522,12 +539,14 @@ namespace UnityRose.Game
                         ZMO zmo = new ZMO("assets/" + model.Motion, false, true);
                         clip = zmo.buildAnimationClip(modelObject.name, clip);
 					}
+					
 
 				}
 				
 				terrainObject.transform.rotation = ifo.Rotation;
 				terrainObject.transform.localScale = ifo.Scale;
 
+				
                // if (isAnimated)
                // {
 					Animation animation = terrainObject.GetComponent<Animation>();
@@ -539,6 +558,8 @@ namespace UnityRose.Game
 					animation.AddClip(clip, terrainObject.name);
 					animation.clip = clip;
               //  }
+              
+              
 			}
 			
 			
@@ -564,7 +585,7 @@ namespace UnityRose.Game
 
 					// load ZMS
 					string zmsPath = m_3dDataDir.Parent.FullName + "/" + m_ZSC_Cnst.Models[model.ModelID].Replace("\\","/");
-					string texPath = "Assets/" + m_ZSC_Cnst.Textures[model.TextureID].Path.Replace("\\","/");
+					string texPath = "Assets/" + m_ZSC_Cnst.Textures[model.TextureID].Path;
                     string lightPath = "Assets/3ddata/Maps/Junon/jpt01/" + m_Col + "_" + m_Row + "/LIGHTMAP/" + m_LIT_Cnst.Objects[obj].Parts[part].DDSName;
                     LIT.Object.Part lmData = m_LIT_Cnst.Objects[obj].Parts[part];
 
@@ -579,12 +600,12 @@ namespace UnityRose.Game
                     ZMS zms = new ZMS(zmsPath, lmScale, lmOffset);
 					
 					// Create material
-                    Material mat = new Material(Shader.Find("Custom/ObjectShader"));
-					Texture2D mainTex = Resources.LoadAssetAtPath<Texture2D>(texPath);
-                    Texture2D lightTex = Resources.LoadAssetAtPath<Texture2D>(lightPath);
-
+					Texture2D mainTex =  Utils.loadTex(ref texPath); 
+					Texture2D lightTexture =  Utils.loadTex(ref lightPath); 
+					
+					Material mat = new Material(Shader.Find("Custom/ObjectShader"));
                     mat.SetTexture("_MainTex", mainTex);
-                    mat.SetTexture("_LightTex", lightTex);
+                    mat.SetTexture("_LightTex", lightTexture);
 					
 					
 					GameObject modelObject = new GameObject();
@@ -611,12 +632,14 @@ namespace UnityRose.Game
                         ZMO zmo = new ZMO("assets/" + model.Motion, false, true);
                         clip = zmo.buildAnimationClip(modelObject.name, clip);
 					}
+					
 
 				}
 				
 				terrainObject.transform.rotation = ifo.Rotation;
 				terrainObject.transform.localScale = ifo.Scale;
 
+				
 				
                // if (isAnimated)
                //{
@@ -629,6 +652,8 @@ namespace UnityRose.Game
 					animation.AddClip(clip, terrainObject.name);
 					animation.clip = clip;
               //  }
+              
+              
 			}
 			
 			
@@ -647,22 +672,45 @@ namespace UnityRose.Game
 	
 	public class Tile
 	{
-		public int[] triangles { get; set; }
-		public Material material { get; set; }
-		private int id;
+		public Rect bottomRect { get; set; }
+		public Rect topRect { get; set; }
+		public string bottomTex { get; set; }
+		public string topTex { get; set; }
 		
 		public Tile()
 		{
-            triangles = new int[4 * 4 * 6];
-            id = 0;
-			material = new Material(Shader.Find("Custom/TerrainShader"));
 		}
 		
-		public void AddTriangleVert(int vertID)
+		public void setRects(Rect bot, Rect top)
 		{
-			triangles[id++] = vertID;
+			bottomRect = bot;
+			topRect = top;
+		}
+		
+
+		public Vector2 GetUVTop(Vector2 uv)
+		{
+			// adjust uv's slightly to hide seams between tiles
+			if(uv.x < 0.01f) uv.x+=0.01f;
+			else if(uv.x > 0.99f) uv.x *= 0.99f;
+			if(uv.y < 0.01f) uv.y+=0.01f;
+			else if(uv.y > 0.99f) uv.y *= 0.99f;
+			
+			return new Vector2((uv.x * topRect.width) + topRect.x, (uv.y* topRect.height) + topRect.y);
+		}
+		
+		public Vector2 GetUVBottom(Vector2 uv)
+		{
+			if(uv.x < 0.01f) uv.x+=0.01f;
+			else if(uv.x > 0.99f) uv.x *= 0.99f;
+			if(uv.y < 0.01f) uv.y+=0.01f;
+			else if(uv.y > 0.99f) uv.y *= 0.99f;
+			
+			return new Vector2((uv.x * bottomRect.width) + bottomRect.x, (uv.y * bottomRect.height) + bottomRect.y);
 		}
 	}
 	
 	
 }
+
+#endif

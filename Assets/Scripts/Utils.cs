@@ -29,6 +29,11 @@ public class Utils
 	    return new Vector3(v.x, v.z, -v.y);
 	}
 
+	public static Vector3 r2uScale(Vector3 v)
+	{
+		return new Vector3(v.x, v.z, v.y);
+	}
+	
 	public static void addVertexToLookup(Dictionary<String,List<int>> lookup, String vertex, int index)
 	{
 		if(!lookup.ContainsKey(vertex))
@@ -53,6 +58,25 @@ public class Utils
 		return b;
 	}
 	
+	public static Texture2D loadTex ( ref string rosePath )
+	{
+		// check if dds exists, and load it if it does
+		string ddsPath = rosePath.Contains("\\") ? rosePath.ToLower().Replace("\\","/") : rosePath.ToLower();
+		string pngPath = ddsPath.Replace(".dds",".png");
+		if( File.Exists(pngPath) )
+		{
+			rosePath = pngPath;
+			return Resources.LoadAssetAtPath<Texture2D>(pngPath);
+		}
+		if( File.Exists (ddsPath))
+		{
+			rosePath = ddsPath;
+			return Resources.LoadAssetAtPath<Texture2D>(ddsPath);
+		}
+		return null;
+	}
+	
+	
 #if UNITY_EDITOR
 	// Returns true if platform is mac
 	public static bool IsMac()
@@ -63,12 +87,11 @@ public class Utils
 	// fixes the path based on platform and returns fixed string
 	public static string FixPath(string file)
 	{
-        if (IsMac())
-            return file.Replace("\\", "/");
-        else
-            return file.Replace("/", "\\");
+		if (IsMac())
+			return file.Replace("\\", "/");
+		else
+			return file.Replace("/", "\\");
 	}
-	
 
 	// Converts a rose path to a unity path and creates the directory structure of non-existent
 	public static DirectoryInfo r2uDir(string rosePath, string extension = ".asset")
@@ -142,6 +165,38 @@ public class Utils
         DirectoryInfo texDir = r2uDir(texPath, extension);
         return texDir.FullName;
     }
+	
+	public static void convertTex(string rosePath, string destPath, ref Texture2D texture)
+	{
+		Texture2D myTex = new Texture2D( texture.width, texture.height);
+		myTex.SetPixels32( texture.GetPixels32(0), 0 );
+		DirectoryInfo roseDir = new DirectoryInfo( rosePath );
+		string dest = destPath + "/" + roseDir.Name.Replace(roseDir.Extension, ".png");
+		
+		if (!File.Exists( dest ))
+		{
+			FileStream fs = new FileStream( dest, FileMode.Create);
+			BinaryWriter bw = new BinaryWriter(fs);
+			bw.Write(myTex.EncodeToPNG());
+			bw.Close();
+			fs.Close();
+			
+			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh();
+		}
+		
+		texture = Resources.LoadAssetAtPath<Texture2D>(dest);
+		//return myTex;
+	}
+	
+	public static Texture2D loadTex( string rosePath, string destPath)
+	{
+		DirectoryInfo roseDir = new DirectoryInfo( rosePath );
+		string dest = destPath + roseDir.Name.Replace(roseDir.Extension, ".png");
+		return Resources.LoadAssetAtPath<Texture2D>(dest);
+	}
+	
+	
 	
 	// Copy the texture from 3ddata to GameData (if it doesn't already exist) then load it as a Texture2D and return it
 	public static Texture2D CopyReloadTexAsset( string rosePath )

@@ -5,6 +5,7 @@
 using UnityEditor;
 using UnityEngine;
 using UnityRose.Formats;
+using System;
 using System.IO;
 using System.Collections.Generic;
 using UnityRose.Game;
@@ -45,7 +46,6 @@ public class RoseTerrainWindow : EditorWindow {
 	
 	private void ImportMap(string mapName)
 	{
-		
 		Debug.Log ("Importing map from " + m_inputDir + "...");
 		bool success = true;
 		
@@ -63,14 +63,70 @@ public class RoseTerrainWindow : EditorWindow {
 		terrainObjects.transform.parent = map.transform;
 		
 		List<RosePatch> patches = new List<RosePatch>();
-		/* TODO: Add code to loop through all patches and load them */
+		Dictionary<string, Rect> atlasRectHash = new Dictionary<string, Rect>();
+		Dictionary<string, Texture2D> atlasTexHash = new Dictionary< string, Texture2D >();
+		List<Texture2D> textures = new List<Texture2D>();
+		
+		
+		// Instantiate all patches
 		foreach(DirectoryInfo dir in dirs.GetDirectories())
 		{
 			if(!dir.Name.Contains("."))
 			{
-				patches.Add (ImportPatch (dir.FullName, terrain.transform, terrainObjects.transform));
+				RosePatch patch = new RosePatch( dir ); 
+				patch.Load();
+				patch.UpdateAtlas( ref atlasRectHash, ref atlasTexHash, ref textures );
+				patches.Add ( patch );
 			}
-		} 
+		}
+		// Create a texture atlas from the textures of all patches and populate the rectangles in the hash
+		
+		// Figure out the required size of the atlas from the number of textures in the atlas
+		int height, width;  // these must be powers of 2 to be compatible with iPhone
+		if( atlasRectHash.Count <= 16 )  width = height = 4*256; 
+		else if( atlasRectHash.Count <= 32 )  { width = 4*256; height = 8*256; }
+		else if( atlasRectHash.Count <= 64 )  { width = 8*256; height = 8*256; }
+		else if( atlasRectHash.Count <= 128 ) { width = 8*256; height = 16*256; }
+		else if( atlasRectHash.Count <= 256 ) { width = 16*256; height = 16*256; }
+		else throw new Exception("Number of tiles in terrain is larger than supported by terrain atlas");
+		
+		
+		Texture2D atlas = new Texture2D(width, height);
+		
+		// Pack the textures into one texture atlas
+		Rect[] rects = atlas.PackTextures( textures.ToArray(), 0, Math.Max(width, height) );
+		atlas.anisoLevel = 11;
+		
+		Texture2D myAtlas = new Texture2D(width, height);
+		myAtlas.SetPixels32( atlas.GetPixels32(0), 0);
+		
+		string atlasPath = "Assets/GameData/Textures/junon-atlas.png";
+		if( !File.Exists( atlasPath ))
+		{
+			FileStream fs = new FileStream( atlasPath, FileMode.Create);
+			BinaryWriter bw = new BinaryWriter(fs);
+			bw.Write(myAtlas.EncodeToPNG());
+			bw.Close();
+			fs.Close();
+			
+			AssetDatabase.Refresh();
+		}
+		
+		
+		atlas = (Texture2D)AssetDatabase.LoadMainAssetAtPath( atlasPath );
+		
+		string atlasNormalPath = "Assets/GameData/Textures/junon-atlas.png";
+		//Texture2D atlasNormal = (Texture2D)AssetDatabase.LoadMainAssetAtPath( atlasNormalPath );
+		
+		// copy rects back to hash (should update rect refs in Tile objects
+		int rectID = 0;
+		foreach( string key in atlasTexHash.Keys)
+			atlasRectHash[key] = rects[rectID++];
+		
+		// Generate the patches
+		foreach(RosePatch patch in patches)
+			patch.Import(terrain.transform, terrainObjects.transform, atlas, atlas, atlasRectHash);
+		
 		
 		//blend vertex normals at the seams between patches
 		Dictionary<string, List<PatchNormalIndex>> patchNormalLookup = new Dictionary<string, List<PatchNormalIndex>>();
@@ -112,8 +168,10 @@ public class RoseTerrainWindow : EditorWindow {
 			
 		}
 		
-		terrainObjects.transform.Rotate (90.0f, -90.0f, 0.0f);
+		
 		terrainObjects.transform.localScale = new Vector3(1.0f, 1.0f, -1.0f);
+		//terrainObjects.transform.Rotate (90.0f, -90.0f, 0.0f);
+		terrainObjects.transform.Rotate (0.0f, -90.0f, 0.0f);
 		terrainObjects.transform.position = new Vector3(5200.0f, 0.0f, 5200.0f);
 		
 		if(success)
@@ -122,6 +180,8 @@ public class RoseTerrainWindow : EditorWindow {
 			Debug.Log ("!Map Import Failed");
 	}
 	
+
+	/*
 	private RosePatch ImportPatch(string inputDir, Transform terrainParent, Transform objectsParent)
 	{
 		// Patch consists of the following elements:
@@ -132,7 +192,6 @@ public class RoseTerrainWindow : EditorWindow {
 		
 		bool success = true;
 		
-		// Patch patch = new Patch(patchPath, 
 		Debug.Log ("Importing patch from " + inputDir + "...");
 		
 		RosePatch patch = new RosePatch(new DirectoryInfo(inputDir));
@@ -148,6 +207,7 @@ public class RoseTerrainWindow : EditorWindow {
 		
 		return patch;
 	}
+	*/
 	
 	void OnGUI () {
 		// Need to do the following:
@@ -208,7 +268,7 @@ public class RoseTerrainWindow : EditorWindow {
 					
 					GameObject terrainObjects = new GameObject();
 					terrainObjects.name = "Terrain Objects";
-					ImportPatch(m_inputDir, terrain.transform, terrainObjects.transform);			// 4. (LoadPatch will handle 5. properly)	
+					//ImportPatch(m_inputDir, terrain.transform, terrainObjects.transform);			// 4. (LoadPatch will handle 5. properly)	
 					break;		
 				}	// switch
 			} // if

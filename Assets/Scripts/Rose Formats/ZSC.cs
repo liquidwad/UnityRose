@@ -699,36 +699,36 @@ namespace UnityRose.Formats
                         switch (command)
                         {
                             case FlagType.Position:
-                                Objects[i].Models[j].Position = new Vector3()
+                                Objects[i].Models[j].Position = Utils.r2uPosition(new Vector3()
                                 {
                                     x = fh.Read<float>(),
                                     y = fh.Read<float>(),
                                     z = fh.Read<float>()
-                                };
+                                });
 
                                 break;
                             case FlagType.Rotation:
                                 {
 
-                                    Objects[i].Models[j].Rotation = new Quaternion()
+                                    Objects[i].Models[j].Rotation = Utils.r2uRotation(new Quaternion()
                                     {
                                         w = fh.Read<float>(),
                                         x = fh.Read<float>(),
                                         y = fh.Read<float>(),
                                         z = fh.Read<float>()
-                                    };
+                                    });
                                 }
                                 break;
                             case FlagType.Scale:
-                                Objects[i].Models[j].Scale = new Vector3()
+                                Objects[i].Models[j].Scale = Utils.r2uScale(new Vector3()
                                 {
                                     x = fh.Read<float>(),
                                     y = fh.Read<float>(),
                                     z = fh.Read<float>()
-                                };
+                                });
                                 break;
                             case FlagType.AxisRotation:
-                                Objects[i].Models[j].AxisRotation = fh.Read<Quaternion>();
+                                Objects[i].Models[j].AxisRotation = Utils.r2uRotation(fh.Read<Quaternion>());
                                 break;
                             case FlagType.BoneIndex:
                                 Objects[i].Models[j].BoneIndex = (BoneType)fh.Read<short>();
@@ -785,13 +785,13 @@ namespace UnityRose.Formats
                         switch (command)
                         {
                             case FlagType.Position:
-                                Objects[i].Effects[j].Position = fh.Read<Vector3>() / 100.0f;
+                                Objects[i].Effects[j].Position = Utils.r2uPosition(fh.Read<Vector3>() / 100.0f);
                                 break;
                             case FlagType.Rotation:
-                                Objects[i].Effects[j].Rotation = fh.Read<Quaternion>();
+                                Objects[i].Effects[j].Rotation = Utils.r2uRotation(fh.Read<Quaternion>());
                                 break;
                             case FlagType.Scale:
-                                Objects[i].Effects[j].Scale = fh.Read<Vector3>();
+                                Objects[i].Effects[j].Scale = Utils.r2uScale(fh.Read<Vector3>());
                                 break;
                             case FlagType.Parent:
                                 Objects[i].Effects[j].Parent = (short)(fh.Read<short>() - 1);

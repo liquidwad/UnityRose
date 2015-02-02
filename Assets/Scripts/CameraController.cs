@@ -6,16 +6,16 @@ public class CameraController : MonoBehaviour
     public GameObject target;                           // Target to follow
     public float targetHeight = 1.7f;                         // Vertical offset adjustment
     public float distance = 12.0f;                            // Default Distance
-    public float offsetFromWall = 0.1f;                       // Bring camera away from any colliding objects
-    public float maxDistance = 20f;                       // Maximum zoom Distance
-    public float minDistance = 0.6f;                      // Minimum zoom Distance
+    public float offsetFromWall = 2.0f;                       // Bring camera away from any colliding objects
+    public float maxDistance = 30f;                       // Maximum zoom Distance
+    public float minDistance = 2.0f;                      // Minimum zoom Distance
     public float xSpeed = 200.0f;                             // Orbit speed (Left/Right)
     public float ySpeed = 200.0f;                             // Orbit speed (Up/Down)
     public float yMinLimit = -80f;                            // Looking up limit
     public float yMaxLimit = 80f;                             // Looking down limit
     public float zoomRate = 40f;                          // Zoom Speed
     public float rotationDampening = 3.0f;                // Auto Rotation speed (higher = faster)
-    public float zoomDampening = 5.0f;                    // Auto Zoom speed (Higher = faster)
+    public float zoomDampening = 3.0f;                    // Auto Zoom speed (Higher = faster)
     public LayerMask collisionLayers = -1;     // What the camera will collide with
     public bool lockToRearOfTarget = false;             // Lock camera to rear of target
     public bool allowMouseInputX = true;                // Allow player to control camera angle on the X axis (Left/Right)
@@ -68,50 +68,78 @@ public class CameraController : MonoBehaviour
             pbuffer -= Time.deltaTime;
         if (pbuffer < 0) pbuffer = 0;
 
-        //Sidebuttonmovement
-        /*
-       if ((Input.GetAxis("Toggle Move") != 0) && (pbuffer == 0))
-        {
-            pbuffer = coolDown;
-            mouseSideButton = !mouseSideButton;
-        }
-        */
-        if (mouseSideButton && Input.GetAxis("Vertical") != 0)
-            mouseSideButton = false;
        
         Vector3 vTargetOffset;
 
-        // If either mouse buttons are down, let the mouse govern camera position
-        if (GUIUtility.hotControl == 0)
-        {
-            if (Input.GetMouseButton(0) || Input.GetMouseButton(1))
-            {
-                //Check to see if mouse input is allowed on the axis
-                if (allowMouseInputX)
-                    xDeg += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
-                else
-                    RotateBehindTarget();
-                if (allowMouseInputY)
-                    yDeg -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
-
-                //Interrupt rotating behind if mouse wants to control rotation
-                if (!lockToRearOfTarget)
-                    rotateBehind = false;
-            }
-
-            // otherwise, ease behind the target if any of the directional keys are pressed
-            else if (Input.GetAxis("Vertical") != 0 || Input.GetAxis("Horizontal") != 0 || rotateBehind || mouseSideButton)
-            {
-                RotateBehindTarget();
-            }
-        }
+		switch (Application.platform)
+		{
+			case RuntimePlatform.IPhonePlayer:
+			case RuntimePlatform.Android:
+			case RuntimePlatform.WP8Player:
+				if( (Input.touchCount == 1) && (Input.GetTouch(0).phase == TouchPhase.Moved) )
+				{
+					xDeg += Input.touches[0].deltaPosition.x * xSpeed * 0.004f;
+					yDeg -= Input.touches[0].deltaPosition.y * ySpeed * 0.004f;
+				}
+				break;
+			default:
+				if ( (GUIUtility.hotControl == 0) && (Input.GetMouseButton(0) || Input.GetMouseButton(1)))
+				{
+					//Check to see if mouse input is allowed on the axis
+					if (allowMouseInputX)
+						xDeg += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
+					else
+						RotateBehindTarget();
+					if (allowMouseInputY)
+						yDeg -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
+					
+					//Interrupt rotating behind if mouse wants to control rotation
+					if (!lockToRearOfTarget)
+						rotateBehind = false;
+				}
+				break;
+		}
+        
+        
         yDeg = ClampAngle(yDeg, yMinLimit, yMaxLimit);
 
         // Set camera rotation
         Quaternion rotation = Quaternion.Euler(yDeg, xDeg, 0);
 
         // Calculate the desired distance
-        desiredDistance -= Input.GetAxis("Mouse ScrollWheel") * Time.deltaTime * zoomRate * Mathf.Abs(desiredDistance);
+		switch (Application.platform)
+		{
+			case RuntimePlatform.IPhonePlayer:
+			case RuntimePlatform.Android:
+			case RuntimePlatform.WP8Player:
+				if( (Input.touchCount == 2) && ( (Input.GetTouch(0).phase == TouchPhase.Moved) || (Input.GetTouch(1).phase == TouchPhase.Moved)))
+				{
+					// Store both touches.
+					Touch touchZero = Input.GetTouch(0);
+					Touch touchOne = Input.GetTouch(1);
+					
+					// Find the position in the previous frame of each touch.
+					Vector2 touchZeroPrevPos = touchZero.position - touchZero.deltaPosition;
+					Vector2 touchOnePrevPos = touchOne.position - touchOne.deltaPosition;
+					
+					// Find the magnitude of the vector (the distance) between the touches in each frame.
+					float prevTouchDeltaMag = (touchZeroPrevPos - touchOnePrevPos).magnitude;
+					float touchDeltaMag = (touchZero.position - touchOne.position).magnitude;
+					
+					// Find the difference in the distances between each frame.
+					float dist = prevTouchDeltaMag - touchDeltaMag;
+					
+					//float dist = Vector2.Distance( Input.touches[0].deltaPosition, Input.touches[1].deltaPosition);
+					desiredDistance += dist * Time.deltaTime * (zoomRate/50.0f) * Mathf.Abs(desiredDistance);
+				}
+				break;
+			default:
+				desiredDistance -= Input.GetAxis("Mouse ScrollWheel") * Time.deltaTime * zoomRate * Mathf.Abs(desiredDistance);
+				break;
+		}
+
+			
+		
         desiredDistance = Mathf.Clamp(desiredDistance, minDistance, maxDistance);
         correctedDistance = desiredDistance;
 
