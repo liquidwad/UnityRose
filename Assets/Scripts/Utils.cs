@@ -97,7 +97,17 @@ public class Utils
 	public static DirectoryInfo r2uDir(string rosePath, string extension = ".asset")
 	{
 		var roseDir = new DirectoryInfo(FixPath(rosePath).ToLower());
-		var unityDir = new DirectoryInfo(roseDir.FullName.Replace("3ddata","GameData").Replace(roseDir.Extension, extension));
+        string unityPath = roseDir.FullName;
+
+        if (roseDir.Extension != "")
+            unityPath = unityPath.Replace(roseDir.Extension, extension);
+        else
+            unityPath += extension;
+
+        if (unityPath.Contains("3ddata"))
+            unityPath = unityPath.Replace("3ddata", "GameData");
+
+		var unityDir = new DirectoryInfo(unityPath);
 		
 		// Creat the parent folder path if it doesn't already exist
 		if( !unityDir.Parent.Exists )

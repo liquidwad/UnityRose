@@ -8,18 +8,20 @@ var net = require('net'),
 	crypto = require('./crypto');
 
 
+require('longjohn');
+
 consoleStamp(console, "dd mmm HH:mm:ss -");
 
 //LOAD MODELS
 //var mongoose = require('./models');
 
-var encrypted = crypto.encrypt({ id: 133232, posX: 100, posY: 200, mapId: 44 });
+/*var encrypted = crypto.encrypt({ id: 133232, posX: 100, posY: 200, mapId: 44 });
 
 var f = encrypted.toString();
 
 console.log(f);
 
-console.log( crypto.decrypt( JSON.parse(f) ) );
+console.log( crypto.decrypt( JSON.parse(f) ) );*/
 
 var server = net.createServer();
 
@@ -33,6 +35,14 @@ server.on('connection', function(socket) {
 
 	socket.on('message', function(message) {
 		console.log(message);
+	});
+
+	socket.on('end', function() {
+		console.log("client disconnected");
+	});
+
+	socket.on('error', function(e) {
+		console.log("Exception: " + e.errno);
 	});
 });
 
