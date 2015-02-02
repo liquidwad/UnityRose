@@ -1,7 +1,6 @@
 'use strict';
 
-var CryptoJS = require('node-cryptojs-aes').CryptoJS,
-	JsonFormatter = require('node-cryptojs-aes').JsonFormatter,
+var CryptoJS = require("crypto-js"),
 	crypto = require('crypto'),
 	config = require('./config');
 
@@ -18,7 +17,13 @@ module.exports.encrypt = function(data) {
 		}
 	}
 
-	return CryptoJS.AES.encrypt(message, config.secret_phrase, { format: JsonFormatter });
+	console.log("Encrypting message: " + message);
+
+	return CryptoJS.AES.encrypt(message, CryptoJS.enc.Utf8.parse(config.key), { 
+		mode: CryptoJS.mode.CBC, 
+		padding: CryptoJS.pad.NoPadding,
+		iv: CryptoJS.enc.Utf8.parse(config.iv) 
+	});
 };
 
 module.exports.decrypt = function(data) {
@@ -35,7 +40,7 @@ module.exports.decrypt = function(data) {
 	}
 	
 	var decrypted = CryptoJS.AES.decrypt(data, config.secret_phrase, { 
-		format: JsonFormatter
+		//format: JsonFormatter
 	});
 
 	return CryptoJS.enc.Utf8.stringify(decrypted);
