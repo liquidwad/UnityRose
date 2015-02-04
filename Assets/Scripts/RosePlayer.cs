@@ -193,6 +193,8 @@ public class RosePlayer
             camera.tag = "MainCamera";
         }
 
+		//PlayerObject playerObj = player.AddComponent<PlayerObject>();
+		
         //PrefabUtility.CreatePrefab("Assets/Prefabs/MalePlayer.prefab", player);
         //AssetDatabase.SaveAssets();
 	}

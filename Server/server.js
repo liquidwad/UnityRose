@@ -8,8 +8,6 @@ var net = require('net'),
 	crypto = require('./crypto');
 
 
-require('longjohn');
-
 consoleStamp(console, "dd mmm HH:mm:ss -");
 
 //LOAD MODELS
