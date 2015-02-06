@@ -41,16 +41,12 @@ module.exports.decrypt = function(data) {
 	var packet = {};
 	
 	try {
-		var decryptedText = decrypted.toString(CryptoJS.enc.Utf8); // CryptoJS.enc.Utf8.parse( decrypted.toString() );
-		
-		console.log( decryptedText );
+		var decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
 		packet = JSON.parse( decryptedText );
 	}
 	catch(e) {
 		console.log(e);
 	}
-	
-	//var clearText = decrypted.toString(CryptoJS.enc.Utf8);
 	
 	return packet;
 };
