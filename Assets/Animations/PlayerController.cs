@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Network.Packets.Character;
+using Network;
 
 
 namespace UnityRose
@@ -99,7 +101,7 @@ namespace UnityRose
 					break;
 				default:
 					screenPoint = Input.mousePosition;
-					fire = true;
+					fire = Input.GetMouseButtonDown(0);
 					break;
 			
 			}
@@ -111,7 +113,11 @@ namespace UnityRose
 			{
 				// Perform the raycast and if it hits something on the floor layer...
 				if (Physics.Raycast(camRay, out floorHit, camRayLength, floorMask))
+				{
 				 	destinationPosition = floorHit.point;
+				 	// Send a clicked on ground packet
+				 	NetworkManager.Send( new GroundClick( "wadii", destinationPosition ));
+				}
 			
             }
         }

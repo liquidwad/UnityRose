@@ -30,24 +30,27 @@ module.exports.encrypt = function(data) {
 };
 
 module.exports.decrypt = function(data) {
-
-	var data = data;
-
-	if(Object.prototype.toString.call(data) == "[object Object]") {
-		try {
-			data = JSON.stringify(data);
-		}
-		catch(e) {
-			console.log(e);
-		}
-	}
-	
-	var decrypted = CryptoJS.AES.decrypt(data, CryptoJS.enc.Utf8.parse(config.key), { 
+		
+	var decrypted = CryptoJS.AES.decrypt(data.toString(), 
+		CryptoJS.enc.Utf8.parse(config.key), { 
 		mode: CryptoJS.mode.CBC, 
-		padding: CryptoJS.pad.NoPadding,
+		padding: CryptoJS.pad.Pkcs7,
 		iv: CryptoJS.enc.Utf8.parse(config.iv) 
 	});
-
-
-	return CryptoJS.enc.Utf8.stringify(decrypted);
+	
+	var packet = {};
+	
+	try {
+		var decryptedText = decrypted.toString(CryptoJS.enc.Utf8); // CryptoJS.enc.Utf8.parse( decrypted.toString() );
+		
+		console.log( decryptedText );
+		packet = JSON.parse( decryptedText );
+	}
+	catch(e) {
+		console.log(e);
+	}
+	
+	//var clearText = decrypted.toString(CryptoJS.enc.Utf8);
+	
+	return packet;
 };

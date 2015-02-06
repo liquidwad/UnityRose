@@ -74,6 +74,7 @@ namespace Common.Cryptography
 			using (RijndaelManaged symmetricKey = new RijndaelManaged())
 			{
 				symmetricKey.Mode = CipherMode.CBC;
+				symmetricKey.Padding = PaddingMode.PKCS7;
 				
 				using (ICryptoTransform encryptor = symmetricKey.CreateEncryptor(keyBytes, initialVectorBytes))
 				{
@@ -125,6 +126,7 @@ namespace Common.Cryptography
 			using (RijndaelManaged symmetricKey = new RijndaelManaged())
 			{
 				symmetricKey.Mode = CipherMode.CBC;
+				symmetricKey.Padding = PaddingMode.PKCS7;
 				
 				using (ICryptoTransform decryptor = symmetricKey.CreateDecryptor(keyBytes, initialVectorBytes))
 				{

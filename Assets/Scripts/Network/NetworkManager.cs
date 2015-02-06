@@ -24,17 +24,19 @@ namespace Network
     public class NetworkManager : MonoBehaviour
     {
 		//NetworkManager.Network.NetworkManager.StartClient();
-        private const string ipAddress = "127.0.0.1";
+		private const string ipAddress = "50.139.144.237";
 
         private const int port = 3000;
 
         private static Socket socket = null;
         
-
-        void Start()
+		private static AES crypto;
+			
+		void Start()
         {
             try
             {
+            	crypto = new AES();
                 IPAddress ip = IPAddress.Parse(ipAddress);
 
                 IPEndPoint remoteEp = new IPEndPoint(ip, port);
@@ -112,7 +114,6 @@ namespace Network
                         Debug.Log("Recieved " + state.sb.ToString());
                     }
 
-					AES crypto = new AES();
                     string clearText = crypto.Decrypt(state.sb.ToString());
                     Debug.Log ("Decrypted: " + clearText);
                 }
@@ -130,7 +131,7 @@ namespace Network
                 return;
             }
 
-            byte[] byteData = Encoding.ASCII.GetBytes(packet.ToString());
+            byte[] byteData = Encoding.ASCII.GetBytes( crypto.Encrypt(packet.ToString()));
 
             socket.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), socket);
         }

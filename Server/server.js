@@ -13,14 +13,6 @@ consoleStamp(console, "dd mmm HH:mm:ss -");
 //LOAD MODELS
 //var mongoose = require('./models');
 
-/*var encrypted = crypto.encrypt({ id: 133232, posX: 100, posY: 200, mapId: 44 });
-
-var f = encrypted.toString();
-
-console.log(f);
-
-console.log( crypto.decrypt( JSON.parse(f) ) );*/
-
 var server = net.createServer();
 
 server.on('connection', function(socket) {
@@ -31,8 +23,10 @@ server.on('connection', function(socket) {
 
 	socket.write(encrypted.toString());
 
-	socket.on('message', function(message) {
-		console.log(message);
+	socket.on('data', function(message) {
+		console.log("Received: " + message);
+		var decrypted = crypto.decrypt( message );
+		console.log("Decrypted: " + JSON.stringify(decrypted));
 	});
 
 	socket.on('end', function() {
