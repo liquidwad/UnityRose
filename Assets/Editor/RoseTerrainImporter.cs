@@ -96,24 +96,27 @@ public class RoseTerrainWindow : EditorWindow {
 		// Pack the textures into one texture atlas
 		Rect[] rects = atlas.PackTextures( textures.ToArray(), 0, Math.Max(width, height) );
 		atlas.anisoLevel = 11;
-		
+        
 		Texture2D myAtlas = new Texture2D(width, height);
 		myAtlas.SetPixels32( atlas.GetPixels32(0), 0);
 		
 		string atlasPath = "Assets/GameData/Textures/junon-atlas.png";
-		if( !File.Exists( atlasPath ))
+		
+        if( !File.Exists( atlasPath ))
 		{
 			FileStream fs = new FileStream( atlasPath, FileMode.Create);
 			BinaryWriter bw = new BinaryWriter(fs);
-			bw.Write(myAtlas.EncodeToPNG());
+            bw.Write(myAtlas.EncodeToPNG());
 			bw.Close();
 			fs.Close();
 			
 			AssetDatabase.Refresh();
 		}
+        
 		
 		
-		atlas = (Texture2D)AssetDatabase.LoadMainAssetAtPath( atlasPath );
+		//atlas = (Texture2D)AssetDatabase.LoadMainAssetAtPath( atlasPath );
+        myAtlas = Utils.loadTex(ref atlasPath);
 		
 		string atlasNormalPath = "Assets/GameData/Textures/junon-atlas.png";
 		//Texture2D atlasNormal = (Texture2D)AssetDatabase.LoadMainAssetAtPath( atlasNormalPath );
@@ -125,7 +128,7 @@ public class RoseTerrainWindow : EditorWindow {
 		
 		// Generate the patches
 		foreach(RosePatch patch in patches)
-			patch.Import(terrain.transform, terrainObjects.transform, atlas, atlas, atlasRectHash);
+            patch.Import(terrain.transform, terrainObjects.transform, myAtlas, myAtlas, atlasRectHash);
 		
 		
 		//blend vertex normals at the seams between patches

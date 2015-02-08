@@ -545,7 +545,6 @@ namespace UnityRose.Game
 				
 				terrainObject.transform.rotation = ifo.Rotation;
 				terrainObject.transform.localScale = ifo.Scale;
-
 				
                // if (isAnimated)
                // {
@@ -558,15 +557,11 @@ namespace UnityRose.Game
 					animation.AddClip(clip, terrainObject.name);
 					animation.clip = clip;
               //  }
-              
-              
 			}
-			
 			
 			GameObject cnst = new GameObject();
             cnst.name = patchObject.name.Replace("patch", "cnst");
 			cnst.transform.parent = objectsParent;
-			
 			
 			//================= CONSTRUCTION ======================
             for (int obj = 0; obj < m_IFO.Construction.Count; obj++)
@@ -623,17 +618,13 @@ namespace UnityRose.Game
                     renderer.castShadows = false; 
 					modelObject.AddComponent<MeshCollider>();
 
-
 					string zmoPath = model.Motion;
-		 
                     if (zmoPath != null)
 					{
 						isAnimated = true;
                         ZMO zmo = new ZMO("assets/" + model.Motion, false, true);
                         clip = zmo.buildAnimationClip(modelObject.name, clip);
 					}
-					
-
 				}
 				
 				terrainObject.transform.rotation = ifo.Rotation;
