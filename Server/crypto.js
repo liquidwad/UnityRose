@@ -1,6 +1,6 @@
 'use strict';
 
-var CryptoJS = require("crypto-js"),
+var CryptoJS = require("crypto-js"), 
 	crypto = require('crypto'),
 	config = require('./config');
 
@@ -19,29 +19,34 @@ module.exports.encrypt = function(data) {
 
 	console.log("Encrypting message: " + message);
 
-	return CryptoJS.AES.encrypt(message, CryptoJS.enc.Utf8.parse(config.key), { 
+	var encrypted = CryptoJS.AES.encrypt(message,
+		CryptoJS.enc.Utf8.parse(config.key), { 
 		mode: CryptoJS.mode.CBC, 
-		padding: CryptoJS.pad.NoPadding,
+		padding: CryptoJS.pad.Pkcs7,
 		iv: CryptoJS.enc.Utf8.parse(config.iv) 
 	});
+
+	return encrypted.toString();
 };
 
 module.exports.decrypt = function(data) {
-
-	var data = data;
-
-	if(Object.prototype.toString.call(data) == "[object Object]") {
-		try {
-			data = JSON.stringify(data);
-		}
-		catch(e) {
-			console.log(e);
-		}
+		
+	var decrypted = CryptoJS.AES.decrypt(data.toString(), 
+		CryptoJS.enc.Utf8.parse(config.key), { 
+		mode: CryptoJS.mode.CBC, 
+		padding: CryptoJS.pad.Pkcs7,
+		iv: CryptoJS.enc.Utf8.parse(config.iv) 
+	});
+	
+	var packet = {};
+	
+	try {
+		var decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+		packet = JSON.parse( decryptedText );
+	}
+	catch(e) {
+		console.log(e);
 	}
 	
-	var decrypted = CryptoJS.AES.decrypt(data, config.secret_phrase, { 
-		//format: JsonFormatter
-	});
-
-	return CryptoJS.enc.Utf8.stringify(decrypted);
+	return packet;
 };

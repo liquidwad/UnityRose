@@ -1,40 +1,64 @@
 'use strict';
 
-var net = require('net'),
+var _ = require('lodash'),
+	net = require('net'),
 	JsonSocket = require('json-socket'),
 	consoleStamp = require('console-stamp'),
 	config = require('./config'),
 	common = require('./common'),
-	crypto = require('./crypto');
+	packet = require('./packet'),
+	crypto = require('./crypto'),
+	World = require('./world/world');
 
 
-require('longjohn');
+consoleStamp(console, "dd mmm HH:mm:ss");
 
-consoleStamp(console, "dd mmm HH:mm:ss -");
-
-//LOAD MODELS
+//load models and database
 //var mongoose = require('./models');
 
-/*var encrypted = crypto.encrypt({ id: 133232, posX: 100, posY: 200, mapId: 44 });
-
-var f = encrypted.toString();
-
-console.log(f);
-
-console.log( crypto.decrypt( JSON.parse(f) ) );*/
-
+//Create server
 var server = net.createServer();
 
+//Create new world
+var world = new World();
+
+var clients = [];
+
 server.on('connection', function(socket) {
-	//handle client
+
 	console.log("Client connected from " + socket.remoteAddress);
 
-	var encrypted = crypto.encrypt({ id: 133232, posX: 100, posY: 200, mapId: 44 });
+	clients.push(socket);
 
-	socket.write(encrypted.toString());
+	socket.on('data', function(data) {
+		var data = crypto.decrypt( data ),
+			type = packet.packetType.get( data.type );
 
-	socket.on('message', function(message) {
-		console.log(message);
+		console.log("Packet type: " + type);
+
+		switch(data.type) {
+			case packet.packetType.User.value:
+				console.log("Handle User packet");
+				break;
+			case packet.packetType.Character.value:
+				console.log("Handle character packet");
+
+				var clientMoveData = crypto.encrypt(data);
+
+				_.each(clients, function(client) {
+					/*if(socket === client) {
+						return;
+					}*/
+
+					client.write(clientMoveData);
+				});
+				break;
+			default:
+				console.log("unknown packet");
+				break;
+		}
+
+		console.log( JSON.stringify( data ) );
 	});
 
 	socket.on('end', function() {

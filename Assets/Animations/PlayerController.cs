@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Network.Packets;
+using Network;
 
 
 namespace UnityRose
@@ -38,6 +40,14 @@ namespace UnityRose
             controller = this.gameObject.GetComponent<CharacterController>();
 
             destinationPosition = transform.position;
+            
+			
+            NetworkManager.movementDelegate += (GroundClick gc) => 
+            {
+				// TODO: add checking for player ID
+				destinationPosition = gc.pos;
+				// set destinationPosition = position received
+            };
 
         }
 
@@ -99,7 +109,7 @@ namespace UnityRose
 					break;
 				default:
 					screenPoint = Input.mousePosition;
-					fire = true;
+					fire = Input.GetMouseButtonDown(0);
 					break;
 			
 			}
@@ -111,16 +121,22 @@ namespace UnityRose
 			{
 				// Perform the raycast and if it hits something on the floor layer...
 				if (Physics.Raycast(camRay, out floorHit, camRayLength, floorMask))
-				 	destinationPosition = floorHit.point;
+				{
+				 	//destinationPosition = floorHit.point;
+				 	// Send a clicked on ground packet
+					NetworkManager.Send( new GroundClick( "wadii", floorHit.point ));
+				 	
+				}
 			
             }
         }
 
 
-        void MoveToPosition()
+		
+        void MoveToPosition() 
         {
 
-            if ( Vector3.Distance( transform.position , destinationPosition ) > 1.0f )
+            if ( Vector3.Distance( transform.position , destinationPosition ) > 0.5f )
             {
                 Vector3 playerToMouse = destinationPosition - transform.position;
                 playerToMouse.y = 0;
