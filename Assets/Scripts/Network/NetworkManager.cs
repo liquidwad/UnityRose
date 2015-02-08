@@ -8,9 +8,19 @@ using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
 using Common.Cryptography;
+using Network.Packets;
+using Network.JsonConverters;
+using JsonFx.Json;
+using System.Runtime.CompilerServices;
 
 namespace Network
 {
+	public class PacketData {
+		
+		public int operation;
+		public int type;
+	}
+	
     public class State {
         public Socket socket;
 
@@ -23,14 +33,17 @@ namespace Network
 
     public class NetworkManager : MonoBehaviour
     {
-		//NetworkManager.Network.NetworkManager.StartClient();
-		private const string ipAddress = "50.139.144.237";
+		private const string ipAddress = "24.62.143.241"; 
 
         private const int port = 3000;
 
         private static Socket socket = null;
         
 		private static AES crypto;
+		
+		public delegate void MovementDelegate(GroundClick gc);
+		
+		public static event MovementDelegate movementDelegate;
 			
 		void Start()
         {
@@ -116,6 +129,70 @@ namespace Network
 
                     string clearText = crypto.Decrypt(state.sb.ToString());
                     Debug.Log ("Decrypted: " + clearText);
+                    
+                    
+                    //DESERIALIZE TYPE + OPCODE 
+                    //MAKE A SWITCH DEPENDING ON THE TYPE AND OPCODE
+                    //SEND THE RIGHT PACKET TO THE RIGHT DELEGTE
+                    
+					JsonReaderSettings settings = new JsonReaderSettings();
+					settings.AddTypeConverter (new VectorConverter());
+					
+                    JsonReader reader = new JsonReader(clearText, settings);
+              		
+              		Packet packet = reader.Deserialize<Packet>();
+              		
+              		PacketType type = (PacketType)packet.type;
+              		
+              		switch(type) {
+              			case PacketType.CHARACTER:
+              			{
+              				CharacterOperation charOp = (CharacterOperation)packet.operation;
+              				
+              				switch(charOp) 
+              				{
+              					case CharacterOperation.GROUNDCLICK: 
+              					{
+									JsonReader myReader = new JsonReader(clearText, settings);
+									GroundClick gc = myReader.Deserialize<GroundClick>();
+									movementDelegate.Invoke(gc);
+              						break;
+              					}
+              					case CharacterOperation.CHANGEDSTATE: 
+              					{
+              						// leave these for later
+              						break;
+              					}
+              					default: 
+              					{
+              						break;
+              					}
+              				}
+              				
+              				break;
+              			}
+              			case PacketType.USER:
+              			{
+              				UserOperation userOp = (UserOperation)packet.operation;
+              				
+              				switch(userOp) 
+              				{
+              					case UserOperation.LOGIN:
+              					{
+              						break;
+              					}
+								default:
+								{
+									break;
+								}
+              				}
+              				break;
+              			}
+					default: 
+					{
+						break;
+					}
+              		}					
                 }
 
             }
@@ -125,13 +202,13 @@ namespace Network
             }
         }
 
-        public static void Send(Packets.IPacket packet)
+        public static void Send(Packets.Packet packet)
         {
             if(socket == null) {
                 return;
             }
 
-            byte[] byteData = Encoding.ASCII.GetBytes( crypto.Encrypt(packet.ToString()));
+            byte[] byteData = Encoding.ASCII.GetBytes( crypto.Encrypt(packet.toString()));
 
             socket.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), socket);
         }
@@ -144,6 +221,8 @@ namespace Network
                 int bytesSend = client.EndSend(ar);
 
 				Debug.Log("Send " + bytesSend + " bytes to server.");
+				
+				Recieve();
             }
             catch (Exception e)
             {

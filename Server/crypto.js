@@ -26,7 +26,7 @@ module.exports.encrypt = function(data) {
 		iv: CryptoJS.enc.Utf8.parse(config.iv) 
 	});
 
-	return encrypted;
+	return encrypted.toString();
 };
 
 module.exports.decrypt = function(data) {

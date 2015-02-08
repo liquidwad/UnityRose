@@ -1,6 +1,7 @@
 'use strict';
 
-var net = require('net'),
+var _ = require('lodash'),
+	net = require('net'),
 	JsonSocket = require('json-socket'),
 	consoleStamp = require('console-stamp'),
 	config = require('./config'),
@@ -15,17 +16,19 @@ consoleStamp(console, "dd mmm HH:mm:ss");
 //load models and database
 //var mongoose = require('./models');
 
-
-
 //Create server
 var server = net.createServer();
 
 //Create new world
 var world = new World();
 
+var clients = [];
+
 server.on('connection', function(socket) {
 
 	console.log("Client connected from " + socket.remoteAddress);
+
+	clients.push(socket);
 
 	socket.on('data', function(data) {
 		var data = crypto.decrypt( data ),
@@ -39,6 +42,16 @@ server.on('connection', function(socket) {
 				break;
 			case packet.packetType.Character.value:
 				console.log("Handle character packet");
+
+				var clientMoveData = crypto.encrypt(data);
+
+				_.each(clients, function(client) {
+					/*if(socket === client) {
+						return;
+					}*/
+
+					client.write(clientMoveData);
+				});
 				break;
 			default:
 				console.log("unknown packet");
