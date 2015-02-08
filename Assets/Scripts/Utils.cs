@@ -57,11 +57,30 @@ public class Utils
 		}
 		return b;
 	}
-	
+
+    // Returns true if platform is mac
+    public static bool IsMac()
+    {
+        return Application.platform == RuntimePlatform.OSXEditor;
+    }
+
+    // fixes the path based on platform and returns fixed string
+    public static string FixPath(string file)
+    {
+        if (IsMac())
+            return  file.Contains("\\") ? file.ToLower().Replace("\\", "/") : file.ToLower();
+        else
+        {
+            return file.Replace("/", "\\");
+        }
+           // return file.Contains("/") ? file.ToLower().Replace("/", "\\") : file.ToLower();
+    }
+
+
 	public static Texture2D loadTex ( ref string rosePath )
 	{
 		// check if dds exists, and load it if it does
-		string ddsPath = rosePath.Contains("\\") ? rosePath.ToLower().Replace("\\","/") : rosePath.ToLower();
+        string ddsPath = FixPath(rosePath);
 		string pngPath = ddsPath.Replace(".dds",".png");
 		if( File.Exists(pngPath) )
 		{
@@ -78,21 +97,7 @@ public class Utils
 	
 	
 #if UNITY_EDITOR
-	// Returns true if platform is mac
-	public static bool IsMac()
-	{
-		return Application.platform == RuntimePlatform.OSXEditor;
-	}
-
-	// fixes the path based on platform and returns fixed string
-	public static string FixPath(string file)
-	{
-		if (IsMac())
-			return file.Replace("\\", "/");
-		else
-			return file.Replace("/", "\\");
-	}
-
+	
 	// Converts a rose path to a unity path and creates the directory structure of non-existent
 	public static DirectoryInfo r2uDir(string rosePath, string extension = ".asset")
 	{
