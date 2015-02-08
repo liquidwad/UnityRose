@@ -41,9 +41,16 @@ namespace Network
         
 		private static AES crypto;
 		
-		public delegate void MovementDelegate(GroundClick gc);
+		//////////////////////Character delegates////////////////////
 		
-		public static event MovementDelegate movementDelegate;
+		// Ground click
+		public delegate void GroundClickDelegate(GroundClick packet);
+		public static event GroundClickDelegate groundClickDelegate;
+		
+		// Instantiate char
+		public delegate void InstantiateCharDelegate(InstantiateChar packet);
+		public static event InstantiateCharDelegate instantiateCharDelegate;
+		
 			
 		void Start()
         {
@@ -137,6 +144,7 @@ namespace Network
                     
 					JsonReaderSettings settings = new JsonReaderSettings();
 					settings.AddTypeConverter (new VectorConverter());
+					settings.AddTypeConverter (new QuaternionConverter());
 					
                     JsonReader reader = new JsonReader(clearText, settings);
               		
@@ -146,52 +154,44 @@ namespace Network
               		
               		switch(type) {
               			case PacketType.CHARACTER:
-              			{
               				CharacterOperation charOp = (CharacterOperation)packet.operation;
-              				
+							JsonReader myReader = new JsonReader(clearText, settings);
               				switch(charOp) 
               				{
               					case CharacterOperation.GROUNDCLICK: 
-              					{
-									JsonReader myReader = new JsonReader(clearText, settings);
-									GroundClick gc = myReader.Deserialize<GroundClick>();
-									movementDelegate.Invoke(gc);
+									groundClickDelegate.Invoke(myReader.Deserialize<GroundClick>());
               						break;
-              					}
+              					
               					case CharacterOperation.CHANGEDSTATE: 
-              					{
               						// leave these for later
               						break;
-              					}
+              						
+								case CharacterOperation.INSTANTIATE: 
+									instantiateCharDelegate.Invoke(myReader.Deserialize<InstantiateChar>());
+									break;
+              					
               					default: 
-              					{
               						break;
-              					}
+              					
               				}
               				
               				break;
-              			}
+              			
               			case PacketType.USER:
-              			{
               				UserOperation userOp = (UserOperation)packet.operation;
-              				
               				switch(userOp) 
               				{
               					case UserOperation.LOGIN:
-              					{
               						break;
-              					}
+              					
 								default:
-								{
 									break;
-								}
+								
               				}
               				break;
-              			}
 					default: 
-					{
 						break;
-					}
+					
               		}					
                 }
 
@@ -200,6 +200,8 @@ namespace Network
             {
                 Debug.Log(e.ToString());
             }
+            
+            Recieve();
         }
 
         public static void Send(Packets.Packet packet)
@@ -208,7 +210,9 @@ namespace Network
                 return;
             }
 
-            byte[] byteData = Encoding.ASCII.GetBytes( crypto.Encrypt(packet.toString()));
+			string clearText = packet.toString();
+			Debug.Log("Sending: " + clearText);
+			byte[] byteData = Encoding.ASCII.GetBytes( crypto.Encrypt(clearText) );
 
             socket.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), socket);
         }
@@ -222,7 +226,7 @@ namespace Network
 
 				Debug.Log("Send " + bytesSend + " bytes to server.");
 				
-				Recieve();
+				//Recieve();
             }
             catch (Exception e)
             {

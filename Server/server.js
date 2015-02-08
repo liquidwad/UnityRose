@@ -4,6 +4,7 @@ var _ = require('lodash'),
 	net = require('net'),
 	JsonSocket = require('json-socket'),
 	consoleStamp = require('console-stamp'),
+	shortid = require('shortid'),
 	config = require('./config'),
 	common = require('./common'),
 	packet = require('./packet'),
@@ -28,13 +29,13 @@ server.on('connection', function(socket) {
 
 	console.log("Client connected from " + socket.remoteAddress);
 
+	socket.id = shortid.generate();
+
 	clients.push(socket);
 
 	socket.on('data', function(data) {
 		var data = crypto.decrypt( data ),
 			type = packet.packetType.get( data.type );
-
-		console.log("Packet type: " + type);
 
 		switch(data.type) {
 			case packet.packetType.User.value:
@@ -58,7 +59,7 @@ server.on('connection', function(socket) {
 				break;
 		}
 
-		console.log( JSON.stringify( data ) );
+		console.log( "[" + socket.id + "][" + type + "] - " + JSON.stringify( data ) );
 	});
 
 	socket.on('end', function() {
@@ -66,7 +67,7 @@ server.on('connection', function(socket) {
 	});
 
 	socket.on('error', function(e) {
-		console.log("Exception: " + e.errno);
+		console.log("Exception: " + JSON.stringify(e));
 	});
 });
 

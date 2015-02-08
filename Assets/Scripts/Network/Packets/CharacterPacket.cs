@@ -8,7 +8,8 @@ namespace Network.Packets
 	public enum CharacterOperation
 	{
 		GROUNDCLICK = 1,
-		CHANGEDSTATE = 2
+		CHANGEDSTATE = 2,
+		INSTANTIATE = 3
 	}
 	
 	[JsonOptIn]
@@ -26,7 +27,6 @@ namespace Network.Packets
 		public override string toString()
 		{
 			writer.Write (this);			
-			Debug.Log(output.ToString());
 			return output.ToString();
 		}
 	}
@@ -51,8 +51,39 @@ namespace Network.Packets
 		
 		public override string toString()
 		{
-			writer.Write (this);			
-			Debug.Log(output.ToString());
+			writer.Write (this);
+			return output.ToString();
+		}
+	}
+	
+	[JsonOptIn]
+	public class InstantiateChar: CharacterPacket
+	{
+		[JsonMember]
+		public Vector3 position {get; set;}
+		
+		[JsonMember]
+		public Quaternion rotation {get; set;}
+		
+		
+		//Todo: add members for armor, speed, etc
+		
+		public InstantiateChar()
+		{
+		}
+		
+		public InstantiateChar(string clientID, Vector3 position, Quaternion rotation)
+		{
+			this.clientID = clientID;
+			this.position = position;
+			this.rotation = rotation;
+			
+			operation = (int)CharacterOperation.INSTANTIATE;
+		}
+		
+		public override string toString()
+		{
+			writer.Write (this);
 			return output.ToString();
 		}
 	}
@@ -73,7 +104,6 @@ namespace Network.Packets
 		public override string toString()
 		{
 			writer.Write (this);			
-			Debug.Log(output.ToString());
 			return output.ToString();
 		}
 	}
