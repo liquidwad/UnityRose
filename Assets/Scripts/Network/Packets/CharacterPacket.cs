@@ -25,8 +25,7 @@ namespace Network.Packets
 		
 		public override string toString()
 		{
-			writer.Write (this);			
-			Debug.Log(output.ToString());
+			writer.Write (this);
 			return output.ToString();
 		}
 	}
@@ -52,7 +51,6 @@ namespace Network.Packets
 		public override string toString()
 		{
 			writer.Write (this);			
-			Debug.Log(output.ToString());
 			return output.ToString();
 		}
 	}
@@ -72,8 +70,7 @@ namespace Network.Packets
 		
 		public override string toString()
 		{
-			writer.Write (this);			
-			Debug.Log(output.ToString());
+			writer.Write (this);
 			return output.ToString();
 		}
 	}

@@ -200,6 +200,8 @@ namespace Network
             {
                 Debug.Log(e.ToString());
             }
+
+            Recieve();
         }
 
         public static void Send(Packets.Packet packet)
@@ -208,7 +210,9 @@ namespace Network
                 return;
             }
 
-            byte[] byteData = Encoding.ASCII.GetBytes( crypto.Encrypt(packet.toString()));
+            string clearText = packet.toString();
+            Debug.Log("Sending: " + clearText);
+            byte[] byteData = Encoding.ASCII.GetBytes( crypto.Encrypt(clearText) );
 
             socket.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), socket);
         }
@@ -222,7 +226,6 @@ namespace Network
 
 				Debug.Log("Send " + bytesSend + " bytes to server.");
 				
-				Recieve();
             }
             catch (Exception e)
             {

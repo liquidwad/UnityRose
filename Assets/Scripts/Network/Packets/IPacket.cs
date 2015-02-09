@@ -40,8 +40,7 @@ namespace Network.Packets
     	
         public virtual string toString()
         {
-			writer.Write (this);			
-			Debug.Log(output.ToString());
+			writer.Write (this);
 			return output.ToString();
 		}
 	}
