@@ -40,10 +40,20 @@ server.on('connection', function(socket) {
 		switch(data.type) {
 			case packet.packetType.User.value:
 				console.log("Handle User packet");
+				var operation = packet.userOperation.get( operation );
+				switch( operation )
+				{
+					case packet.userOperation.Login.value:
+						console.log("Handle User Login");
+						break;
+					default: 
+						break;
+				}
 				break;
 			case packet.packetType.Character.value:
 				console.log("Handle character packet");
 
+				// for now just reflect the packet
 				var clientMoveData = crypto.encrypt(data);
 
 				_.each(clients, function(client) {
@@ -63,6 +73,8 @@ server.on('connection', function(socket) {
 	});
 
 	socket.on('end', function() {
+
+		//remove socket from clients list
 		console.log("client disconnected");
 	});
 

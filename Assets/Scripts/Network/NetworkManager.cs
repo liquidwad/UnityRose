@@ -51,6 +51,10 @@ namespace Network
 		public delegate void InstantiateCharDelegate(InstantiateChar packet);
 		public static event InstantiateCharDelegate instantiateCharDelegate;
 		
+		// Destroy char
+		public delegate void DestroyCharDelegate(DestroyChar packet);
+		public static event DestroyCharDelegate destroyCharDelegate;
+		
 			
 		void Awake()
         {
@@ -168,6 +172,10 @@ namespace Network
               						
 								case CharacterOperation.INSTANTIATE: 
 									instantiateCharDelegate.Invoke(myReader.Deserialize<InstantiateChar>());
+									break;
+								
+								case CharacterOperation.DESTROY: 
+									destroyCharDelegate.Invoke(myReader.Deserialize<DestroyChar>());
 									break;
               					
               					default: 

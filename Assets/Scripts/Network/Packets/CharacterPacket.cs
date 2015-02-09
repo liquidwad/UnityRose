@@ -7,11 +7,16 @@ namespace Network.Packets
 {
 	public enum CharacterOperation
 	{
-		GROUNDCLICK = 1,
-		CHANGEDSTATE = 2,
-		INSTANTIATE = 3
+		DEFAULT,
+		GROUNDCLICK,
+		CHANGEDSTATE,
+		INSTANTIATE,
+		DESTROY,
+		LOADCOMPLETE,
+		numCharOperations
 	}
 	
+	// All character packets sent are checked against clientID associated with socket connection
 	[JsonOptIn]
 	public class CharacterPacket: Packet
 	{
@@ -21,7 +26,7 @@ namespace Network.Packets
 		public CharacterPacket()
 		{
 			type = (int)PacketType.CHARACTER;
-			operation = 0;
+			operation = (int)CharacterOperation.DEFAULT;
 		}
 		
 		public override string toString()
@@ -30,7 +35,8 @@ namespace Network.Packets
 			return output.ToString();
 		}
 	}
-	
+
+	// Two way packet for sending/receiving ground click events
 	[JsonOptIn]
 	public class GroundClick: CharacterPacket
 	{
@@ -56,29 +62,18 @@ namespace Network.Packets
 		}
 	}
 	
+	// Client -> Server packet for player load completed
 	[JsonOptIn]
-	public class InstantiateChar: CharacterPacket
-	{
-		[JsonMember]
-		public Vector3 position {get; set;}
-		
-		[JsonMember]
-		public Quaternion rotation {get; set;}
-		
-		
-		//Todo: add members for armor, speed, etc
-		
-		public InstantiateChar()
+	public class CharLoadCompleted: CharacterPacket
+	{	
+		public CharLoadCompleted()
 		{
 		}
 		
-		public InstantiateChar(string clientID, Vector3 position, Quaternion rotation)
+		public CharLoadCompleted(string clientID)
 		{
+			operation = (int)CharacterOperation.LOADCOMPLETE;
 			this.clientID = clientID;
-			this.position = position;
-			this.rotation = rotation;
-			
-			operation = (int)CharacterOperation.INSTANTIATE;
 		}
 		
 		public override string toString()
@@ -87,6 +82,66 @@ namespace Network.Packets
 			return output.ToString();
 		}
 	}
+	
+	// Server -> Client packet for initializing a new character
+	[JsonOptIn]
+	public class InstantiateChar: CharacterPacket
+	{
+		[JsonMember]
+		public bool isMain { get; set; }
+		
+		[JsonMember]
+		public Vector3 pos {get; set;}
+		
+		[JsonMember]
+		public Quaternion rot {get; set;}
+		
+		[JsonMember]
+		public PlayerInfo pInfo { get; set; }
+		
+		public InstantiateChar()
+		{
+		}
+		
+		public InstantiateChar( bool isMain, Vector3 position, Quaternion rotation, PlayerInfo info)
+		{
+			operation = (int)CharacterOperation.INSTANTIATE;
+			this.isMain = isMain;
+			this.clientID = info.name;
+			this.pos = position;
+			this.rot = rotation;
+			this.pInfo = info;
+		}
+		
+		public override string toString()
+		{
+			writer.Write (this);			
+			return output.ToString();
+		}
+	}
+	
+	[JsonOptIn]
+	public class DestroyChar: CharacterPacket
+	{		
+		//Todo: add members for armor, speed, etc
+		
+		public DestroyChar()
+		{
+		}
+		
+		public DestroyChar(string clientID)
+		{
+			this.clientID = clientID;
+			operation = (int)CharacterOperation.DESTROY;
+		}
+		
+		public override string toString()
+		{
+			writer.Write (this);			
+			return output.ToString();
+		}
+	}
+	
 	
 	[JsonOptIn]
 	public class ChangedState: CharacterPacket

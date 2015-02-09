@@ -10,56 +10,51 @@ namespace UnityRose
     public class PlayerController : MonoBehaviour
     {
     	public bool isMainPlayer = false;
-        public float speed = 10f;
-        public float rotateSpeed = 10f;
-
-		public string name = "wadii";
+		public PlayerInfo playerInfo;
 		
-        int floorMask;
-        float camRayLength = 500f;
-
+        private int floorMask;
+        private float camRayLength = 500f;
         private Vector3 destinationPosition;
         private CharacterController controller;
-       
-        Vector3 moveDirection = Vector3.zero;
+		private PlayerState playerMachine;
+        private bool isWalking = false;
+        private States state = States.STANDING;
+        
 
-        private PlayerState playerMachine;
-
-
-        bool isWalking = false;
-        States state = States.STANDING;
-
-       // public StateParams stateParams;
         // Use this for initialization
         void Start()
-        {
-        	gameObject.name = name;
-        	
+        {	
             playerMachine = new PlayerState(States.STANDING,"Player State Machine", this.gameObject);
             playerMachine.Entry();
-
             floorMask = LayerMask.GetMask("Floor");
-
             controller = this.gameObject.GetComponent<CharacterController>();
-
             destinationPosition = transform.position;
-            
-            if( isMainPlayer )
-            {
-	            // Send an instantiate char packet to server
-				NetworkManager.Send( new InstantiateChar( gameObject.name, gameObject.transform.position, gameObject.transform.rotation ) );
-			}
+
             // Add definitions for all packet received delegates
             NetworkManager.groundClickDelegate += (GroundClick gc) => 
             {
 				// TODO: add checking for player ID
-				if(gc.clientID == name)
+				if(gc.clientID == playerInfo.name)
 					destinationPosition = gc.pos;
 				// set destinationPosition = position received
             };
+            
+            
+			if( isMainPlayer )
+			{
+				// Tell server main player has finished loading
+				NetworkManager.Send( new CharLoadCompleted( playerInfo.name ) ); //gameObject.name, gameObject.transform.position, gameObject.transform.rotation ) );
+			}
 
         }
 
+		void OnDisable()
+		{
+			NetworkManager.Send( new DestroyChar( playerInfo.name ));
+		}
+		
+		
+		
         // Update is called once per frame
         void Update()
         {
@@ -70,10 +65,11 @@ namespace UnityRose
 				// TODO: remove this after debugging is over
 				if( Input.GetKeyDown( KeyCode.J ) )
 				{
-					NetworkManager.Send( new InstantiateChar( gameObject.name, gameObject.transform.position, gameObject.transform.rotation ));
+					// this packet is reflected to all clients by server (for debugging only)
+					NetworkManager.Send( new InstantiateChar(  false, gameObject.transform.position, gameObject.transform.rotation, playerInfo ) ); //gameObject.name, gameObject.transform.position, gameObject.transform.rotation ));
 				}
 				
-				
+				/*
 				bool locate = false;
 				switch (Application.platform)
 				{
@@ -89,7 +85,8 @@ namespace UnityRose
 				}
 				
 				if ( locate )
-	                LocatePosition();
+				*/
+	            LocatePosition();
         	}	
             
 
@@ -143,12 +140,9 @@ namespace UnityRose
 			
             }
         }
-
-
 		
         void MoveToPosition() 
         {
-
             if ( Vector3.Distance( transform.position , destinationPosition ) > 0.5f )
             {
                 Vector3 playerToMouse = destinationPosition - transform.position;
@@ -156,30 +150,18 @@ namespace UnityRose
 
                 // Create a quaternion (rotation) based on looking down the vector from the player to the mouse.
                 Quaternion newRotation = Quaternion.LookRotation(playerToMouse);
-                transform.rotation = newRotation; //Quaternion.Slerp(transform.rotation, newRotation, Time.deltaTime * rotateSpeed);
+                transform.rotation = newRotation;
 
                 //check hangout
-
-
-                //now here transformDirecttion should have  Vector3.Forward and not this values 
-                //if u use vector3forward the char try to go on Y axis and not the right one cus forward is vector3(0,0,1)
-                //so basically i did many tets to get the one that works with this model , am thikning its all rotation problem ok 
-               // float curSpeed = speed * Input.GetAxis("Horizontal");
-                controller.SimpleMove(transform.forward * speed);
+                controller.SimpleMove(transform.forward * playerInfo.tMovS);
                 isWalking = true;
             }
             else
             {
                 isWalking = false;
-            }
-             
-           
-             
+            }         
         }
-
-
-
-
+        
     }
 }
 

@@ -1,17 +1,20 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Network;
 using Network.Packets;
 using UnityRose;
 
+// This class handles the loading and desctruction of other avatars on the map
+// One instance of this class is attached to each map (each map lives in a difference scene)
 public class MapManager : MonoBehaviour {
 
 	public string mapID;
 	public string mainChar;
 	public GameObject playerFab;
 	
-	private List<GameObject> players;
+	private Dictionary<string, GameObject> players;
 	private int numPlayers;
 	
 	private Queue<Packet> packetQueue;
@@ -19,7 +22,7 @@ public class MapManager : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 	
-		players = new List<GameObject>();
+		players = new Dictionary< string ,GameObject>();
 		packetQueue = new Queue<Packet>();
 		numPlayers = 0;
 		
@@ -27,9 +30,21 @@ public class MapManager : MonoBehaviour {
 		NetworkManager.instantiateCharDelegate += (InstantiateChar packet) => 
 		{
 			packetQueue.Enqueue( packet );
-			numPlayers++;
+		};
+		
+		NetworkManager.destroyCharDelegate += (DestroyChar packet) => 
+		{
+			packetQueue.Enqueue( packet );
 		};
 	
+	}
+	
+	void OnDestroy()
+	{
+		foreach( GameObject player in players.Values)
+		{
+			Destroy( player );
+		}
 	}
 	
 	// Update is called once per frame
@@ -46,17 +61,35 @@ public class MapManager : MonoBehaviour {
 					{
 						case CharacterOperation.INSTANTIATE:
 							InstantiateChar ic = (InstantiateChar) packet;
-							if( ic.clientID != mainChar )
+							if( !ic.isMain )
 							{
-								GameObject newPlayer = (GameObject)Instantiate( playerFab, ic.position, ic.rotation);
+								GameObject newPlayer = (GameObject)Instantiate( playerFab, ic.pos, ic.rot);
+								
+								try{
+									players.Add( ic.clientID, newPlayer );
+								}catch(Exception e){
+									Debug.LogWarning ("Player already exists in map. Destroying it...");
+									Destroy( newPlayer );
+									break;
+								}
 								
 								// TODO: add all other player initialization specifications here based on packet
 								newPlayer.name = ic.clientID; // + " " + numPlayers;
 								
 								PlayerController playerController = newPlayer.GetComponent<PlayerController>();
 								playerController.isMainPlayer = false;
-								playerController.name = newPlayer.name;
-								players.Add(newPlayer);
+								playerController.playerInfo = ic.pInfo;
+								players[ic.clientID] = newPlayer;
+							}
+							break;
+						case CharacterOperation.DESTROY:
+							DestroyChar dc = (DestroyChar) packet;
+							try{
+								Destroy(players[dc.clientID]);
+								players.Remove(dc.clientID);
+							}catch(Exception e){
+								Debug.LogError("Failed to remove player" + dc.clientID + " from map.");
+								Debug.LogException(e);
 							}
 							break;
 						default:
