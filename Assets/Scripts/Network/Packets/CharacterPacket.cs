@@ -83,7 +83,7 @@ namespace Network.Packets
 		
 		public override string toString()
 		{
-			writer.Write (this);
+			writer.Write (this);			
 			return output.ToString();
 		}
 	}

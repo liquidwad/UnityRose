@@ -46,7 +46,7 @@ namespace Network
 		// Ground click
 		public delegate void GroundClickDelegate(GroundClick packet);
 		public static event GroundClickDelegate groundClickDelegate;
-		
+			
 		// Instantiate char
 		public delegate void InstantiateCharDelegate(InstantiateChar packet);
 		public static event InstantiateCharDelegate instantiateCharDelegate;
@@ -228,7 +228,6 @@ namespace Network
 
 				Debug.Log("Send " + bytesSend + " bytes to server.");
 				
-				//Recieve();
             }
             catch (Exception e)
             {
