@@ -34,13 +34,14 @@ namespace Network.Packets
 			JsonWriterSettings settings = new JsonWriterSettings();
 			settings.PrettyPrint = false;
 			settings.AddTypeConverter (new VectorConverter());
+			settings.AddTypeConverter( new QuaternionConverter());
 			// TODO: Add any other TypeConverters here
 			writer = new JsonWriter (output,settings);
     	}
     	
         public virtual string toString()
         {
-			writer.Write (this);
+			writer.Write (this);			
 			return output.ToString();
 		}
 	}

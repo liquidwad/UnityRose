@@ -21,8 +21,28 @@ namespace Network.JsonConverters
 		}
 		
 		public override object ReadJson (Type type, Dictionary<string,object> value) {
-			//Debug.Log ("First key type "+value["x"].GetType());
 			Vector3 v = new Vector3(CastFloat(value["x"]),CastFloat(value["y"]),CastFloat(value["z"]));
+			return v;
+		}
+	}
+	
+	public class QuaternionConverter : JsonConverter {
+		public override bool CanConvert (Type t) {
+			return t == typeof(Quaternion);
+		}
+		
+		public override Dictionary<string,object> WriteJson (Type type, object value) {
+			Quaternion v = (Quaternion)value;
+			Dictionary<string,object> dict = new Dictionary<string, object>();
+			dict.Add ("x",v.x);
+			dict.Add ("y",v.y);
+			dict.Add ("z",v.z);
+			dict.Add ("w",v.w);
+			return dict;
+		}
+		
+		public override object ReadJson (Type type, Dictionary<string,object> value) {
+			Quaternion v = new Quaternion(CastFloat(value["x"]), CastFloat(value["y"]),CastFloat(value["z"]),CastFloat(value["w"]));
 			return v;
 		}
 	}

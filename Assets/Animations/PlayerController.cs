@@ -9,11 +9,12 @@ namespace UnityRose
 
     public class PlayerController : MonoBehaviour
     {
-
-
+    	public bool isMainPlayer = false;
         public float speed = 10f;
         public float rotateSpeed = 10f;
 
+		public string name = "wadii";
+		
         int floorMask;
         float camRayLength = 500f;
 
@@ -32,6 +33,8 @@ namespace UnityRose
         // Use this for initialization
         void Start()
         {
+        	gameObject.name = name;
+        	
             playerMachine = new PlayerState(States.STANDING,"Player State Machine", this.gameObject);
             playerMachine.Entry();
 
@@ -41,11 +44,17 @@ namespace UnityRose
 
             destinationPosition = transform.position;
             
-			
-            NetworkManager.movementDelegate += (GroundClick gc) => 
+            if( isMainPlayer )
+            {
+	            // Send an instantiate char packet to server
+				NetworkManager.Send( new InstantiateChar( gameObject.name, gameObject.transform.position, gameObject.transform.rotation ) );
+			}
+            // Add definitions for all packet received delegates
+            NetworkManager.groundClickDelegate += (GroundClick gc) => 
             {
 				// TODO: add checking for player ID
-				destinationPosition = gc.pos;
+				if(gc.clientID == name)
+					destinationPosition = gc.pos;
 				// set destinationPosition = position received
             };
 
@@ -54,35 +63,39 @@ namespace UnityRose
         // Update is called once per frame
         void Update()
         {
-
-            destinationPosition.y = transform.position.y;
-
-			bool locate = false;
-			switch (Application.platform)
-			{
-				case RuntimePlatform.IPhonePlayer:
-				case RuntimePlatform.Android:
-				case RuntimePlatform.WP8Player:
-					locate = Input.touchCount > 0;
-				break;
-				default:
-					locate = Input.GetMouseButton(0);
-				break;
-				
-			}
 			
-			if ( locate )
-            {
-                LocatePosition();
-            }
+			// Only take input if this player is the main player
+			if( this.isMainPlayer )
+			{
+				// TODO: remove this after debugging is over
+				if( Input.GetKeyDown( KeyCode.J ) )
+				{
+					NetworkManager.Send( new InstantiateChar( gameObject.name, gameObject.transform.position, gameObject.transform.rotation ));
+				}
+				
+				
+				bool locate = false;
+				switch (Application.platform)
+				{
+					case RuntimePlatform.IPhonePlayer:
+					case RuntimePlatform.Android:
+					case RuntimePlatform.WP8Player:
+						locate = Input.touchCount > 0;
+					break;
+					default:
+						locate = Input.GetMouseButton(0);
+					break;
+					
+				}
+				
+				if ( locate )
+	                LocatePosition();
+        	}	
+            
 
             MoveToPosition();
 
-            //if (Input.GetKey(KeyCode.S))
-            //{
-            //    state = States.RUN;
-            //}
-
+			// TODO: use character state packets to control state
             if (isWalking)
                 state = States.RUN;
             else
@@ -124,7 +137,7 @@ namespace UnityRose
 				{
 				 	//destinationPosition = floorHit.point;
 				 	// Send a clicked on ground packet
-					NetworkManager.Send( new GroundClick( "wadii", floorHit.point ));
+					NetworkManager.Send( new GroundClick( gameObject.name, floorHit.point ));
 				 	
 				}
 			
