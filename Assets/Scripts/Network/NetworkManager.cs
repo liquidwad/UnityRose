@@ -52,7 +52,7 @@ namespace Network
 		public static event InstantiateCharDelegate instantiateCharDelegate;
 		
 			
-		void Start()
+		void Awake()
         {
             try
             {
@@ -204,8 +204,10 @@ namespace Network
             Recieve();
         }
 
+		
         public static void Send(Packets.Packet packet)
         {
+        	
             if(socket == null) {
                 return;
             }

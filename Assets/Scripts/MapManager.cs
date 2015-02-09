@@ -8,6 +8,7 @@ using UnityRose;
 public class MapManager : MonoBehaviour {
 
 	public string mapID;
+	public string mainChar;
 	public GameObject playerFab;
 	
 	private List<GameObject> players;
@@ -45,15 +46,18 @@ public class MapManager : MonoBehaviour {
 					{
 						case CharacterOperation.INSTANTIATE:
 							InstantiateChar ic = (InstantiateChar) packet;
-							GameObject newPlayer = (GameObject)Instantiate( playerFab, ic.position, ic.rotation);
-							
-							// TODO: add all other player initialization specifications here based on packet
-							newPlayer.name = ic.clientID; // + " " + numPlayers;
-							
-							PlayerController playerController = newPlayer.GetComponent<PlayerController>();
-							playerController.isMainPlayer = false;
-							playerController.name = newPlayer.name;
-							players.Add(newPlayer);
+							if( ic.clientID != mainChar )
+							{
+								GameObject newPlayer = (GameObject)Instantiate( playerFab, ic.position, ic.rotation);
+								
+								// TODO: add all other player initialization specifications here based on packet
+								newPlayer.name = ic.clientID; // + " " + numPlayers;
+								
+								PlayerController playerController = newPlayer.GetComponent<PlayerController>();
+								playerController.isMainPlayer = false;
+								playerController.name = newPlayer.name;
+								players.Add(newPlayer);
+							}
 							break;
 						default:
 							break;
