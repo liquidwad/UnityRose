@@ -1,8 +1,9 @@
 'use strict';
 
-var User = function(clientId) {
+var User = function(client, model) {
 
-	this.clientId = clientId;
+	this.client = client;
+	this.model = model;
 }
 
 module.exports = User;

@@ -9,6 +9,20 @@ function World() {
 
 	this.mapManager = new MapManager();
 
+	this.handleUserPacket = function(client, packet) {
+		this.userManager.handlePacket(client, packet);
+	};
+
+	this.handleCharacterPacket = function(client, packet) {
+		//probably move mapmanager to world
+		var clientMoveData = crypto.encrypt(data);
+		client.write(clientMoveData);
+	};
+
+	this.removeClient = function(client) {
+		//remove from usermanager and world
+	} 
+
 	console.log("World has started");
 };
 

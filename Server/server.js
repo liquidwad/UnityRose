@@ -7,15 +7,16 @@ var _ = require('lodash'),
 	shortid = require('shortid'),
 	config = require('./config'),
 	common = require('./common'),
-	packet = require('./packet'),
+	type = require('./packets/type'),
 	crypto = require('./crypto'),
 	World = require('./world/world');
 
 
+//set console format
 consoleStamp(console, "dd mmm HH:mm:ss");
 
 //load models and database
-//var mongoose = require('./models');
+var mongoose = require('./models');
 
 //Create server
 var server = net.createServer();
@@ -23,58 +24,33 @@ var server = net.createServer();
 //Create new world
 var world = new World();
 
-var clients = [];
-
 server.on('connection', function(socket) {
-
-	console.log("Client connected from " + socket.remoteAddress);
 
 	socket.id = shortid.generate();
 
-	clients.push(socket);
+	console.log( "[" + socket.id + "][CONNECTED] - " + socket.remoteAddress);
 
 	socket.on('data', function(data) {
-		var data = crypto.decrypt( data ),
-			type = packet.packetType.get( data.type );
+		var packet = crypto.decrypt(data);
 
-		switch(data.type) {
-			case packet.packetType.User.value:
-				console.log("Handle User packet");
-				var operation = packet.userOperation.get( operation );
-				switch( operation )
-				{
-					case packet.userOperation.Login.value:
-						console.log("Handle User Login");
-						break;
-					default: 
-						break;
-				}
+		console.log( "[" + socket.id + "][" + type.get(packet.type) + "] - " + JSON.stringify( packet ) );
+
+		switch(packet.type) {
+			case type.User.value:
+				world.handleUserPacket(socket, packet);
 				break;
-			case packet.packetType.Character.value:
-				console.log("Handle character packet");
-
-				// for now just reflect the packet
-				var clientMoveData = crypto.encrypt(data);
-
-				_.each(clients, function(client) {
-					/*if(socket === client) {
-						return;
-					}*/
-
-					client.write(clientMoveData);
-				});
+			case type.Character.value:
+				world.handleCharacterPacket(socket, packet);
 				break;
 			default:
 				console.log("unknown packet");
 				break;
 		}
-
-		console.log( "[" + socket.id + "][" + type + "] - " + JSON.stringify( data ) );
 	});
 
 	socket.on('end', function() {
-
 		//remove socket from clients list
+		world.removeClient(socket);
 		console.log("client disconnected");
 	});
 

@@ -7,21 +7,34 @@ namespace Network.Packets
 {
 	public enum UserOperation
 	{
-		DEFAULT = 0,
+		REGISTER = 0,
 		LOGIN = 1,
 		CHARSELECT = 2
 	}
 	
 	[JsonOptIn]
-	public class UserPacket: Packet
+	public class RegisterPacket: Packet 
 	{
 		[JsonMember]
 		public string username { get; set; }
 		
-		public UserPacket()
+		[JsonMember]
+		public string password { get; set; }
+		
+		[JsonMember]
+		public string email { get; set; }
+		
+		public RegisterPacket()
 		{
+		}
+		
+		public RegisterPacket(string username, string email, string password)
+		{
+			this.username = username;
+			this.password = password;
+			this.email = email;
+			operation = (int)UserOperation.REGISTER;
 			type = (int)PacketType.USER;
-			operation = (int)UserOperation.DEFAULT;
 		}
 		
 		public override string toString()
@@ -33,22 +46,28 @@ namespace Network.Packets
 	
 	///////////////// Client -> Server packets //////////////////////
 	
+	
 	// This packet is used by the user to login to the char select scene
 	[JsonOptIn]
-	public class Login: UserPacket
+	public class LoginPacket: Packet
 	{
+		[JsonMember]
+		public string username { get; set; }
+		
 		[JsonMember]
 		public string password {get; set; }
 		
-		public Login()
+		public LoginPacket()
 		{
+		
 		}
 		
-		public Login(string username, string password)
+		public LoginPacket(string username, string password)
 		{
 			this.username = username;
 			this.password = password;
 			operation = (int)UserOperation.LOGIN;
+			type = (int)PacketType.USER;
 		}
 		
 		public override string toString()
@@ -60,22 +79,19 @@ namespace Network.Packets
 	
 	// This packet is sent by the client after selecting a character in the char select scene
 	[JsonOptIn]
-	public class CharSelect: UserPacket
+	public class CharSelectPacket: Packet
 	{
-		[JsonMember]
-		public string username { get; set; }
-		
 		[JsonMember]
 		public string characterID {get; set; }
 		
-		public CharSelect()
+		public CharSelectPacket()
 		{
 		}
 		
-		public CharSelect(string username, string characterID)
+		public CharSelectPacket(string characterID)
 		{
-			this.username = username;
 			this.characterID = characterID;
+			type = (int)PacketType.USER;
 			operation = (int)UserOperation.CHARSELECT;
 		}
 		

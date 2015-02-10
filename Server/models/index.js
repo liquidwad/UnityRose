@@ -28,17 +28,17 @@ process.on('SIGINT', function() {
 });
 
 
-var loadedModels = 0;
+/*var loadedModels = 0;
 
 fs.readdirSync(__dirname)
 .filter(function(file) {
 	return (file.indexOf(".") !== 0) && (file !== "index.js");
 })
 .forEach(function(file) {
-	require(path.join(__dirname, file))();
+	require(path.join(__dirname, file));
 	loadedModels++;
 });
 
-console.log(loadedModels + " model(s) loaded");
+console.log(loadedModels + " model(s) loaded");*/
 
 module.exports = mongoose;

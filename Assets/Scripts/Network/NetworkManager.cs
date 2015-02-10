@@ -70,6 +70,8 @@ namespace Network
                 socket = client;
 
                 client.BeginConnect(remoteEp, new AsyncCallback(ConnectCallback), client);
+                
+                
             }
             catch (Exception e)
             {
