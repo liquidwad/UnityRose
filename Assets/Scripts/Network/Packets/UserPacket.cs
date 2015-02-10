@@ -7,9 +7,18 @@ namespace Network.Packets
 {
 	public enum UserOperation
 	{
-		REGISTER = 0,
-		LOGIN = 1,
-		CHARSELECT = 2
+		REGISTER,
+		LOGIN,
+		CHARSELECT,
+		LOGINREPLY,
+		numUserOperations
+	}
+	
+	public enum LoginStatus
+	{
+		VALID,
+		INVALID,
+		numLoginStatus
 	}
 	
 	[JsonOptIn]
@@ -103,8 +112,24 @@ namespace Network.Packets
 	}
 	
 	///////////////// Server -> Client packets //////////////////////
-	
-	
+	[JsonOptIn]
+	public class LoginReply: Packet
+	{
+		[JsonMember]
+		public int status { get; set; }
+		
+		public LoginReplyPacket()
+		{
+			type = (int)PacketType.USER;
+			operation = (int)UserOperation.LOGINREPLY;
+		}
+		
+		public override string toString()
+		{
+			writer.Write (this);			
+			return output.ToString();
+		}
+	}
 	
 }
 

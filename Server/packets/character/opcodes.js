@@ -1,9 +1,7 @@
 'use strict';
 
-var Enum = require('enum');
-
 module.exports = {
-	characterOperation: new Enum({
+	characterOperation: {
 		'Walk': 1
-	}),
+	},
 };

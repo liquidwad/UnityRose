@@ -37,7 +37,7 @@ public class LoginGUI : MonoBehaviour {
 		});	
 		
 		registerBtn.onClick.AddListener(delegate {	
-			Debug.Log("REgister");
+			Debug.Log("Register");
 			this.GetComponent<Canvas>().enabled = false;
 			registerCanvas.enabled = true;
 		});	
@@ -47,5 +47,20 @@ public class LoginGUI : MonoBehaviour {
 			this.GetComponent<Canvas>().enabled = true;
 			registerCanvas.enabled = false;
 		});
+		
+		// Add packet received delegates
+		
+		// Login response
+		NetworkManager.loginReplyDelegate += (LoginReply packet) => 
+		{
+			LoginStatus status = (LoginStatus) packet.status;
+			if( status == LoginStatus.VALID )
+				// go to char select scene
+				Debug.Log("Login valid: Going to char select...");
+			else
+				// bring up model window or error of some sort
+				Debug.Log ("Login failed: try again");	
+			
+		};
 	}
 }

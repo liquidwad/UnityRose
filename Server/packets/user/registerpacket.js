@@ -7,8 +7,8 @@ var crypto = require('crypto'),
 module.exports = function(response) 
 {
 	var packet = {
-		type: type.User.value,
-		operation: opcodes.userOperation.Register.value,
+		type: type.User,
+		operation: opcodes.userOperation.Register,
 		response: response
 	};
 

@@ -34,13 +34,13 @@ var UserManager = function() {
 			var response;
 
 			if(err) {
-				response = opcodes.loginCallbackOperation.Error.value;
+				response = opcodes.loginCallbackOperation.Error;
 			} else {
 				if(user) {
 					this.addUser(client, user);
-					response = opcodes.loginCallbackOperation.Valid.value;
+					response = opcodes.loginCallbackOperation.Valid;
 				} else {
-					response = opcodes.loginCallbackOperation.NotExist.value;
+					response = opcodes.loginCallbackOperation.NotExist;
 				}
 			}
 
@@ -53,11 +53,6 @@ var UserManager = function() {
 	this.registerUser = function(client, packet) {
 		//register user
 		console.log("Handle Register Packet");
-
-		//check if username or email exists 
-		//if does return registerCallbackOperation.Exists
-		//if registered return registerCallbackOperation.Valid
-		//if a error accures return registerCallbackOperation.Error;
 
 		UserModel.findOne({
 			$or: [
@@ -139,8 +134,8 @@ var UserManager = function() {
 		this.packetHandlers[key] = func;
 	};
 
-	this.registerPacket(opcodes.userOperation.Register.value, this.registerUser);
-	this.registerPacket(opcodes.userOperation.Login.value, this.loginUser);
+	this.registerPacket(opcodes.userOperation.Register, this.registerUser);
+	this.registerPacket(opcodes.userOperation.Login, this.loginUser);
 
 	console.log("User manager has loaded");
 };

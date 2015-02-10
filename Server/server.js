@@ -49,9 +49,7 @@ server.on('connection', function(socket) {
 	});
 
 	socket.on('end', function() {
-		//remove socket from clients list
 		world.removeClient(socket);
-		console.log("client disconnected");
 	});
 
 	socket.on('error', function(e) {

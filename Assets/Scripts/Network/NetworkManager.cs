@@ -41,6 +41,12 @@ namespace Network
         
 		private static AES crypto;
 		
+		//////////////////////User delegates////////////////////
+		
+		// Login reply
+		public delegate void LoginReplyDelegate(LoginReplyPacket packet);
+		public static event LoginReplyDelegate loginReplyDelegate;
+		
 		//////////////////////Character delegates////////////////////
 		
 		// Ground click
@@ -157,11 +163,12 @@ namespace Network
               		Packet packet = reader.Deserialize<Packet>();
               		
               		PacketType type = (PacketType)packet.type;
+					
+					JsonReader myReader = new JsonReader(clearText, settings);
               		
               		switch(type) {
               			case PacketType.CHARACTER:
-              				CharacterOperation charOp = (CharacterOperation)packet.operation;
-							JsonReader myReader = new JsonReader(clearText, settings);
+							CharacterOperation charOp = (CharacterOperation)packet.operation;
               				switch(charOp) 
               				{
               					case CharacterOperation.GROUNDCLICK: 
@@ -191,9 +198,9 @@ namespace Network
               				UserOperation userOp = (UserOperation)packet.operation;
               				switch(userOp) 
               				{
-              					case UserOperation.LOGIN:
+              					case UserOperation.LOGINREPLY:
+              						loginReplyDelegate.Invoke(myReader.Deserialize<LoginReply>());
               						break;
-              					
 								default:
 									break;
 								

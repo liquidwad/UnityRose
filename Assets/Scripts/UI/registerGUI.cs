@@ -23,8 +23,10 @@ public class registerGUI : MonoBehaviour {
 			
 	public static bool IsEmail(string email)
 	{
-		if (email != null) return Regex.IsMatch(email, MatchEmailPattern);
-		else return false;
+		if (email != null) 
+			return Regex.IsMatch(email, MatchEmailPattern);
+		else 
+			return false;
 	}
 	
 	private bool validateRegister(string username, string email, string password) 

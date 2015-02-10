@@ -1,8 +1,23 @@
 'use strict';
 
-var Enum = require('enum');
+var _ = require('lodash');
 
-module.exports = new Enum({
-	'User': 1,
-	'Character': 2
-});
+module.exports = {
+	User: 1,
+	Character: 2,
+
+
+	get: function(value) {
+		var _this = this,
+			_key = undefined;
+
+		_.find(this, function(val, key) {
+			if(val === value) {
+				_key = key;
+				return true;
+			}
+		});
+
+		return _key;
+	}
+};
