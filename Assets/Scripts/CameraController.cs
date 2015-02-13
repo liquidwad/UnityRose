@@ -41,6 +41,7 @@ public class CameraController : MonoBehaviour
         correctedDistance = distance;
 
         // Make the rigid body not change rotation
+		Rigidbody rigidbody = GetComponent<Rigidbody>();
         if (rigidbody)
             rigidbody.freezeRotation = true;
 

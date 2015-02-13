@@ -28,18 +28,16 @@ server.on('connection', function(socket) {
 
 	socket.id = shortid.generate();
 
-	console.log( "[" + socket.id + "][CONNECTED] - " + socket.remoteAddress);
+	console.log( "[" + socket.id + "][CONNECTED]");
 
 	socket.on('data', function(data) {
 		var packet = crypto.decrypt(data);
 
-		console.log( "[" + socket.id + "][" + type.get(packet.type) + "] - " + JSON.stringify( packet ) );
-
 		switch(packet.type) {
-			case type.User.value:
+			case type.User:
 				world.handleUserPacket(socket, packet);
 				break;
-			case type.Character.value:
+			case type.Character:
 				world.handleCharacterPacket(socket, packet);
 				break;
 			default:

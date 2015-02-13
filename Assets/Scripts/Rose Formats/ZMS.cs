@@ -146,8 +146,8 @@ namespace UnityRose.Formats
 			mesh.triangles = triangles;
 			mesh.normals = normals;
 			mesh.uv = uv0;
-			mesh.uv1 = uv1;
-			//mesh.uv2 = uv2;
+			//mesh.uv1 = uv1;
+			mesh.uv2 = uv1;
 			mesh.boneWeights = boneWeights;
             if (RecalcNormals)
 			{

@@ -1,6 +1,7 @@
 'use strict';
 
 var _ = require('lodash'),
+	validator = require('validator'),
 	mongoose = require('mongoose'),
 	UserModel = require('../models/user'),
 	User = require('./user'),
@@ -25,7 +26,8 @@ var UserManager = function() {
 	};
 
 	this.loginUser = function(client, packet) {
-		console.log("Handle Login Packet");
+		var userManager = this;
+
 		UserModel.findOne({ 
 			username: packet.username, 
 			password: packet.password 
@@ -37,7 +39,7 @@ var UserManager = function() {
 				response = opcodes.loginCallbackOperation.Error;
 			} else {
 				if(user) {
-					this.addUser(client, user);
+					userManager.addUser(client, user);
 					response = opcodes.loginCallbackOperation.Valid;
 				} else {
 					response = opcodes.loginCallbackOperation.NotExist;
@@ -45,21 +47,49 @@ var UserManager = function() {
 			}
 
 			var encryptedPacket = crypto.encrypt( loginPacket( response ) );
-
 			client.write( encryptedPacket );
 		});
 	};
 
+
+	this.sendRegistrationResponse = function(client, response) {
+		var encryptedPacket = crypto.encrypt( registerPacket( response ) );
+		client.write(encryptedPacket);
+	}
+
 	this.registerUser = function(client, packet) {
-		//register user
-		console.log("Handle Register Packet");
+
+		//validate username length
+		if(!validator.isLength(packet.username, 5, 20)) {
+			this.sendRegistrationResponse(client, opcodes.registerCallbackOperation.UsernameTooShort);
+			return;
+		}
+
+		//validate username bad characters
+		if(!validator.isAlphanumeric(packet.username)) {
+			this.sendRegistrationResponse(client, opcodes.registerCallbackOperation.UsernameBadChars);
+			return;
+		}
+
+		//validate password length
+		if(!validator.isLength(packet.password, 6, 20)) {
+			this.sendRegistrationResponse(client, opcodes.registerCallbackOperation.PasswordTooShort);
+		}
+
+		//validate email
+		if(!validator.isEmail(packet.email)) {
+			this.sendRegistrationResponse(client, opcodes.registerCallbackOperation.EmailInvalid);
+		}
+
+		var userManager = this;
 
 		UserModel.findOne({
 			$or: [
 				{ 'username': packet.username },
 				{ 'email': packet.email }
 			]
-		}, function(err, user) {
+		}, 
+		function(err, user) {
 
 			var response;
 
@@ -67,16 +97,21 @@ var UserManager = function() {
 				response = opcodes.registerCallbackOperation.Error;
 			} 
 			else if(user) {
-				response = opcodes.registerCallbackOperation.Exists;
+				if(user.username == packet.username) {
+					response = opcodes.registerCallbackOperation.UsernameExists;
+				}
+				else {
+					response = opcodes.registerCallbackOperation.EmailUsed;
+				}
 			}
 
-			//send if error or exists
+			//if username/email exists or error respond
 			if(response !== undefined) {
-				var encryptedPacket = crypto.encrypt( registerPacket( response ) );
-				client.write(encryptedPacket);
+				userManager.sendRegistrationResponse(client, response);
 				return;
 			}
 
+			//register user
 			UserModel.create({
 				'username': packet.username,
 				'password': packet.password,
@@ -88,10 +123,7 @@ var UserManager = function() {
 					response = opcodes.registerCallbackOperation.Valid;
 				}
 
-				console.log("Created User");
-
-				var encryptedPacket = crypto.encrypt( registerPacket( response ) );
-				client.write(encryptedPacket);
+				userManager.sendRegistrationResponse(client, response);
 			});
 		});
 	};
@@ -117,12 +149,11 @@ var UserManager = function() {
 		_.remove(this.users, function(user) {
 			return user.client === client;
 		});
-	}
-
+	};
 
 	this.addUser = function(client, model) {
 		var user = new User(client, model);
-		users.push(user);
+		this.users.push(user);
 		return user;
 	};
 
@@ -131,7 +162,31 @@ var UserManager = function() {
 	};
 
 	this.registerPacket = function(key, func) {
-		this.packetHandlers[key] = func;
+		//if(process.env.NODE_ENV == "production") {
+			//this.packetHandlers[key] = _.bind(func, this);
+		//}
+
+		//only for debugging
+		//if(process.env.NODE_ENV == "development") {}
+		var _this = this;
+		this.packetHandlers[key] = function(client, packet) {
+
+			var wrapper = _.bind(func, _this),
+					operation;
+
+			_.find(opcodes.userOperation, function(value, name) {
+				if(packet.operation === value) {
+					operation = name;
+					return true;
+				}
+			});
+
+			console.log("[SERVER] < [" + client.id + "] - '" + operation + "' packet recieved");
+
+			wrapper(client, packet);
+
+			console.log("[SERVER] > [" + client.id + "] - '" + operation + "' packet handled");
+		};
 	};
 
 	this.registerPacket(opcodes.userOperation.Register, this.registerUser);
@@ -139,6 +194,5 @@ var UserManager = function() {
 
 	console.log("User manager has loaded");
 };
-
 
 module.exports = UserManager;

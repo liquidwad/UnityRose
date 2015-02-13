@@ -27,7 +27,7 @@ public class MapManager : MonoBehaviour {
 		numPlayers = 0;
 		
 		// Add definitions for all packet received delegates
-		NetworkManager.instantiateCharDelegate += (InstantiateChar packet) => 
+		/*NetworkManager.instantiateCharDelegate += (InstantiateChar packet) => 
 		{
 			packetQueue.Enqueue( packet );
 		};
@@ -35,8 +35,7 @@ public class MapManager : MonoBehaviour {
 		NetworkManager.destroyCharDelegate += (DestroyChar packet) => 
 		{
 			packetQueue.Enqueue( packet );
-		};
-	
+		};*/
 	}
 	
 	void OnDestroy()

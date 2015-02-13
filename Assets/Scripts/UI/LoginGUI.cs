@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+using UI;
 using Network;
 using Network.Packets;
 
@@ -50,17 +51,19 @@ public class LoginGUI : MonoBehaviour {
 		
 		// Add packet received delegates
 		
-		// Login response
-		NetworkManager.loginReplyDelegate += (LoginReply packet) => 
+		UserManager.Instance.registerCallback((int)UserOperation.LOGIN, (object loginreply) => 
 		{
-			LoginStatus status = (LoginStatus) packet.status;
-			if( status == LoginStatus.VALID )
-				// go to char select scene
-				Debug.Log("Login valid: Going to char select...");
-			else
-				// bring up model window or error of some sort
-				Debug.Log ("Login failed: try again");	
+			LoginReply packet = (LoginReply)loginreply;
+			//lOGIN
+			LoginStatus response = (LoginStatus) packet.response;
 			
-		};
+			/*MessageBox msgBox = gameObject.GetComponent<Camera>().GetComponent<MessageBox>();
+			if( response == LoginStatus.VALID ) {
+				MessageBox.Show("Login valid: Going to char select...", "Login Valid", delegate{});
+			}
+			else {	
+				MessageBox.Show("Login failed: try again", "Login failed", delegate{});
+			}*/
+		});
 	}
 }

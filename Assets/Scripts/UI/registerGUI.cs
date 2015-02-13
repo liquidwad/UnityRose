@@ -37,7 +37,8 @@ public class registerGUI : MonoBehaviour {
 	}
 	
 	// Use this for initialization
-	void Start () {
+	void Start () 
+	{
 	
 		registerBtn.onClick.AddListener(delegate {
 			string username = usernameInput.text;
@@ -49,5 +50,42 @@ public class registerGUI : MonoBehaviour {
 				NetworkManager.Send(new RegisterPacket(username, email, password));
 			}
 		});
+		
+		// Add packet received delegates
+		// Registration response
+		/*NetworkManager.registerReplyDelegate += (RegisterReply packet) => 
+		{
+			RegisterResponse response = (RegisterResponse) packet.response;
+			
+			switch( response )
+			{
+				case RegisterResponse.SUCCESS:
+					Debug.Log ("Registration successful!");
+					break;
+				case RegisterResponse.USEREXISTS:
+					Debug.Log("Username already taken. Try a different one.");
+					break;
+				case RegisterResponse.ERROR:
+					Debug.Log("Error while registrating");
+					break;
+				case RegisterResponse.EMAIL_USED:
+					Debug.Log ("Email already USED.");
+					break;
+;
+				case RegisterResponse.USERINVALID_TOOSHORT:
+					Debug.Log ("Username need to be at least 5 characters");
+					break;
+				case RegisterResponse.USERINVALID_BADCHARS:
+					Debug.Log ("Username contains invalid characters.");
+					break;
+				case RegisterResponse.PASSWORD_TOOSHORT:
+					Debug.Log ("Password is too short");
+					break;
+				default:
+					Debug.Log ("Unknown registration response");
+					break;
+			}
+			
+		};*/
 	}
 }

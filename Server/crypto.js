@@ -17,8 +17,6 @@ module.exports.encrypt = function(data) {
 		}
 	}
 
-	console.log("Encrypting message: " + message);
-
 	var encrypted = CryptoJS.AES.encrypt(message,
 		CryptoJS.enc.Utf8.parse(config.key), { 
 		mode: CryptoJS.mode.CBC, 

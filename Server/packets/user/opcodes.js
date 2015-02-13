@@ -18,6 +18,12 @@ module.exports = {
 	registerCallbackOperation: {
 		Error: 0,
 		Exists: 1,
-		Valid: 2
+		Valid: 2,
+		UsernameTooShort: 3,
+		UsernameBadChars: 4,
+		UsernameExists: 5,
+		PasswordTooShort: 6,
+		EmailUsed: 7,
+		EmailInvalid: 8
 	}
 };

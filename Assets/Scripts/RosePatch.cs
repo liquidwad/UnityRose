@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEditor;
 using UnityRose.Formats;
 
 namespace UnityRose.Game 
@@ -113,9 +114,9 @@ namespace UnityRose.Game
 			string zscPath = Utils.FixPath(m_3dDataDir + "/" + m_assetDir.Parent.Parent.Name.ToUpper() + "/LIST_" + "CNST_" + m_assetDir.Parent.Name.Trim(trimChars).ToUpper() + ".ZSC");
 			string litPath = Utils.FixPath(this.m_assetDir.Parent.FullName + "\\" + this.m_name + "\\LIGHTMAP\\BUILDINGLIGHTMAPDATA.LIT");
 			m_ZSC_Cnst = new ZSC(zscPath);
-			m_ZSC_Deco = new ZSC(zscPath.Replace("CNST","DECO"));
+			m_ZSC_Deco = new ZSC(zscPath.Replace("cnst","deco"));
             m_LIT_Cnst = new LIT(litPath);
-            m_LIT_Deco = new LIT(litPath.Replace("BUILDING","OBJECT"));
+            m_LIT_Deco = new LIT(litPath.Replace("building","object"));
 			// TODO: add any new file loads here
 			
 			edgeVertexLookup = new Dictionary<string, List<int>>();
@@ -155,7 +156,7 @@ namespace UnityRose.Game
 		
 		public bool Import(Transform terrainParent, Transform objectsParent, Texture2D atlas, Texture2D atlas_normal, Dictionary<string, Rect> atlasRectHash)
 		{
-			
+			/*
             if (!m_isValid)
 			{
                 Debug.LogError("Cannot Import patch_" + this.m_name);
@@ -274,12 +275,20 @@ namespace UnityRose.Game
 			}
 			
 			// Generate a material
-			Material material = new Material(Shader.Find("Custom/TerrainShader2"));
+			
+			
+			#if UNITY_5
+			Material material = (Material)AssetDatabase.LoadMainAssetAtPath("Assets/Materials/JPT01.mat"); // new Material(Shader.Find( "Custom/StandardTerrain"));
+			//material.SetTexture("_MainTex", atlas);
+			//material.SetTexture("_DetailAlbedoMap", atlas);
+			#else
+			Material material = new Material(Shader.Find( "Custom/TerrainShader2"));
 			material.SetTexture("_BottomTex", atlas);
 			material.SetTexture("_TopTex", atlas);
 			material.SetTexture("_NormalMapTop", atlas_normal);
 			material.SetTexture("_NormalMapBottom", atlas_normal);
 			material.SetTexture("_LightTex", lightTex);
+			#endif
 			
             float l = m_HIM.Length - 1;
             float w = m_HIM.Width - 1;
@@ -412,7 +421,7 @@ namespace UnityRose.Game
 			
 			m_mesh.RecalculateNormals();
 			
-			bool blendNormals = false; // set to true to blend normals
+			bool blendNormals = true; // set to true to blend normals
 			if(blendNormals)
 			{
 				// CalculateSharedNormals: fix all normals as follows:
@@ -465,16 +474,16 @@ namespace UnityRose.Game
             
             MeshRenderer patchRenderer = patchObject.GetComponent<MeshRenderer>();
 			patchRenderer.material = material;
-            patchRenderer.castShadows = false;
+            //patchRenderer.castShadows = false;
 			patchObject.transform.parent = terrainParent;
-			
+			*/
 			
 			
 			
 			//================== TERRAIN OBJECTS==========================
 			
 			GameObject deco = new GameObject();
-            deco.name = patchObject.name.Replace("patch", "deco");
+            deco.name = "deco_" + this.m_name;
 			deco.transform.parent = objectsParent;
 
 			
@@ -512,10 +521,24 @@ namespace UnityRose.Game
 					Texture2D mainTex = Utils.loadTex( ref texPath);  
 					Texture2D lightTexture = Utils.loadTex ( ref lightPath);
 					
-					
+					#if UNITY_5
+					Material mat = new Material(Shader.Find("Standard"));
+					mat.SetTexture("_MainTex", mainTex);
+					mat.SetFloat("_Glossiness", 0.0f);
+					mat.SetFloat("_Mode", 1.0f);
+					mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+					mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+					mat.SetInt("_ZWrite", 1);
+					mat.EnableKeyword("_ALPHATEST_ON");
+					mat.DisableKeyword("_ALPHABLEND_ON");
+					mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+					mat.renderQueue = 2450;
+					#else
 					Material mat = new Material(Shader.Find("Custom/ObjectShader"));
-                    mat.SetTexture("_MainTex", mainTex);
-                    mat.SetTexture("_LightTex", lightTexture);
+					mat.SetTexture("_MainTex", mainTex);
+					mat.SetTexture("_LightTex", lightTexture);
+					#endif
+
 
 					GameObject modelObject = new GameObject();
 					modelObject.transform.parent = terrainObject.transform;
@@ -529,7 +552,7 @@ namespace UnityRose.Game
                     modelObject.name = new DirectoryInfo(zmsPath).Name;
                     MeshRenderer renderer = modelObject.GetComponent<MeshRenderer>();
                     renderer.material = mat;
-                    renderer.castShadows = false;
+                    //renderer.castShadows = false;
 					modelObject.AddComponent<MeshCollider>();
 
 					string zmoPath = model.Motion;
@@ -560,7 +583,7 @@ namespace UnityRose.Game
 			}
 			
 			GameObject cnst = new GameObject();
-            cnst.name = patchObject.name.Replace("patch", "cnst");
+            cnst.name = "cnst_" + this.m_name;
 			cnst.transform.parent = objectsParent;
 			
 			//================= CONSTRUCTION ======================
@@ -598,9 +621,24 @@ namespace UnityRose.Game
 					Texture2D mainTex =  Utils.loadTex(ref texPath); 
 					Texture2D lightTexture =  Utils.loadTex(ref lightPath); 
 					
+#if UNITY_5
+					Material mat = new Material(Shader.Find("Standard"));
+					mat.SetTexture("_MainTex", mainTex);
+					mat.SetFloat("_Glossiness", 0.0f);
+					mat.SetFloat("_Mode", 1.0f);
+					mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+					mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+					mat.SetInt("_ZWrite", 1);
+					mat.EnableKeyword("_ALPHATEST_ON");
+					mat.DisableKeyword("_ALPHABLEND_ON");
+					mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+					mat.renderQueue = 2450;
+                    
+#else
 					Material mat = new Material(Shader.Find("Custom/ObjectShader"));
-                    mat.SetTexture("_MainTex", mainTex);
-                    mat.SetTexture("_LightTex", lightTexture);
+					mat.SetTexture("_MainTex", mainTex);
+					mat.SetTexture("_LightTex", lightTexture);
+#endif
 					
 					
 					GameObject modelObject = new GameObject();
@@ -615,7 +653,7 @@ namespace UnityRose.Game
                     modelObject.name = new DirectoryInfo(zmsPath).Name;
                     MeshRenderer renderer = modelObject.GetComponent<MeshRenderer>();
                     renderer.material = mat;
-                    renderer.castShadows = false; 
+                    //renderer.castShadows = false; 
 					modelObject.AddComponent<MeshCollider>();
 
 					string zmoPath = model.Motion;

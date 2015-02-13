@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Resources;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -11,6 +13,11 @@ using UnityEditor;
     
 public class Utils
 {
+	public static bool isEmail(string email)
+	{
+		return email.Contains("@") && email.Contains(".");
+	}
+
 	public static Quaternion r2uRotation(Quaternion q)
 	{
 	    Vector3 axis;
@@ -95,6 +102,23 @@ public class Utils
 		return null;
 	}
 	
+	
+	// UI functions
+	public static void handleTab(EventSystem system)
+	{
+		if (Input.GetKeyDown(KeyCode.Tab))
+		{
+			Selectable next = system.currentSelectedGameObject.GetComponent<Selectable>().FindSelectableOnDown();
+			
+			if (next!= null) {
+				
+				InputField inputfield = next.GetComponent<InputField>();
+				if (inputfield !=null) inputfield.OnPointerClick(new PointerEventData(system));  //if it's an input field, also set the text caret
+				
+				system.SetSelectedGameObject(next.gameObject, new BaseEventData(system));
+			}
+		}
+	}
 	
 #if UNITY_EDITOR
 	
