@@ -1,3 +1,9 @@
+// <copyright file="ZMD.cs" company="Wadii Bellamine">
+// Copyright (c) 2015 All Rights Reserved
+// </copyright>
+// <author>Wadii Bellamine, Xadet, Brett19</author>
+// <date>2/25/2015 8:37 AM </date>
+
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
@@ -73,7 +79,7 @@ namespace UnityRose.Formats
 				if( renderSkeleton && i != 0)
 				{
 					LineRenderer line = bones[i].boneObject.AddComponent<LineRenderer>();
-					line.material = Resources.LoadAssetAtPath<Material>("Assets/Materials/LineRenderer.mat");
+					//line.material = Resources.LoadAssetAtPath<Material>("Assets/Materials/LineRenderer.mat");
 					
 					DrawLine script = bones[i].boneObject.AddComponent<DrawLine>();
 					script.p0 = bones[bones[i].ParentID].boneObject.transform;
@@ -104,7 +110,7 @@ namespace UnityRose.Formats
 				if( renderSkeleton)
 				{
 					LineRenderer line = dummies[i].boneObject.AddComponent<LineRenderer>();
-					line.material = Resources.LoadAssetAtPath<Material>("Assets/Materials/LineRenderer.mat");
+					//line.material = Resources.LoadAssetAtPath<Material>("Assets/Materials/LineRenderer.mat");
 					
 					DrawLine script = dummies[i].boneObject.AddComponent<DrawLine>();
 					script.p0 = bones[dummies[i].ParentID].boneObject.transform;

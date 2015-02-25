@@ -1,4 +1,10 @@
-﻿using System;
+﻿// <copyright file="ZMS.cs" company="Wadii Bellamine">
+// Copyright (c) 2015 All Rights Reserved
+// </copyright>
+// <author>Wadii Bellamine, Xadet, Brett19</author>
+// <date>2/25/2015 8:37 AM </date>
+
+using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
@@ -180,6 +186,7 @@ namespace UnityRose.Formats
 				mesh.normals = normals2;
                  * */
 			}
+			Utils.calculateMeshTangents(mesh);
 			mesh.RecalculateBounds();
 			mesh.Optimize();
 			return mesh;

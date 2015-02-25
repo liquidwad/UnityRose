@@ -1,4 +1,11 @@
-﻿using UnityEngine;
+﻿// <copyright file="MapManager.cs" company="Wadii Bellamine">
+// Copyright (c) 2015 All Rights Reserved
+// </copyright>
+// <author>Wadii Bellamine</author>
+// <date>2/25/2015 8:37 AM </date>
+
+
+using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -36,6 +43,8 @@ public class MapManager : MonoBehaviour {
 		{
 			packetQueue.Enqueue( packet );
 		};*/
+		
+		
 	}
 	
 	void OnDestroy()

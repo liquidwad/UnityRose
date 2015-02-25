@@ -1,4 +1,10 @@
-﻿using System.Collections.Generic;
+﻿// <copyright file="LTB.cs" company="Wadii Bellamine">
+// Copyright (c) 2015 All Rights Reserved
+// </copyright>
+// <author>Wadii Bellamine, Xadet, Brett19</author>
+// <date>2/25/2015 8:37 AM </date>
+
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityRose.File;

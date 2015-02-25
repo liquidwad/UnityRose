@@ -1,4 +1,10 @@
-﻿using System;
+﻿// <copyright file="Crypto.cs" company="Wadii Bellamine">
+// Copyright (c) 2015 All Rights Reserved
+// </copyright>
+// <authors>Wadii Bellamine, Wahid Bouakline</authors>
+// <date>2/25/2015 8:37 AM </date>
+
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;

@@ -1,3 +1,8 @@
+// <copyright file="RosePlayer.cs" company="Wadii Bellamine">
+// Copyright (c) 2015 All Rights Reserved
+// </copyright>
+// <author>Wadii Bellamine</author>
+// <date>2/25/2015 8:37 AM </date>
 
 #if UNITY_EDITOR
 
