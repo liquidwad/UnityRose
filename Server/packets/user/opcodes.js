@@ -11,7 +11,8 @@ module.exports = {
 	loginCallbackOperation: {
 		Error: 0,
 		NotExist: 1,
-		Valid: 2
+		Valid: 2,
+		InputEmpty: 3
 	},
 
 	//REGISTER
@@ -21,9 +22,8 @@ module.exports = {
 		Valid: 2,
 		UsernameTooShort: 3,
 		UsernameBadChars: 4,
-		UsernameExists: 5,
-		PasswordTooShort: 6,
-		EmailUsed: 7,
-		EmailInvalid: 8
+		PasswordTooShort: 5,
+		EmailUsed: 6,
+		EmailInvalid: 7
 	}
 };

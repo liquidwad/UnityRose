@@ -1,4 +1,10 @@
-﻿using System.Text;
+﻿// <copyright file="MOV.cs" company="Wadii Bellamine">
+// Copyright (c) 2015 All Rights Reserved
+// </copyright>
+// <author>Wadii Bellamine, Xadet, Brett19</author>
+// <date>2/25/2015 8:37 AM </date>
+
+using System.Text;
 using UnityRose.File;
 
 namespace UnityRose.Formats

@@ -16,20 +16,20 @@ namespace Network.Packets
 	{
 		ERROR = 0,
 		NOT_EXIST = 1,
-		VALID = 2
+		VALID = 2,
+		INPUT_EMPTY = 3
 	}
 	
 	public enum RegisterResponse
 	{
 		ERROR = 0,
-		USEREXISTS = 1,
+		USERINVALID_EXISTS = 1,
 		SUCCESS = 2,
 		USERINVALID_TOOSHORT = 3,
 		USERINVALID_BADCHARS = 4,
-		USERINVALID_EXISTS = 5,
-		PASSWORD_TOOSHORT = 6,
-		EMAIL_USED = 7,
-		EMAIL_INVALID
+		PASSWORD_TOOSHORT = 5,
+		EMAIL_USED = 6,
+		EMAIL_INVALID = 7
 	}
 	
 	[JsonOptIn]

@@ -1,7 +1,8 @@
 'use strict';
 
 var UserManager = require('./usermanager'),
-	MapManager = require('./mapmanager');
+	MapManager = require('./mapmanager'),
+	crypto = require('../crypto');
 
 function World() {
 

@@ -1,4 +1,9 @@
-﻿
+﻿// <copyright file="Utils.cs" company="Wadii Bellamine">
+// Copyright (c) 2015 All Rights Reserved
+// </copyright>
+// <author>Wadii Bellamine</author>
+// <date>2/25/2015 8:37 AM </date>
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -39,6 +44,82 @@ public class Utils
 	public static Vector3 r2uScale(Vector3 v)
 	{
 		return new Vector3(v.x, v.z, v.y);
+	}
+	
+	public static void calculateMeshTangents(Mesh mesh, bool uv2 = false)
+	{
+		//speed up math by copying the mesh arrays
+		int[] triangles = mesh.triangles;
+		Vector3[] vertices = mesh.vertices;
+		Vector2[] uv = uv2 ? mesh.uv2 : mesh.uv;
+		Vector3[] normals = mesh.normals;
+		
+		//variable definitions
+		int triangleCount = triangles.Length;
+		int vertexCount = vertices.Length;
+		
+		Vector3[] tan1 = new Vector3[vertexCount];
+		Vector3[] tan2 = new Vector3[vertexCount];
+		
+		Vector4[] tangents = new Vector4[vertexCount];
+		
+		for (long a = 0; a < triangleCount; a += 3)
+		{
+			long i1 = triangles[a + 0];
+			long i2 = triangles[a + 1];
+			long i3 = triangles[a + 2];
+			
+			Vector3 v1 = vertices[i1];
+			Vector3 v2 = vertices[i2];
+			Vector3 v3 = vertices[i3];
+			
+			Vector2 w1 = uv[i1];
+			Vector2 w2 = uv[i2];
+			Vector2 w3 = uv[i3];
+			
+			float x1 = v2.x - v1.x;
+			float x2 = v3.x - v1.x;
+			float y1 = v2.y - v1.y;
+			float y2 = v3.y - v1.y;
+			float z1 = v2.z - v1.z;
+			float z2 = v3.z - v1.z;
+			
+			float s1 = w2.x - w1.x;
+			float s2 = w3.x - w1.x;
+			float t1 = w2.y - w1.y;
+			float t2 = w3.y - w1.y;
+			
+			float r = 1.0f / (s1 * t2 - s2 * t1);
+			
+			Vector3 sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
+			Vector3 tdir = new Vector3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r);
+			
+			tan1[i1] += sdir;
+			tan1[i2] += sdir;
+			tan1[i3] += sdir;
+			
+			tan2[i1] += tdir;
+			tan2[i2] += tdir;
+			tan2[i3] += tdir;
+		}
+		
+		
+		for (long a = 0; a < vertexCount; ++a)
+		{
+			Vector3 n = normals[a];
+			Vector3 t = tan1[a];
+			
+			//Vector3 tmp = (t - n * Vector3.Dot(n, t)).normalized;
+			//tangents[a] = new Vector4(tmp.x, tmp.y, tmp.z);
+			Vector3.OrthoNormalize(ref n, ref t);
+			tangents[a].x = t.x;
+			tangents[a].y = t.y;
+			tangents[a].z = t.z;
+			
+			tangents[a].w = (Vector3.Dot(Vector3.Cross(n, t), tan2[a]) < 0.0f) ? -1.0f : 1.0f;
+		}
+		
+		mesh.tangents = tangents;
 	}
 	
 	public static void addVertexToLookup(Dictionary<String,List<int>> lookup, String vertex, int index)
@@ -82,25 +163,6 @@ public class Utils
         }
            // return file.Contains("/") ? file.ToLower().Replace("/", "\\") : file.ToLower();
     }
-
-
-	public static Texture2D loadTex ( ref string rosePath )
-	{
-		// check if dds exists, and load it if it does
-        string ddsPath = FixPath(rosePath);
-		string pngPath = ddsPath.Replace(".dds",".png");
-		if( File.Exists(pngPath) )
-		{
-			rosePath = pngPath;
-			return Resources.LoadAssetAtPath<Texture2D>(pngPath);
-		}
-		if( File.Exists (ddsPath))
-		{
-			rosePath = ddsPath;
-			return Resources.LoadAssetAtPath<Texture2D>(ddsPath);
-		}
-		return null;
-	}
 	
 	
 	// UI functions
@@ -120,7 +182,43 @@ public class Utils
 		}
 	}
 	
+	public static void handleEnter(EventSystem system)
+	{
+		if (Input.GetKeyDown(KeyCode.Return))
+		{
+			Selectable next = system.currentSelectedGameObject.GetComponent<Selectable>().FindSelectableOnDown();
+			
+			if( next != null) 
+			{
+				Button button = next.GetComponent<Button>();
+				if (button != null)
+					button.OnPointerClick( new PointerEventData( system ));
+				
+				system.SetSelectedGameObject(next.gameObject, new BaseEventData(system));
+			}
+		}
+	}
+	
 #if UNITY_EDITOR
+	
+	
+	public static Texture2D loadTex ( ref string rosePath )
+	{
+		// check if dds exists, and load it if it does
+		string ddsPath = FixPath(rosePath);
+		string pngPath = ddsPath.Replace(".dds",".png");
+		if( File.Exists(pngPath) )
+		{
+			rosePath = pngPath;
+			return Resources.LoadAssetAtPath<Texture2D>(pngPath);
+		}
+		if( File.Exists (ddsPath))
+		{
+			rosePath = ddsPath;
+			return UnityEngine.Resources.LoadAssetAtPath<Texture2D>(ddsPath);
+		}
+		return null;
+	}
 	
 	// Converts a rose path to a unity path and creates the directory structure of non-existent
 	public static DirectoryInfo r2uDir(string rosePath, string extension = ".asset")
@@ -167,6 +265,37 @@ public class Utils
         DirectoryInfo dir = new DirectoryInfo(path);
         return GetUnityPath(dir);
     }
+	
+	public static Texture2D generateNormalMap(string mainPath)
+	{
+		DirectoryInfo dir = new DirectoryInfo( mainPath );
+		string normalMapPath = dir.FullName.Replace(dir.Extension, "_nm" + dir.Extension);
+		if(File.Exists(normalMapPath))
+			return Resources.LoadAssetAtPath<Texture2D>(GetUnityPath(normalMapPath));
+		
+		
+		mainPath = GetUnityPath( mainPath );
+		normalMapPath = GetUnityPath( normalMapPath );
+		
+		AssetDatabase.CopyAsset( mainPath, normalMapPath);
+		AssetDatabase.Refresh();
+		
+		TextureImporter importer = (TextureImporter)TextureImporter.GetAtPath(normalMapPath);
+		importer.wrapMode = TextureWrapMode.Clamp;
+		importer.textureType = TextureImporterType.Bump;
+		importer.filterMode = FilterMode.Trilinear;
+		importer.normalmapFilter = TextureImporterNormalFilter.Standard;
+		importer.convertToNormalmap = true;
+		importer.normalmap = true;
+		
+		importer.SaveAndReimport();
+		
+		//AssetDatabase.ImportAsset(normalMapPath, ImportAssetOptions.ForceUpdate);
+		
+		AssetDatabase.SaveAssets();
+		
+		return Resources.LoadAssetAtPath<Texture2D>(normalMapPath);
+	}
 	
 	// Saves an asset into the GameData folder using AssetDatabase, then loads it back from that path and returns it
 	// The rose file path structure is maintained but 3ddata is replaced by GameData

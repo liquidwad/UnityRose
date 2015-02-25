@@ -52,7 +52,7 @@ public class RoseTerrainWindow : EditorWindow {
 		DirectoryInfo dirs = new DirectoryInfo(m_inputDir);
 		
 		GameObject map = new GameObject();
-		map.name = mapName;
+		map.name = dirs.Name;
 		
 		GameObject terrain = new GameObject();
 		terrain.name = "Ground";
@@ -100,7 +100,7 @@ public class RoseTerrainWindow : EditorWindow {
 		Texture2D myAtlas = new Texture2D(width, height);
 		myAtlas.SetPixels32( atlas.GetPixels32(0), 0);
 		
-		string atlasPath = "Assets/GameData/Textures/junon-atlas.png";
+		string atlasPath = "Assets/Resources/Textures/Maps/" + dirs.Name + ".png";
 		
         if( !File.Exists( atlasPath ))
 		{
@@ -118,7 +118,7 @@ public class RoseTerrainWindow : EditorWindow {
 		//atlas = (Texture2D)AssetDatabase.LoadMainAssetAtPath( atlasPath );
         myAtlas = Utils.loadTex(ref atlasPath);
 		
-		string atlasNormalPath = "Assets/GameData/Textures/junon-atlas.png";
+		//string atlasNormalPath = "Assets/GameData/Textures/junon-atlas.png";
 		//Texture2D atlasNormal = (Texture2D)AssetDatabase.LoadMainAssetAtPath( atlasNormalPath );
 		
 		// copy rects back to hash (should update rect refs in Tile objects

@@ -25,7 +25,18 @@ var UserManager = function() {
 		}
 	};
 
+	this.sendLoginResponse = function(client, response) {
+		var encryptedPacket = crypto.encrypt( loginPacket( response ) );
+		client.write(encryptedPacket);
+	}
+
 	this.loginUser = function(client, packet) {
+
+		if(packet.username == null || packet.password == null) {
+			this.sendLoginResponse(client, opcodes.loginCallbackOperation.InputEmpty);
+			return;
+		}
+
 		var userManager = this;
 
 		UserModel.findOne({ 
@@ -46,8 +57,7 @@ var UserManager = function() {
 				}
 			}
 
-			var encryptedPacket = crypto.encrypt( loginPacket( response ) );
-			client.write( encryptedPacket );
+			userManager.sendLoginResponse(client, response);
 		});
 	};
 

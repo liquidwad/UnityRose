@@ -1,4 +1,10 @@
-﻿// ------------------------------------------------------------------------------
+﻿// <copyright file="RosePatch.cs" company="Wadii Bellamine">
+// Copyright (c) 2015 All Rights Reserved
+// </copyright>
+// <author>Wadii Bellamine</author>
+// <date>2/25/2015 8:37 AM </date>
+
+// ------------------------------------------------------------------------------
 //  <authors>
 //      Wadii Bellamine
 //      3/14/2014
@@ -42,6 +48,8 @@ namespace UnityRose.Game
         public List<Tile> m_tiles { get; set; }
 		
         public Dictionary<String, List<int>> edgeVertexLookup { get; set; }
+		
+		private string groundLight;
 		
 		// Default contsructor
 		public RosePatch()
@@ -111,8 +119,9 @@ namespace UnityRose.Game
 			// original dir: .../3ddata/maps/junon/jpt01/30_30
 			// desired dir: .../3ddata/junon/LIST_CNST_JPT.ZSC
             char[] trimChars = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '_' };
-			string zscPath = Utils.FixPath(m_3dDataDir + "/" + m_assetDir.Parent.Parent.Name.ToUpper() + "/LIST_" + "CNST_" + m_assetDir.Parent.Name.Trim(trimChars).ToUpper() + ".ZSC");
+			string zscPath = Utils.FixPath(m_3dDataDir + "/" + m_assetDir.Parent.Parent.Name.ToUpper() + "/LIST_" + "CNST_JPT.ZSC");// + m_assetDir.Parent.Name.Trim(trimChars).ToUpper() + ".ZSC");
 			string litPath = Utils.FixPath(this.m_assetDir.Parent.FullName + "\\" + this.m_name + "\\LIGHTMAP\\BUILDINGLIGHTMAPDATA.LIT");
+			groundLight = Utils.FixPath(this.m_assetDir.Parent.FullName + "\\" + this.m_name + "\\" + this.m_name + "_PLANELIGHTMAP.DDS");
 			m_ZSC_Cnst = new ZSC(zscPath);
 			m_ZSC_Deco = new ZSC(zscPath.Replace("cnst","deco"));
             m_LIT_Cnst = new LIT(litPath);
@@ -156,7 +165,7 @@ namespace UnityRose.Game
 		
 		public bool Import(Transform terrainParent, Transform objectsParent, Texture2D atlas, Texture2D atlas_normal, Dictionary<string, Rect> atlasRectHash)
 		{
-			/*
+			
             if (!m_isValid)
 			{
                 Debug.LogError("Cannot Import patch_" + this.m_name);
@@ -262,8 +271,8 @@ namespace UnityRose.Game
 				}
 			}		
 			
-			string lightTexPath = "Assets/3DDATA/MAPS/JUNON/JPT01/" + m_Col + "_" + m_Row + "/" + m_Col + "_" + m_Row + "_PLANELIGHTINGMAP.dds";
-			Texture2D lightTex = Utils.loadTex( ref lightTexPath );// Resources.LoadAssetAtPath<Texture2D>(lightTexPath);  //Utils.loadTex(lightTexPath, "Assets/GameData/Textures/Lightmaps/");                          
+			//string lightTexPath = "Assets/3DDATA/MAPS/JUNON/JPT01/" + m_Col + "_" + m_Row + "/" + m_Col + "_" + m_Row + "_PLANELIGHTINGMAP.dds";
+			Texture2D lightTex = Utils.loadTex( ref groundLight );// Resources.LoadAssetAtPath<Texture2D>(lightTexPath);  //Utils.loadTex(lightTexPath, "Assets/GameData/Textures/Lightmaps/");                          
 			//Utils.convertTex( lightTexPath, "Assets/GameData/Textures/Lightmaps/", ref lightTex);
 			
 			
@@ -365,28 +374,27 @@ namespace UnityRose.Game
                         Debug.Log("Rotation: " + (int)rotation);
                     switch (rotation)
 					{
-					case ZON.RotationType.Normal:
-						rotMatrix = uvMatrix;
-						break;
-					case ZON.RotationType.LeftRight:
-						rotMatrix = uvMatrixLR;
-						break;
-					case ZON.RotationType.LeftRightTopBottom:
-						rotMatrix = uvMatrixLRTB;
-						break;
-					case ZON.RotationType.Rotate90Clockwise:
-						rotMatrix = uvMatrixRotCW;
-						break;
-					case ZON.RotationType.Rotate90CounterClockwise:
-						rotMatrix = uvMatrixRotCCW;
-						break;
-					case ZON.RotationType.TopBottom:
-						rotMatrix = uvMatrixTB;
-						break;
-					default:
-						rotMatrix = uvMatrix;
-						break;
-						
+						case ZON.RotationType.Normal:
+							rotMatrix = uvMatrix;
+							break;
+						case ZON.RotationType.LeftRight:
+							rotMatrix = uvMatrixLR;
+							break;
+						case ZON.RotationType.LeftRightTopBottom:
+							rotMatrix = uvMatrixLRTB;
+							break;
+						case ZON.RotationType.Rotate90Clockwise:
+							rotMatrix = uvMatrixRotCW;
+							break;
+						case ZON.RotationType.Rotate90CounterClockwise:
+							rotMatrix = uvMatrixRotCCW;
+							break;
+						case ZON.RotationType.TopBottom:
+							rotMatrix = uvMatrixTB;
+							break;
+						default:
+							rotMatrix = uvMatrix;
+							break;
 					}
                     
                     // Get top and bottom UV's using texture atlas and rotation adjustments
@@ -460,10 +468,11 @@ namespace UnityRose.Game
 				m_mesh.normals = normals;
 			}
 			
+			Utils.calculateMeshTangents(m_mesh);
 			m_mesh.RecalculateBounds();
 			m_mesh.Optimize();
 			
-			
+			AssetDatabase.CreateAsset( m_mesh, "Assets/patch_" + this.m_name + ".mesh");
 			
 			GameObject patchObject = new GameObject();
 			patchObject.name = "patch_" + this.m_name;
@@ -476,7 +485,7 @@ namespace UnityRose.Game
 			patchRenderer.material = material;
             //patchRenderer.castShadows = false;
 			patchObject.transform.parent = terrainParent;
-			*/
+			
 			
 			
 			
@@ -497,6 +506,7 @@ namespace UnityRose.Game
                 terrainObject.transform.localPosition = (ifo.Position / 100.0f);
 				bool isAnimated = false;
 				AnimationClip clip = new AnimationClip();
+				clip.legacy = true;
 				
                 for (int part = 0; part < m_ZSC_Deco.Objects[ifo.ObjectID].Models.Count; part++ )
 				{
@@ -504,7 +514,8 @@ namespace UnityRose.Game
 					// load ZMS
                     string zmsPath = m_3dDataDir.Parent.FullName + "/" + m_ZSC_Deco.Models[model.ModelID].Replace("\\", "/");
                     string texPath = "Assets/" + m_ZSC_Deco.Textures[model.TextureID].Path;
-                    string lightPath = "Assets/3ddata/Maps/Junon/jpt01/" + m_Col + "_" + m_Row + "/LIGHTMAP/" + m_LIT_Deco.Objects[obj].Parts[part].DDSName;
+                    //string lightPath = "Assets/3ddata/Maps/Junon/jpt01/" + m_Col + "_" + m_Row + "/LIGHTMAP/" + m_LIT_Deco.Objects[obj].Parts[part].DDSName;
+					string lightPath = Utils.FixPath(this.m_assetDir.Parent.FullName + "\\" + this.m_name + "\\LIGHTMAP\\" + m_LIT_Deco.Objects[obj].Parts[part].DDSName);
                     LIT.Object.Part lmData = m_LIT_Deco.Objects[obj].Parts[part];
 					
                     // Calculate light map UV offset and scale
@@ -518,22 +529,28 @@ namespace UnityRose.Game
                     ZMS zms = new ZMS(zmsPath, lmScale, lmOffset);
 
 					// Create material	
-					Texture2D mainTex = Utils.loadTex( ref texPath);  
-					Texture2D lightTexture = Utils.loadTex ( ref lightPath);
+					Texture2D mainTex = Utils.loadTex( ref texPath); 
 					
 					#if UNITY_5
+					Texture2D normalMap = Utils.generateNormalMap( texPath );
 					Material mat = new Material(Shader.Find("Standard"));
-					mat.SetTexture("_MainTex", mainTex);
-					mat.SetFloat("_Glossiness", 0.0f);
 					mat.SetFloat("_Mode", 1.0f);
+					mat.SetTexture("_MainTex", mainTex);
+					mat.SetTexture("_OcclusionMap", mainTex);
+					mat.SetTexture("_BumpMap", normalMap);
 					mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
 					mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
 					mat.SetInt("_ZWrite", 1);
 					mat.EnableKeyword("_ALPHATEST_ON");
 					mat.DisableKeyword("_ALPHABLEND_ON");
 					mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-					mat.renderQueue = 2450;
+					mat.SetFloat("_OcclusionStrength", 0.5f);
+					mat.SetFloat("_BumpScale", 0.8f);
+					mat.SetFloat("_Glossiness", 0.1f);
+					
+					//mat.renderQueue = 2450;
 					#else
+					Texture2D lightTexture = Utils.loadTex ( ref lightPath);
 					Material mat = new Material(Shader.Find("Custom/ObjectShader"));
 					mat.SetTexture("_MainTex", mainTex);
 					mat.SetTexture("_LightTex", lightTexture);
@@ -596,7 +613,7 @@ namespace UnityRose.Game
                 terrainObject.transform.localPosition = (ifo.Position / 100.0f);
 				bool isAnimated = false;
 				AnimationClip clip = new AnimationClip();
-				
+				clip.legacy = true;
                 for (int part = 0; part < m_ZSC_Cnst.Objects[ifo.ObjectID].Models.Count; part++)
 				{
                     ZSC.Object.Model model = m_ZSC_Cnst.Objects[ifo.ObjectID].Models[part];
@@ -604,7 +621,8 @@ namespace UnityRose.Game
 					// load ZMS
 					string zmsPath = m_3dDataDir.Parent.FullName + "/" + m_ZSC_Cnst.Models[model.ModelID].Replace("\\","/");
 					string texPath = "Assets/" + m_ZSC_Cnst.Textures[model.TextureID].Path;
-                    string lightPath = "Assets/3ddata/Maps/Junon/jpt01/" + m_Col + "_" + m_Row + "/LIGHTMAP/" + m_LIT_Cnst.Objects[obj].Parts[part].DDSName;
+                    //string lightPath = "Assets/3ddata/Maps/Junon/jpt01/" + m_Col + "_" + m_Row + "/LIGHTMAP/" + m_LIT_Cnst.Objects[obj].Parts[part].DDSName;
+					string lightPath = Utils.FixPath(this.m_assetDir.Parent.FullName + "\\" + this.m_name + "\\LIGHTMAP\\" + m_LIT_Cnst.Objects[obj].Parts[part].DDSName);
                     LIT.Object.Part lmData = m_LIT_Cnst.Objects[obj].Parts[part];
 
                     // Calculate light map UV offset and scale
@@ -619,26 +637,30 @@ namespace UnityRose.Game
 					
 					// Create material
 					Texture2D mainTex =  Utils.loadTex(ref texPath); 
-					Texture2D lightTexture =  Utils.loadTex(ref lightPath); 
 					
-#if UNITY_5
+					#if UNITY_5
+					Texture2D normalMap = Utils.generateNormalMap( texPath );
 					Material mat = new Material(Shader.Find("Standard"));
-					mat.SetTexture("_MainTex", mainTex);
-					mat.SetFloat("_Glossiness", 0.0f);
 					mat.SetFloat("_Mode", 1.0f);
+					mat.SetTexture("_MainTex", mainTex);
+					mat.SetTexture("_OcclusionMap", mainTex);
+					mat.SetTexture("_BumpMap", normalMap);
 					mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
 					mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
 					mat.SetInt("_ZWrite", 1);
 					mat.EnableKeyword("_ALPHATEST_ON");
 					mat.DisableKeyword("_ALPHABLEND_ON");
 					mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-					mat.renderQueue = 2450;
-                    
-#else
+					mat.SetFloat("_OcclusionStrength", 0.5f);
+					mat.SetFloat("_BumpScale", 0.8f);
+					mat.SetFloat("_Glossiness", 0.1f);
+					//mat.renderQueue = 2450;
+					#else
+					Texture2D lightTexture =  Utils.loadTex(ref lightPath); 
 					Material mat = new Material(Shader.Find("Custom/ObjectShader"));
 					mat.SetTexture("_MainTex", mainTex);
 					mat.SetTexture("_LightTex", lightTexture);
-#endif
+					#endif
 					
 					
 					GameObject modelObject = new GameObject();
