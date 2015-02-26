@@ -1,4 +1,10 @@
-﻿﻿Shader "Custom/TerrainShader" {
+﻿// <copyright file="TerrainShader.shader" company="Wadii Bellamine">
+// Copyright (c) 2015 All Rights Reserved
+// </copyright>
+// <author>Wadii Bellamine</author>
+// <date>2/25/2015 8:37 AM </date>
+
+Shader "Custom/TerrainShader" {
 	Properties {
 		_BottomTex ("Bottom (RGBA)", 2D) = "white" {}
 		_TopTex ("Top (RGBA)", 2D) = "black" {}
