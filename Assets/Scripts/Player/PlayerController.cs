@@ -5,7 +5,8 @@
 // <date>2/25/2015 8:37 AM </date>
 
 using UnityEngine;
-using System.Collections;
+using System;
+using System.Collections.Generic;
 using Network.Packets;
 using Network;
 
@@ -17,6 +18,8 @@ namespace UnityRose
     {
     	public bool isMainPlayer = false;
 		public PlayerInfo playerInfo;
+		public GameObject cursor;
+		public bool VR = false;
 		
         private int floorMask;
         private float camRayLength = 500f;
@@ -26,30 +29,39 @@ namespace UnityRose
         private bool isWalking = false;
         private States state = States.STANDING;
         
+		public Queue<Action> funcQueue;
 
         // Use this for initialization
         void Start()
         {	
             playerMachine = new PlayerState(States.STANDING,"Player State Machine", this.gameObject);
             playerMachine.Entry();
-            floorMask = LayerMask.GetMask("Floor");
+			floorMask = LayerMask.GetMask("Floor")|LayerMask.GetMask("MapObjects");
             controller = this.gameObject.GetComponent<CharacterController>();
             destinationPosition = transform.position;
-
-            // Add definitions for all packet received delegates
-           /* NetworkManager.groundClickDelegate += (GroundClick gc) => 
-            {
-				// TODO: add checking for player ID
-				if(gc.clientID == playerInfo.name)
-					destinationPosition = gc.pos;
-				// set destinationPosition = position received
-            };*/
+			playerInfo.name = this.name;
+			
+			funcQueue = new Queue<Action>();
+           
+            // Add definitions for all packet received delegates  
+			CharacterManager.Instance.registerCallback(CharacterOperation.GROUNDCLICK, (object obj) => {
+				
+				funcQueue.Enqueue(() => {
+					GroundClick packet = (GroundClick)obj;
+					
+					if(packet.clientID == playerInfo.name )//&& !isMainPlayer)
+					{
+						destinationPosition = packet.pos;
+					}
+				});
+			});
+					
             
             
 			if( isMainPlayer )
 			{
 				// Tell server main player has finished loading
-				NetworkManager.Send( new CharLoadCompleted( playerInfo.name ) ); //gameObject.name, gameObject.transform.position, gameObject.transform.rotation ) );
+				NetworkManager.Send( new CharLoadCompleted( playerInfo.name ) ); 
 			}
 
         }
@@ -64,6 +76,11 @@ namespace UnityRose
         // Update is called once per frame
         void Update()
         {
+			while(funcQueue.Count > 0) 
+			{
+				funcQueue.Dequeue().Invoke();
+			}
+			
 			// Only take input if this player is the main player
 			if( this.isMainPlayer )
 			{
@@ -133,14 +150,15 @@ namespace UnityRose
 
 			if( fire )
 			{
+				if(VR)
+					destinationPosition = cursor.transform.position;
 				// Perform the raycast and if it hits something on the floor layer...
-				if (Physics.Raycast(camRay, out floorHit, camRayLength, floorMask))
-				{
+				else if (Physics.Raycast(camRay, out floorHit, camRayLength, floorMask))
 				 	destinationPosition = floorHit.point;
-				 	// Send a clicked on ground packet
-					//NetworkManager.Send( new GroundClick( gameObject.name, floorHit.point ));
 				 	
-				}
+				// Send a clicked on ground packet
+				NetworkManager.Send( new GroundClick( gameObject.name, destinationPosition ));
+				destinationPosition = transform.position;
 			
             }
         }
@@ -155,7 +173,21 @@ namespace UnityRose
                 // Create a quaternion (rotation) based on looking down the vector from the player to the mouse.
                 Quaternion newRotation = Quaternion.LookRotation(playerToMouse);
                 transform.rotation = newRotation;
-
+				
+				if(VR)
+				{
+					// TODO: use a smooth rotation
+					GameObject cameraObject = GameObject.Find("Main Camera");
+					Vector3 camRotationEuler = cameraObject.transform.rotation.eulerAngles;
+					Vector3 newRotationEuler = newRotation.eulerAngles;
+					
+					Quaternion newCamRotation = Quaternion.Euler( camRotationEuler.x, newRotationEuler.y, newRotationEuler.z);
+					cameraObject.transform.rotation = newRotation;
+					
+					if( isWalking == false )
+						Cardboard.SDK.Recenter();
+				}
+				
                 //check hangout
                 controller.SimpleMove(transform.forward * playerInfo.tMovS);
                 isWalking = true;

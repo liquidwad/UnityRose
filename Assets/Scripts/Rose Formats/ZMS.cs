@@ -116,6 +116,7 @@ namespace UnityRose.Formats
 		public short IndexCount { get; set; }
 		
 		private bool RecalcNormals;
+		private bool isTree;
 		
 		#endregion
 		
@@ -135,6 +136,7 @@ namespace UnityRose.Formats
 		{
             this.lmScale = new Vector2(1.0f, 1.0f);
             this.lmOffset = new Vector2(0.0f, 0.0f);
+            isTree = filePath.ToLower().Contains("tree") && !filePath.ToLower().Contains("street");
 			Load(filePath);
 		}
 		
@@ -142,6 +144,7 @@ namespace UnityRose.Formats
         {
             this.lmScale = lmScale;
             this.lmOffset = lmOffset;
+			isTree = filePath.ToLower().Contains("tree") && !filePath.ToLower().Contains("street");
             Load(filePath);  
         }
 		
@@ -263,6 +266,9 @@ namespace UnityRose.Formats
 			}
 			else
 				RecalcNormals = true;
+				
+			if( isTree )
+				RecalcNormals = true;
 			
 			// color (not used - skip)
 			if ((format & 8) > 0)
@@ -373,12 +379,20 @@ namespace UnityRose.Formats
 			}
 
 			IndexCount = fh.Read<short>();
-			triangles = new int[IndexCount * 3];
+			int vs = isTree ? 6 : 3;
+			triangles = new int[IndexCount * vs];
 			for (int i = 0; i < IndexCount; i++)
 			{
-                triangles[i * 3 + 0] = (int)fh.Read<short>();
-                triangles[i * 3 + 1] = (int)fh.Read<short>();
-                triangles[i * 3 + 2] = (int)fh.Read<short>();
+                triangles[i * vs + 0] = (int)fh.Read<short>();
+                triangles[i * vs + 1] = (int)fh.Read<short>();
+                triangles[i * vs + 2] = (int)fh.Read<short>();	
+                
+                if( isTree )
+                {
+					triangles[i * vs + 3] = triangles[i * vs + 2];
+					triangles[i * vs + 4] = triangles[i * vs + 1];
+					triangles[i * vs + 5] = triangles[i * vs + 0];	
+                }
 			}
 			
 			MaterialCount = fh.Read<short>();

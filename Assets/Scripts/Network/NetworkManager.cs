@@ -33,7 +33,7 @@ namespace Network
 
     public class NetworkManager : MonoBehaviour
     {
-		private const string ipAddress = "24.62.143.241"; 
+		private const string ipAddress = "73.142.41.40"; //"10.0.0.201"; //"127.0.0.1"; //
 
         private const int port = 3000;
 

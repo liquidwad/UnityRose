@@ -57,10 +57,12 @@ public class RoseTerrainWindow : EditorWindow {
 		GameObject terrain = new GameObject();
 		terrain.name = "Ground";
 		terrain.transform.parent = map.transform;
+		terrain.layer = LayerMask.NameToLayer("Floor");
 		
 		GameObject terrainObjects = new GameObject();
 		terrainObjects.name = "Objects";
 		terrainObjects.transform.parent = map.transform;
+		terrainObjects.layer = LayerMask.NameToLayer("MapObjects");
 		
 		List<RosePatch> patches = new List<RosePatch>();
 		Dictionary<string, Rect> atlasRectHash = new Dictionary<string, Rect>();
@@ -84,9 +86,9 @@ public class RoseTerrainWindow : EditorWindow {
 		// Figure out the required size of the atlas from the number of textures in the atlas
 		int height, width;  // these must be powers of 2 to be compatible with iPhone
 		if( atlasRectHash.Count <= 16 )  width = height = 4*256; 
-		else if( atlasRectHash.Count <= 32 )  { width = 4*256; height = 8*256; }
+		else if( atlasRectHash.Count <= 32 )  { width = 8*256; height = 4*256; }
 		else if( atlasRectHash.Count <= 64 )  { width = 8*256; height = 8*256; }
-		else if( atlasRectHash.Count <= 128 ) { width = 8*256; height = 16*256; }
+		else if( atlasRectHash.Count <= 128 ) { width = 16*256; height = 8*256; }
 		else if( atlasRectHash.Count <= 256 ) { width = 16*256; height = 16*256; }
 		else throw new Exception("Number of tiles in terrain is larger than supported by terrain atlas");
 		
@@ -100,7 +102,7 @@ public class RoseTerrainWindow : EditorWindow {
 		Texture2D myAtlas = new Texture2D(width, height);
 		myAtlas.SetPixels32( atlas.GetPixels32(0), 0);
 		
-		string atlasPath = "Assets/GameData/Textures/junon-atlas.png";
+		string atlasPath = "Assets/Terrain/Textures/" + mapName + "_atlas.png";
 		
         if( !File.Exists( atlasPath ))
 		{
@@ -113,13 +115,8 @@ public class RoseTerrainWindow : EditorWindow {
 			AssetDatabase.Refresh();
 		}
         
-		
-		
-		//atlas = (Texture2D)AssetDatabase.LoadMainAssetAtPath( atlasPath );
         myAtlas = Utils.loadTex(ref atlasPath);
 		
-		string atlasNormalPath = "Assets/GameData/Textures/junon-atlas.png";
-		//Texture2D atlasNormal = (Texture2D)AssetDatabase.LoadMainAssetAtPath( atlasNormalPath );
 		
 		// copy rects back to hash (should update rect refs in Tile objects
 		int rectID = 0;
@@ -173,7 +170,6 @@ public class RoseTerrainWindow : EditorWindow {
 		
 		
 		terrainObjects.transform.localScale = new Vector3(1.0f, 1.0f, -1.0f);
-		//terrainObjects.transform.Rotate (90.0f, -90.0f, 0.0f);
 		terrainObjects.transform.Rotate (0.0f, -90.0f, 0.0f);
 		terrainObjects.transform.position = new Vector3(5200.0f, 0.0f, 5200.0f);
 		
@@ -229,6 +225,25 @@ public class RoseTerrainWindow : EditorWindow {
 		
 		EditorGUILayout.BeginToggleGroup("Map", true);
 		m_inputDir = EditorGUILayout.TextField ("Input dir: ", m_inputDir);
+		
+		/*
+		if(GUILayout.Button("Import"))
+		{
+			STB stb = new STB(m_inputDir);
+			// STL:
+			//		  row		  col   row
+			//Entries[0-62]  Rows[0-5][0-61] 
+			//LZON001  korean "Canyon City of Zant" korean korean korean
+			//LZON002  korean "City of Junon Polis" korean korean korean
+			//LZON003  korean "Junon Cartel" ...
+			//...
+			
+			
+			int x=1;
+		}
+		*/
+			
+		 
 		if(GUILayout.Button("Import"))
 		{
 			// Several options based on the given path
@@ -263,7 +278,7 @@ public class RoseTerrainWindow : EditorWindow {
 				case "eldeon":
 				case "lunar":
 					// TODO: add any new planets here...
-					ImportMap(inDirInfo.Parent.Name.ToLower());
+					ImportMap(inDirInfo.Name.ToLower());
 					break;
 				default:
 					GameObject terrain = new GameObject();

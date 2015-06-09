@@ -21,7 +21,7 @@ public class LoginUI : MonoBehaviour {
 	
 	private string password;
 	
-	public GameObject MessageBox;
+	//public GameObject MessageBox;
 	
 	//problably have to create a UIManager
 	public Queue<Action> funcQueue;
@@ -37,30 +37,34 @@ public class LoginUI : MonoBehaviour {
 			funcQueue.Enqueue(() => {
 				LoginReply packet = (LoginReply)obj;
 				
-				GameObject msgbox = Instantiate<GameObject>(MessageBox);
+				//GameObject msgbox = Instantiate<GameObject>(MessageBox);
 				
 				LoginStatus loginStatus = (LoginStatus)packet.response;
 				
 				string loginmessage = string.Empty;
 				
+				Text errorText = GameObject.Find("ErrorText").GetComponent<Text>();
+				
 				switch(loginStatus)
 				{
 					case LoginStatus.VALID:
-						loginmessage = "Login has been succesful";
+						Application.LoadLevel("charSelect");
+						errorText.text =  "";
 						break;
 					case LoginStatus.NOT_EXIST:
-						loginmessage = "This user doesn't exist";
+						errorText.text =  "Username or password invalid";
 						break;
 					case LoginStatus.ERROR:
-						loginmessage = "There has been an error";
+						errorText.text = "There was an error";
 						break;
 					default:
 					break;
 				}
 				
-				UI.MessageBox.Show(msgbox, loginmessage, "LoginReply", ()=> {
-					DestroyObject(msgbox);
-				});
+				
+				//UI.MessageBox.Show(msgbox, loginmessage, "LoginReply", ()=> {
+				//	DestroyObject(msgbox);
+				//});
 			});
 		});
 	}

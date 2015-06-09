@@ -24,12 +24,17 @@ var server = net.createServer();
 //Create new world
 var world = new World();
 
+// Track all clients
+var clients = [];  // TODO: separate clients from users
+
 server.on('connection', function(socket) {
 
 	socket.id = shortid.generate();
 
 	console.log( "[" + socket.id + "][CONNECTED]");
 
+	clients.push(socket);
+	
 	socket.on('data', function(data) {
 		var packet = crypto.decrypt(data);
 
@@ -38,7 +43,7 @@ server.on('connection', function(socket) {
 				world.handleUserPacket(socket, packet);
 				break;
 			case type.Character:
-				world.handleCharacterPacket(socket, packet);
+				world.handleCharacterPacket(clients, packet);
 				break;
 			default:
 				console.log("unknown packet");
@@ -47,6 +52,7 @@ server.on('connection', function(socket) {
 	});
 
 	socket.on('end', function() {
+		
 		world.removeClient(socket);
 	});
 

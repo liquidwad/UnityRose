@@ -43,15 +43,18 @@ public class RosePlayer
 		
 		// Create material
 		
-		string shader = "Diffuse";
+		string shader = "VertexLit";
 		if(backItem)
-			shader = "Transparent/Cutout/Diffuse";
+			shader = "Transparent/Cutout/VertexLit";
+			
 		Material mat = new Material(Shader.Find(shader));
 
         //mat = (Material)Utils.SaveReloadAsset(mat, texPath, ".mat");
 
         Texture2D tex = Utils.loadTex( ref texPath ); // Utils.CopyReloadTexAsset(texPath);
         mat.SetTexture("_MainTex", tex);
+        mat.SetColor("_Emission", new Color(0.15f, 0.15f, 0.15f));
+		
 
         //AssetDatabase.SaveAssets();
 
@@ -142,7 +145,7 @@ public class RosePlayer
 
 		ZMD skeleton = new ZMD("Assets/3DData/Avatar/MALE.ZMD");
         GameObject player = new GameObject("player");
-        
+       
 		skeleton.buildSkeleton(player, false);
 		 
         
@@ -162,7 +165,9 @@ public class RosePlayer
 		LoadAnimations(player, skeleton, RoseData.AniWeaponType.EMPTY, RoseData.AniGender.MALE);
 
         //add PlayerController script
-        player.AddComponent<PlayerController>();
+        PlayerController controller = player.AddComponent<PlayerController>();
+        controller.isMainPlayer = true;
+        controller.playerInfo.tMovS = 10.0f;
 
         //add Character controller
         Vector3 center = player.transform.FindChild("b1_pelvis").localPosition; //playerBounds.center;

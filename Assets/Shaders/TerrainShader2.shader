@@ -51,7 +51,7 @@ Shader "Custom/TerrainShader2" {
 			
 			//o.Normal = UnpackNormal( ntop );// nbottom*(1.0f - ntop.a) + ntop*ntop.a );
 			o.Albedo = bottom.rgb*(1.0f - top.a) + top.rgb*top.a;
-			o.Emission = o.Albedo*light*2.0;
+			o.Emission = o.Albedo*light*1.5;
 			//o.Albedo = o.Albedo*light*2.0;
 			
 		}

@@ -1,6 +1,8 @@
 'use strict';
 
-var UserManager = require('./usermanager'),
+var _ = require('lodash'),
+	UserManager = require('./usermanager'),
+	crypto = require('../crypto'),
 	MapManager = require('./mapmanager');
 
 function World() {
@@ -13,12 +15,20 @@ function World() {
 		this.userManager.handlePacket(client, packet);
 	};
 
-	this.handleCharacterPacket = function(client, packet) {
+	this.handleCharacterPacket = function(clients, packet) {
+		
 		//probably move mapmanager to world
-		var clientMoveData = crypto.encrypt(data);
-		client.write(clientMoveData);
+		var clientMoveData = crypto.encrypt(packet);
+			
+		_.each(clients, function(client) {
+			client.write(clientMoveData);
+		});
+		
 	};
 
+	this.writeMoveData = function(client, moveData) {
+		client.write(moveData);
+	}
 	this.removeClient = function(client) {
 		//remove from usermanager and world
 	} 

@@ -206,16 +206,18 @@ public class Utils
 	{
 		// check if dds exists, and load it if it does
 		string ddsPath = FixPath(rosePath);
+		ddsPath = GetUnityPath(ddsPath);
 		string pngPath = ddsPath.Replace(".dds",".png");
-		if( File.Exists(pngPath) )
-		{
-			rosePath = pngPath;
-			return Resources.LoadAssetAtPath<Texture2D>(pngPath);
-		}
+		
 		if( File.Exists (ddsPath))
 		{
 			rosePath = ddsPath;
 			return UnityEngine.Resources.LoadAssetAtPath<Texture2D>(ddsPath);
+		}
+		else
+		{
+			rosePath = pngPath;
+			return Resources.LoadAssetAtPath<Texture2D>(pngPath);
 		}
 		return null;
 	}
