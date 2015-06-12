@@ -30,6 +30,7 @@ namespace Network.Packets
     	
     	protected JsonWriter writer;
     	protected StringBuilder output;
+    	protected JsonReader reader;
     	
     	public Packet()
     	{
