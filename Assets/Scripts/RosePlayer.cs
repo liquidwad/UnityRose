@@ -101,6 +101,7 @@ public class RosePlayer
             // Attempt to find animation asset, and if not found, load from ZMO
 			string zmoPath = Utils.FixPath("Assets\\" + RoseData.GetAnimationFile(WeaponType, action, gender));
             AnimationClip clip = R2U.GetClip(zmoPath, skeleton, action.ToString());
+			clip.legacy = true;
             clips.Add(clip);
         }
 

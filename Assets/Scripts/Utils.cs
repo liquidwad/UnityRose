@@ -155,7 +155,7 @@ public class Utils
     // fixes the path based on platform and returns fixed string
     public static string FixPath(string file)
     {
-        if (IsMac())
+        if (IsMac() || true)
             return  file.Contains("\\") ? file.ToLower().Replace("\\", "/") : file.ToLower();
         else
         {
@@ -212,12 +212,12 @@ public class Utils
 		if( File.Exists (ddsPath))
 		{
 			rosePath = ddsPath;
-			return UnityEngine.Resources.LoadAssetAtPath<Texture2D>(ddsPath);
+			return AssetDatabase.LoadAssetAtPath<Texture2D>(ddsPath);
 		}
 		else
 		{
 			rosePath = pngPath;
-			return Resources.LoadAssetAtPath<Texture2D>(pngPath);
+			return AssetDatabase.LoadAssetAtPath<Texture2D>(pngPath);
 		}
 		return null;
 	}
@@ -273,7 +273,7 @@ public class Utils
 		DirectoryInfo dir = new DirectoryInfo( mainPath );
 		string normalMapPath = dir.FullName.Replace(dir.Extension, "_nm" + dir.Extension);
 		if(File.Exists(normalMapPath))
-			return Resources.LoadAssetAtPath<Texture2D>(GetUnityPath(normalMapPath));
+			return AssetDatabase.LoadAssetAtPath<Texture2D>(GetUnityPath(normalMapPath));
 		
 		
 		mainPath = GetUnityPath( mainPath );
@@ -296,7 +296,7 @@ public class Utils
 		
 		AssetDatabase.SaveAssets();
 		
-		return Resources.LoadAssetAtPath<Texture2D>(normalMapPath);
+		return AssetDatabase.LoadAssetAtPath<Texture2D>(normalMapPath);
 	}
 	
 	// Saves an asset into the GameData folder using AssetDatabase, then loads it back from that path and returns it
@@ -355,7 +355,7 @@ public class Utils
 			AssetDatabase.Refresh();
 		}
 		
-		texture = Resources.LoadAssetAtPath<Texture2D>(dest);
+		texture = AssetDatabase.LoadAssetAtPath<Texture2D>(dest);
 		//return myTex;
 	}
 	
@@ -363,7 +363,7 @@ public class Utils
 	{
 		DirectoryInfo roseDir = new DirectoryInfo( rosePath );
 		string dest = destPath + roseDir.Name.Replace(roseDir.Extension, ".png");
-		return Resources.LoadAssetAtPath<Texture2D>(dest);
+		return AssetDatabase.LoadAssetAtPath<Texture2D>(dest);
 	}
 	
 	
