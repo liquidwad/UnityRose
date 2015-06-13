@@ -30,7 +30,12 @@ namespace UnityRose
         private States state = States.STANDING;
         
 		public Queue<Action> funcQueue;
-
+		
+		void Awake()
+		{
+			Application.targetFrameRate = 60;
+		}
+		
         // Use this for initialization
         void Start()
         {	
@@ -43,6 +48,7 @@ namespace UnityRose
 			
 			funcQueue = new Queue<Action>();
            
+           /*
             // Add definitions for all packet received delegates  
 			CharacterManager.Instance.registerCallback(CharacterOperation.GROUNDCLICK, (object obj) => {
 				
@@ -55,6 +61,7 @@ namespace UnityRose
 					}
 				});
 			});
+			*/
 					
             
             
@@ -158,7 +165,7 @@ namespace UnityRose
 				 	
 				// Send a clicked on ground packet
 				NetworkManager.Send( new GroundClick( gameObject.name, destinationPosition ));
-				destinationPosition = transform.position;
+				//destinationPosition = transform.position; // TODO: restore this
 			
             }
         }
