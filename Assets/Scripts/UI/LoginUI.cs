@@ -39,7 +39,7 @@ public class LoginUI : MonoBehaviour {
 				
 				//GameObject msgbox = Instantiate<GameObject>(MessageBox);
 				
-				LoginStatus loginStatus = (LoginStatus)packet.response;
+				LoginStatus loginStatus = (LoginStatus)packet.response.status;
 				
 				string loginmessage = string.Empty;
 				
@@ -74,12 +74,11 @@ public class LoginUI : MonoBehaviour {
 	{
 		Utils.handleTab( system );
 		
-		while(funcQueue.Count > 0) 
-		{
-			funcQueue.Dequeue().Invoke();
-			
-			
-		}
+		if( funcQueue != null )
+			while(funcQueue.Count > 0) 
+				funcQueue.Dequeue().Invoke();	
+		
+		
 	}
 	
 	public void saveUsername() {

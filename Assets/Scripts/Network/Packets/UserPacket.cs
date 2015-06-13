@@ -32,16 +32,13 @@ namespace Network.Packets
 		EMAIL_INVALID = 7
 	}
 	
-	[JsonOptIn]
+	///////////////// Client -> Server packets //////////////////////
 	public class RegisterPacket: Packet 
 	{
-		[JsonMember]
 		public string username { get; set; }
 		
-		[JsonMember]
 		public string password { get; set; }
 		
-		[JsonMember]
 		public string email { get; set; }
 		
 		public RegisterPacket()
@@ -64,17 +61,12 @@ namespace Network.Packets
 		}
 	}
 	
-	///////////////// Client -> Server packets //////////////////////
-	
 	
 	// This packet is used by the user to login to the char select scene
-	[JsonOptIn]
 	public class LoginPacket: Packet
 	{
-		[JsonMember]
 		public string username { get; set; }
 		
-		[JsonMember]
 		public string password {get; set; }
 		
 		public LoginPacket()
@@ -98,10 +90,8 @@ namespace Network.Packets
 	}
 	
 	// This packet is sent by the client after selecting a character in the char select scene
-	[JsonOptIn]
 	public class CharSelectPacket: Packet
 	{
-		[JsonMember]
 		public string characterID {get; set; }
 		
 		public CharSelectPacket()
@@ -122,12 +112,17 @@ namespace Network.Packets
 		}
 	}
 	
+	public class LoginResponse{
+		public int status { get; set; }
+		public int numChars { get; set; }
+	}
+	
 	///////////////// Server -> Client packets //////////////////////
-	[JsonOptIn]
 	public class LoginReply: Packet
 	{
-		[JsonMember]
-		public int response { get; set; }
+		//[JsonMember]
+		//public int response { get; set; }
+		public LoginResponse response {get; set;}
 		
 		public LoginReply()
 		{
@@ -142,11 +137,13 @@ namespace Network.Packets
 		}
 	}
 	
+	
 	[JsonOptIn]
 	public class RegisterReply: Packet
 	{
 		[JsonMember]
 		public int response { get; set; }
+		
 		
 		public RegisterReply()
 		{

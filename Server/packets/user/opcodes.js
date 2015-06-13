@@ -25,5 +25,5 @@ module.exports = {
 		PasswordTooShort: 6,
 		EmailUsed: 7,
 		EmailInvalid: 8
-	}
+	},
 };

@@ -37,7 +37,7 @@ server.on('connection', function(socket) {
 	
 	socket.on('data', function(data) {
 		var packet = crypto.decrypt(data);
-
+		console.log(socket.id + "packet: " + packet.toString());
 		switch(packet.type) {
 			case type.User:
 				world.handleUserPacket(socket, packet);

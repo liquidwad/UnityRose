@@ -2,6 +2,7 @@
 
 module.exports = {
 	characterOperation: {
-		'Walk': 1
-	},
+		'Walk': 1,
+		'Spawn': 2
+	}
 };

@@ -43,10 +43,11 @@ var UserManager = function() {
 					response = opcodes.loginCallbackOperation.Valid;
 				} else {
 					response = opcodes.loginCallbackOperation.NotExist;
+					
 				}
 			}
 
-			var encryptedPacket = crypto.encrypt( loginPacket( response ) );
+			var encryptedPacket = crypto.encrypt( loginPacket( response, user.numChars ) );
 			client.write( encryptedPacket );
 		});
 	};
@@ -116,7 +117,7 @@ var UserManager = function() {
 				'username': packet.username,
 				'password': packet.password,
 				'email': packet.email
-			}, function(err) {
+			}, function(err, user) {
 				if(err) {
 					response = opcodes.registerCallbackOperation.Error;
 				} else {
@@ -151,6 +152,7 @@ var UserManager = function() {
 		});
 	};
 
+	
 	this.addUser = function(client, model) {
 		var user = new User(client, model);
 		this.users.push(user);
