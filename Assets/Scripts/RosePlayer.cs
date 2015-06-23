@@ -14,16 +14,20 @@ using UnityEditor;
 
 public class RosePlayer
 {
-	public enum Gender { male, female }; // TODO: there are now three gender enums. Clean this shit
-	private Gender gender;
+    public GameObject player;
+    public GenderType gender; 
+    public WeaponType weapon; 
 
-    public RosePlayer(Gender gender)
+    private BindPoses bindPoses;
+    private GameObject skeleton;
+
+    public RosePlayer(GenderType gender)
 	{
 		this.gender = gender;
 		LoadPlayer(GenderType.MALE, WeaponType.EMPTY, "New", 97,97,97,2,3,231,97);
 	}
 
-	private Bounds LoadPart(GameObject skeleton, BindPoses poses, BodyPartType bodyPart, string zmsPath, string texPath)
+	private Bounds LoadPart(BodyPartType bodyPart, string zmsPath, string texPath)
     {
         zmsPath = Utils.FixPath(zmsPath);
 		texPath = Utils.FixPath (texPath).Replace ("dds", "png");
@@ -71,10 +75,10 @@ public class RosePlayer
         {
             SkinnedMeshRenderer renderer = modelObject.AddComponent<SkinnedMeshRenderer>();
 
-			mesh.bindposes = poses.bindPoses;
+			mesh.bindposes = bindPoses.bindPoses;
             renderer.sharedMesh = mesh;
             renderer.material = mat;
-			renderer.bones = poses.boneTransforms;
+			renderer.bones = bindPoses.boneTransforms;
         }
         else
         {
@@ -87,7 +91,7 @@ public class RosePlayer
 
     }
 
-    public Bounds LoadObject(GenderType gender, BodyPartType bodyPart, int id, GameObject skeleton, BindPoses poses)
+    public Bounds LoadObject(GenderType gender, BodyPartType bodyPart, int id)
     {
         Bounds objectBounds = new Bounds(skeleton.transform.position, Vector3.zero);
         ResourceManager rm = ResourceManager.Instance;
@@ -97,7 +101,7 @@ public class RosePlayer
             int ModelID = zsc.Objects[id].Models[i].ModelID;
             int TextureID = zsc.Objects[id].Models[i].TextureID;
 
-            Bounds partBounds = LoadPart(skeleton, poses, bodyPart, zsc.Models[ModelID], zsc.Textures[TextureID].Path);
+            Bounds partBounds = LoadPart(bodyPart, zsc.Models[ModelID], zsc.Textures[TextureID].Path);
             objectBounds.Encapsulate(partBounds);
         }
         return objectBounds;
@@ -115,21 +119,21 @@ public class RosePlayer
 
         ResourceManager rm = ResourceManager.Instance;
 
-        GameObject player = new GameObject(name);
-		GameObject skeleton = rm.loadSkeleton(gender, weapon);
-		BindPoses poses = rm.loadBindPoses (skeleton, gender, weapon);
+        player = new GameObject(name);
+		skeleton = rm.loadSkeleton(gender, weapon);
+		bindPoses = rm.loadBindPoses (skeleton, gender, weapon);
         skeleton.transform.parent = player.transform;
 
 		//load all objects
         Bounds playerBounds = new Bounds(player.transform.position, Vector3.zero);
  
-        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.BODY, body, skeleton, poses));
-        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.ARMS, arms, skeleton, poses));
-        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.FOOT, foot, skeleton, poses));
-        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.FACE, face, skeleton, poses));
-        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.HAIR, hair, skeleton, poses));
-        LoadObject(gender, BodyPartType.CAP, cap, skeleton, poses);
-        LoadObject(gender, BodyPartType.BACK, back, skeleton, poses);
+        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.BODY, body));
+        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.ARMS, arms));
+        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.FOOT, foot));
+        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.FACE, face));
+        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.HAIR, hair));
+        LoadObject(gender, BodyPartType.CAP, cap);
+        LoadObject(gender, BodyPartType.BACK, back);
 
         //add PlayerController script
         PlayerController controller = player.AddComponent<PlayerController>();
