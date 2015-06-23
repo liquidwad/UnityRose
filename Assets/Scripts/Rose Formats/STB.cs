@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using UnityEngine;
 using UnityRose.File;
 
 namespace UnityRose.Formats
@@ -71,14 +72,31 @@ namespace UnityRose.Formats
             Load(filePath);
         }
 
+        private TextAsset asset;
+        private FileHandler fh;
+
+        /// <summary>
+        /// Loads the specified file.  If resource is found, it is loaded as a Text asset.  Otherwise, the function
+        /// assumes this is an editor load and reads from disk
+        /// </summary>
+        /// <param name="filePath">The file path of the Text Asset resource (without extension) or file (with extension) to load</param>
+        public void Load(string filePath)
+        {
+            asset = Resources.Load(filePath) as TextAsset;
+            if (asset != null)
+                fh = new FileHandler(asset, Encoding.GetEncoding("EUC-KR"));
+            else
+                fh = new FileHandler(filePath, FileHandler.FileOpenMode.Reading, Encoding.GetEncoding("EUC-KR"));
+
+            Load();
+        }
+
         /// <summary>
         /// Loads the specified file.
         /// </summary>
-        /// <param name="filePath">The file path.</param>
-        public void Load(string filePath)
+        private void Load()
         {
-            FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Reading, Encoding.GetEncoding("EUC-KR"));
-
+            
             fh.Read<BaseString>(4);
 
             int offset = fh.Read<int>();
@@ -113,6 +131,9 @@ namespace UnityRose.Formats
             }
 
             fh.Close();
+
+            if (asset != null)
+                Resources.UnloadAsset(asset);
         }
 
         /// <summary>

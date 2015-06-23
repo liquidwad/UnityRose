@@ -19,54 +19,62 @@ public class RosePlayer
 
     public RosePlayer(Gender gender)
 	{
-        //RoseData.LoadSTB();
 		this.gender = gender;
-		LoadPlayer(GenderType.MALE, "New", 97,97,97,2,3,231,97);
-		//LoadFemale(50,50,50,2,3,231,50);
+		LoadPlayer(GenderType.MALE, WeaponType.EMPTY, "New", 97,97,97,2,3,231,97);
 	}
 
-    private Bounds LoadPart(string zmsPath, string texPath, ZMD skeleton, Transform parent, bool backItem = false)
+	private Bounds LoadPart(GameObject skeleton, BindPoses poses, BodyPartType bodyPart, string zmsPath, string texPath)
     {
-        // load ZMS
         zmsPath = Utils.FixPath(zmsPath);
-        texPath = Utils.FixPath(texPath);
+		texPath = Utils.FixPath (texPath).Replace ("dds", "png");
 
-        ZMS zms = new ZMS(zmsPath);
+        // Cached load of ZMS and texture
+        ResourceManager rm = ResourceManager.Instance;
+        ZMS zms = (ZMS)rm.cachedLoad(zmsPath);
+        Texture2D tex = (Texture2D)rm.cachedLoad(texPath);
 
         // Create material
-
         string shader = "VertexLit";
-        if (backItem)
+        if (bodyPart == BodyPartType.BACK)
             shader = "Transparent/Cutout/VertexLit";
 
         Material mat = new Material(Shader.Find(shader));
 
-        //mat = (Material)Utils.SaveReloadAsset(mat, texPath, ".mat");
-
-        Texture2D tex = Utils.loadTex(ref texPath); // Utils.CopyReloadTexAsset(texPath);
         mat.SetTexture("_MainTex", tex);
         mat.SetColor("_Emission", new Color(0.15f, 0.15f, 0.15f));
 
-
-        //AssetDatabase.SaveAssets();
-
         GameObject modelObject = new GameObject();
-        modelObject.transform.parent = parent;
+
+        switch ( bodyPart )
+        {
+            case BodyPartType.FACE:
+            case BodyPartType.HAIR:
+				modelObject.transform.parent = Utils.findChild(skeleton, "b1_head");
+                break;
+            case BodyPartType.CAP:
+				modelObject.transform.parent = Utils.findChild(skeleton, "p_06");
+                break;
+            case BodyPartType.BACK:
+				modelObject.transform.parent = Utils.findChild(skeleton, "p_03");
+                break;
+            default:
+				modelObject.transform.parent = skeleton.transform.parent.transform;
+                break;
+        }
+        
         modelObject.transform.localPosition = Vector3.zero;
         modelObject.transform.localRotation = Quaternion.identity;
         modelObject.transform.localScale = Vector3.one;
-        modelObject.name = new DirectoryInfo(zmsPath).Name;
-
+		modelObject.name = bodyPart.ToString ();
         Mesh mesh = zms.getMesh();
-        //mesh = (Mesh)Utils.SaveReloadAsset(mesh, zmsPath);
-
         if (zms.support.bones)
         {
             SkinnedMeshRenderer renderer = modelObject.AddComponent<SkinnedMeshRenderer>();
-            mesh.bindposes = skeleton.bindposes;
+
+			mesh.bindposes = poses.bindPoses;
             renderer.sharedMesh = mesh;
             renderer.material = mat;
-            renderer.bones = skeleton.boneTransforms;
+			renderer.bones = poses.boneTransforms;
         }
         else
         {
@@ -79,61 +87,49 @@ public class RosePlayer
 
     }
 
-	public Bounds LoadObject(ZSC zsc, int id, ZMD skeleton,Transform parent, bool backItem=false )
-	{
-        Bounds objectBounds = new Bounds(parent.position, Vector3.zero);
-		for (int i = 0; i < zsc.Objects[id].Models.Count; i++)
-		{
-			int ModelID = zsc.Objects[id].Models[i].ModelID;
-			int TextureID = zsc.Objects[id].Models[i].TextureID;
-			
-			Bounds partBounds = LoadPart( zsc.Models[ModelID], zsc.Textures[TextureID].Path, skeleton, parent, backItem);
-            objectBounds.Encapsulate(partBounds);
-		}
-        return objectBounds;
-	}
-	
-    public GameObject LoadDefault(GenderType gender)
+    public Bounds LoadObject(GenderType gender, BodyPartType bodyPart, int id, GameObject skeleton, BindPoses poses)
     {
-        return LoadPlayer(gender, "New", 0, 0, 0, 0, 0, 0, 0);
+        Bounds objectBounds = new Bounds(skeleton.transform.position, Vector3.zero);
+        ResourceManager rm = ResourceManager.Instance;
+        ZSC zsc = rm.getZSC(gender, bodyPart);
+        for (int i = 0; i < zsc.Objects[id].Models.Count; i++)
+        {
+            int ModelID = zsc.Objects[id].Models[i].ModelID;
+            int TextureID = zsc.Objects[id].Models[i].TextureID;
+
+            Bounds partBounds = LoadPart(skeleton, poses, bodyPart, zsc.Models[ModelID], zsc.Textures[TextureID].Path);
+            objectBounds.Encapsulate(partBounds);
+        }
+        return objectBounds;
     }
 
-	public GameObject LoadPlayer(GenderType gender, string name, int chest, int arms, int foot, int hair, int face, int back, int cap)
+    public GameObject LoadDefault(GenderType gender)
+    {
+        return LoadPlayer(gender, WeaponType.EMPTY, "New", 0, 0, 0, 0, 0, 0, 0);
+    }
+
+	public GameObject LoadPlayer(GenderType gender, WeaponType weapon, string name, int body, int arms, int foot, int hair, int face, int back, int cap)
 	{
         // Get the correct resources
         bool male = (gender == GenderType.MALE);
 
         ResourceManager rm = ResourceManager.Instance;
 
-        ZSC body_zsc = male ? rm.zsc_body_male : rm.zsc_body_female;
-        ZSC arms_zsc = male ? rm.zsc_arms_male : rm.zsc_arms_female;
-        ZSC foot_zsc = male ? rm.zsc_foot_male : rm.zsc_foot_female;
-        ZSC face_zsc = male ? rm.zsc_face_male : rm.zsc_face_female;
-        ZSC cap_zsc = male ? rm.zsc_cap_male : rm.zsc_cap_female;
-        ZSC hair_zsc = male ? rm.zsc_hair_male : rm.zsc_hair_female;
-        ZSC back_zsc = rm.zsc_back;
+        GameObject player = new GameObject(name);
+		GameObject skeleton = rm.loadSkeleton(gender, weapon);
+		BindPoses poses = rm.loadBindPoses (skeleton, gender, weapon);
+        skeleton.transform.parent = player.transform;
 
-        ZMD skeleton = male ? rm.zmd_male : rm.zmd_female;
-
-        GameObject player = new GameObject(name);  // TODO: look into object pooling
-       
-		skeleton.buildSkeleton(player, false);
-        
 		//load all objects
         Bounds playerBounds = new Bounds(player.transform.position, Vector3.zero);
  
-        playerBounds.Encapsulate(LoadObject(body_zsc, chest, skeleton, player.transform));
-        playerBounds.Encapsulate(LoadObject(arms_zsc, arms, skeleton, player.transform));
-		playerBounds.Encapsulate(LoadObject (foot_zsc, foot, skeleton, player.transform));
-		playerBounds.Encapsulate(LoadObject(face_zsc, face, skeleton, skeleton.findBone("b1_head").boneObject.transform));
-		playerBounds.Encapsulate(LoadObject(hair_zsc, hair, skeleton, skeleton.findBone("b1_head").boneObject.transform));
-		LoadObject(cap_zsc, cap, skeleton, skeleton.findDummy("p_06").boneObject.transform);
-		LoadObject(back_zsc, back , skeleton, skeleton.findDummy("p_03").boneObject.transform, true);
-
-        player.AddComponent<Animation>();
-
-        //load animations
-		ResourceManager.Instance.LoadAnimations(player, skeleton, WeaponType.EMPTY, GenderType.MALE);
+        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.BODY, body, skeleton, poses));
+        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.ARMS, arms, skeleton, poses));
+        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.FOOT, foot, skeleton, poses));
+        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.FACE, face, skeleton, poses));
+        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.HAIR, hair, skeleton, poses));
+        LoadObject(gender, BodyPartType.CAP, cap, skeleton, poses);
+        LoadObject(gender, BodyPartType.BACK, back, skeleton, poses);
 
         //add PlayerController script
         PlayerController controller = player.AddComponent<PlayerController>();
@@ -141,7 +137,7 @@ public class RosePlayer
         controller.playerInfo.tMovS = 10.0f;
 
         //add Character controller
-        Vector3 center = player.transform.FindChild("b1_pelvis").localPosition; //playerBounds.center;
+        Vector3 center = skeleton.transform.FindChild("b1_pelvis").localPosition;
         center.y = 0.95f;
         float height = 1.7f;
         float radius = Math.Max(playerBounds.extents.x, playerBounds.extents.y) / 2.0f;
@@ -158,23 +154,6 @@ public class RosePlayer
         c.direction = 1; // direction y
 
         player.transform.position = new Vector3(5200.0f, 0.0f, 5653.0f);
-
-        /*
-        //Create the camera if it isn't already there
-        GameObject cameraObject = GameObject.Find("Main Camera");
-        if (cameraObject == null)
-        {
-            cameraObject = new GameObject("Main Camera");
-            cameraObject.transform.position = player.transform.position + new Vector3(-6.0f, 2.0f, -6.0f);
-            cameraObject.transform.LookAt(player.transform);
-            CameraController cameraController = cameraObject.AddComponent<CameraController>();
-            cameraController.target = player;
-
-            Camera camera = cameraObject.AddComponent<Camera>();
-            camera.farClipPlane = 300.0f;
-            camera.tag = "MainCamera";
-        }
-        */
 
         return player;
 

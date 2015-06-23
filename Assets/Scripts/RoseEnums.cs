@@ -86,4 +86,16 @@ namespace UnityRose
         MALE = 1,
         FEMALE,
     };
+
+    public enum BodyPartType
+    {
+        ARMS = 1,
+        FOOT,
+        FACE,
+        BODY,
+        BACK,
+        HAIR,
+        CAP,
+        FACEITEM,
+    }
 }

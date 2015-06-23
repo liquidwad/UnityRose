@@ -301,7 +301,9 @@ public class RoseTerrainWindow : EditorWindow {
 		
 		if(GUILayout.Button("Import"))
 		{
-			RosePlayer player = new RosePlayer(RosePlayer.Gender.male);  
+			//RosePlayer player = new RosePlayer(RosePlayer.Gender.male);  
+			//UnityRose.ResourceManager.Instance.GenerateAnimationAsset(UnityRose.GenderType.MALE, UnityRose.WeaponType.EMPTY);
+			UnityRose.ResourceManager.Instance.GenerateAnimationAssets();
 		}
 		
 		EditorGUILayout.EndToggleGroup ();

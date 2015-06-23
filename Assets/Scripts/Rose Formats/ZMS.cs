@@ -117,6 +117,7 @@ namespace UnityRose.Formats
 		
 		private bool RecalcNormals;
 		private bool isTree;
+
 		
 		#endregion
 		
@@ -125,8 +126,9 @@ namespace UnityRose.Formats
 		/// </summary>
 		public ZMS()
 		{
-			
-		}
+            this.lmScale = new Vector2(1.0f, 1.0f);
+            this.lmOffset = new Vector2(0.0f, 0.0f);
+        }
 		
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ZMS"/> class.
@@ -194,20 +196,33 @@ namespace UnityRose.Formats
 			mesh.Optimize();
 			return mesh;
 		}
-		
-		/// <summary>
-		/// Loads the specified file.
-		/// </summary>
-		/// <param name="filePath">The file path.</param>
-		public void Load(string filePath)
+
+        private TextAsset asset;
+        private FileHandler fh;
+
+        /// <summary>
+        /// Loads the specified file.  If resource is found, it is loaded as a Text asset.  Otherwise, the function
+        /// assumes this is an editor load and reads from disk
+        /// </summary>
+        /// <param name="filePath">The file path of the Text Asset resource (without extension) or file (with extension) to load</param>
+        public void Load(string filePath)
+        {
+            asset = Resources.Load(filePath) as TextAsset;
+            if (asset != null)
+                fh = new FileHandler(asset, null);
+            else
+                fh = new FileHandler(filePath, FileHandler.FileOpenMode.Reading, null);
+
+            Load();
+
+        }
+
+        /// <summary>
+        /// Loads the specified file.
+        /// </summary>
+        private void Load()
 		{
-            // first, check if the file exists in the unity dir, and copy it if it doesn't
-            // Then use the path of the GameData folder
-            //sfilePath = Utils.CopyToGameData(filePath);
-
 			support = new Support();
-			FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Reading, null);
-
 			fh.Seek(0, SeekOrigin.Begin); // bounding box
 			string formatCode = fh.Read<ZString>();
 			int version = int.Parse(formatCode.Substring(6));
@@ -415,6 +430,11 @@ namespace UnityRose.Formats
 			}
 			
 			fh.Close();
-		}
-	}
+
+            // Release the unity resource since its contents are now in memory
+            if( asset != null )
+                Resources.UnloadAsset(asset);
+        }
+
+    }
 }

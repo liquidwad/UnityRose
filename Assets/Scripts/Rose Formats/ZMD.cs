@@ -14,7 +14,7 @@ namespace UnityRose.Formats
 	/// <summary>
 	/// ZMD class.
 	/// </summary>
-	public class ZMD
+	public class ZMD 
 	{
 		public Transform[] boneTransforms {get; set;}
 		public Matrix4x4[] bindposes {get; set;}
@@ -23,7 +23,6 @@ namespace UnityRose.Formats
 		public List<BoneNode> dummies {get; set;}
 		public int nBones { get; set; }
 		public int nDummies { get; set; }
-		
 		private const float zz_scale = 0.01f;
 		
 		/// <summary>
@@ -120,15 +119,32 @@ namespace UnityRose.Formats
 			
 			
 		}
-		
-		
-		/// <summary>
-		/// Loads the specified file.
-		/// </summary>
-		/// <param name="filePath">The file path.</param>
-		public void Load(string filePath)
-		{
-			FileHandler fh = new FileHandler(filePath, FileHandler.FileOpenMode.Reading, null);
+
+
+        private TextAsset asset;
+        private FileHandler fh;
+
+        /// <summary>
+        /// Loads the specified file.  If resource is found, it is loaded as a Text asset.  Otherwise, the function
+        /// assumes this is an editor load and reads from disk
+        /// </summary>
+        /// <param name="filePath">The file path of the Text Asset resource (without extension) or file (with extension) to load</param>
+        public void Load(string filePath)
+        {
+            asset = Resources.Load(filePath) as TextAsset;
+            if (asset != null)
+                fh = new FileHandler(asset, null);
+            else
+                fh = new FileHandler(filePath, FileHandler.FileOpenMode.Reading, null);
+
+            Load();
+        }
+
+        /// <summary>
+        /// Loads the specified file.
+        /// </summary>
+        private void Load()
+        {
 			// header
 			int version = 2;
 			string magic_number = fh.Read<ZString>();
@@ -220,8 +236,10 @@ namespace UnityRose.Formats
 			nDummies = dummies.Count;
 			
 			fh.Close();
-		}
-		
+
+            if( asset != null )
+                Resources.UnloadAsset(asset);
+        }
 		
 		public BoneNode findDummy(string name)
 		{

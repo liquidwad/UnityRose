@@ -45,7 +45,16 @@ public class Utils
 	{
 		return new Vector3(v.x, v.z, v.y);
 	}
-	
+
+	public static Transform findChild(GameObject go, string name)
+	{
+		Transform[] children = go.GetComponentsInChildren<Transform> ();
+		foreach (Transform child in children)
+			if (child.name == name)
+				return child;
+		return null;
+	}
+
 	public static void calculateMeshTangents(Mesh mesh, bool uv2 = false)
 	{
 		//speed up math by copying the mesh arrays
@@ -155,13 +164,7 @@ public class Utils
     // fixes the path based on platform and returns fixed string
     public static string FixPath(string file)
     {
-        if (IsMac() || true)
-            return  file.Contains("\\") ? file.ToLower().Replace("\\", "/") : file.ToLower();
-        else
-        {
-            return file.Replace("/", "\\");
-        }
-           // return file.Contains("/") ? file.ToLower().Replace("/", "\\") : file.ToLower();
+        return  file.Contains("\\") ? file.ToLower().Replace("\\", "/") : file.ToLower();
     }
 	
 	

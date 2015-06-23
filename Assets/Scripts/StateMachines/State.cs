@@ -98,7 +98,7 @@ public class State
 		this.gameObject = gameObject;
 		this.wrapMode = wrapMode;
 		connections = new List<StateConnection>();
-		animation = gameObject.GetComponent<Animation>(); // TODO: add exception if no animation	
+		animation = gameObject.GetComponentInChildren<Animation>(); // TODO: add exception if no animation	
 	}
 	
 	public virtual void Exit(bool crossFade = true)
@@ -111,7 +111,7 @@ public class State
 	
 	public virtual void Entry(bool crossFade = true)
 	{
-		animation = gameObject.GetComponent<Animation>();
+		animation = gameObject.GetComponentInChildren<Animation>();
 		if(animation)
 		{
 			animation.wrapMode = wrapMode;

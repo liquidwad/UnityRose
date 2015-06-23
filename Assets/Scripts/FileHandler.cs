@@ -358,6 +358,12 @@ namespace UnityRose.File
         private FileStream fileStream { get; set; }
 
         /// <summary>
+        /// Gets or sets the memory stream.
+        /// </summary>
+        /// <value>The memory stream.</value>
+        private MemoryStream memoryStream { get; set; }
+
+        /// <summary>
         /// Gets or sets the binary reader.
         /// </summary>
         /// <value>The binary reader.</value>
@@ -407,13 +413,28 @@ namespace UnityRose.File
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="FileHandler"/> class.
+        /// </summary>
+        /// <param name="asset">A text asset loaded from Resources</param>
+        /// <param name="encodeType">Type of encoding.</param>
+        public FileHandler(TextAsset asset, Encoding encodeType)
+        {
+            encoding = encodeType;
+            memoryStream = new MemoryStream(asset.bytes);
+            binaryReader = new BinaryReader(memoryStream, encodeType ?? Encoding.Default);
+        }
+
+        /// <summary>
         /// Seeks the specified offset.
         /// </summary>
         /// <param name="offset">The offset.</param>
         /// <param name="origin">The origin.</param>
         public void Seek(int offset, SeekOrigin origin)
         {
-            fileStream.Seek(offset, origin);
+            if (memoryStream != null)
+                memoryStream.Seek(offset, origin);
+            else
+                fileStream.Seek(offset, origin);
         }
 
         /// <summary>
@@ -422,7 +443,10 @@ namespace UnityRose.File
         /// <returns>Offset</returns>
         public int Tell()
         {
-            return (int)fileStream.Position;
+            if (memoryStream != null)
+                return (int)memoryStream.Position;
+            else
+                return (int)fileStream.Position;
         }
 
         #region Reading
@@ -670,7 +694,10 @@ namespace UnityRose.File
         /// </summary>
         public void Close()
         {
-            fileStream.Close();
+			if( fileStream != null )
+            	fileStream.Close();
+			if (memoryStream != null)
+				memoryStream.Close();
         }
     }
 }

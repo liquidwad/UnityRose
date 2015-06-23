@@ -29,6 +29,7 @@ namespace UnityRose.Formats
             {
                 clip = new ZMO(zmoPath).buildAnimationClip(skeleton);
                 clip.name = name;
+                clip.legacy = true;
                 clip = (AnimationClip)Utils.SaveReloadAsset(clip, unityPath, ".anim");
             }
 
