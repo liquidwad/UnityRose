@@ -36,16 +36,20 @@ namespace UnityRose
 		public int weaponID { get; set; }
 		public int shieldID { get; set; }
 		public int backID { get; set; }
+		public int maskID { get; set; }
+		public int capID { get; set; }
 
 		public Equip(){	
-			faceID = 0;
+			faceID = 1;
 			hairID = 0;
 			chestID = 0;
 			footID = 0;
 			handID = 0;
-			weaponID = 0;
+			weaponID = 1;
 			shieldID = 0;
 			backID = 0;
+			maskID = 0;
+			capID = 0;
 		}
 	}
 

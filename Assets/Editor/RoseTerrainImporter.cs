@@ -302,12 +302,13 @@ public class RoseTerrainWindow : EditorWindow {
 		bodyPart = EditorGUILayout.IntField ("Body Part: ", bodyPart);
 
 		if(GUILayout.Button ("Create"))
-			player = new RosePlayer ();
+			player = new RosePlayer (); // Note: Player reference is lost after hitting play.  Must create new after that.
 
 		if(GUILayout.Button("Equip"))
 		{
 			if( player != null )
 				player.equip( (UnityRose.BodyPartType)bodyPart, objID );
+
 			//RosePlayer player = new RosePlayer(UnityRose.GenderType.MALE, UnityRose.WeaponType.THSWORD);
 			//UnityRose.ResourceManager.Instance.GenerateAnimationAsset(UnityRose.GenderType.MALE, UnityRose.WeaponType.EMPTY);
 			//UnityRose.ResourceManager.Instance.GenerateAnimationAssets();

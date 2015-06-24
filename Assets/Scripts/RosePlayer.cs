@@ -17,9 +17,10 @@ public class RosePlayer
     public GameObject player;
     public GenderType gender; 
     public WeaponType weapon; 
-
+	public CharModel charModel;
     private BindPoses bindPoses;
     private GameObject skeleton;
+
 
     public RosePlayer()
 	{
@@ -30,6 +31,24 @@ public class RosePlayer
 	{
 		this.gender = gender;
 		LoadPlayer (gender, weapon, "New", 97, 97, 97, 2, 3, 231, 97);
+	}
+
+	public RosePlayer(CharModel charModel)
+	{
+		this.gender = charModel.gender;
+		this.charModel = charModel;
+
+		LoadPlayer (charModel.gender, 
+		            (WeaponType)charModel.equip.weaponID, 
+		            charModel.name, 
+		            charModel.equip.chestID, 
+		            charModel.equip.handID, 
+		            charModel.equip.footID, 
+		            charModel.equip.hairID, 
+		            charModel.equip.faceID, 
+		            charModel.equip.backID, 
+		            charModel.equip.capID);
+
 	}
 
     public void equip(BodyPartType bodyPart, int id)
@@ -159,8 +178,8 @@ public class RosePlayer
 
         //add PlayerController script
         PlayerController controller = player.AddComponent<PlayerController>();
-        controller.isMainPlayer = true;
-        controller.playerInfo.tMovS = 10.0f;
+		controller.rosePlayer = this;
+		controller.playerInfo.tMovS = charModel.stats.movSpd;
 
         //add Character controller
         Vector3 center = skeleton.transform.FindChild("b1_pelvis").localPosition;

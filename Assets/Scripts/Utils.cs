@@ -213,19 +213,21 @@ public class Utils
 		}
 	}
 
+#if !UNITY_EDITOR
 	public static Texture2D loadTex ( ref string rosePath )
 	{
 		// check if dds exists, and load it if it does
 		string ddsPath = FixPath(rosePath);
 		//ddsPath = GetUnityPath(ddsPath);
-		string pngPath = ddsPath.Replace(".dds",".png");
+		string pngPath = ddsPath.Replace(".dds","");
 		rosePath = pngPath;
 		return Resources.Load<Texture2D>(pngPath);
 	}
+#endif
 
 #if UNITY_EDITOR
 	
-	/*
+
 	public static Texture2D loadTex ( ref string rosePath )
 	{
 		// check if dds exists, and load it if it does
@@ -245,7 +247,7 @@ public class Utils
 		}
 		return null;
 	}
-	 */
+
 	
 	// Converts a rose path to a unity path and creates the directory structure of non-existent
 	public static DirectoryInfo r2uDir(string rosePath, string extension = ".asset")

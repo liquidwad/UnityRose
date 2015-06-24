@@ -28,7 +28,8 @@ namespace UnityRose
 		private PlayerState playerMachine;
         private bool isWalking = false;
         private States state = States.STANDING;
-        
+		public RosePlayer rosePlayer;
+
 		public Queue<Action> funcQueue;
 		
 		void Awake()
@@ -77,7 +78,11 @@ namespace UnityRose
 		{
 			NetworkManager.Send( new DestroyChar( playerInfo.name ));
 		}
-		
+
+		public void OnChangeArmor(BodyPartType bodyPart, int id)
+		{
+			rosePlayer.equip (bodyPart, id);
+		}
 		
 		
         // Update is called once per frame
