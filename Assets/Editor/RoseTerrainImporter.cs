@@ -13,7 +13,9 @@ using UnityRose.Game;
 public class RoseTerrainWindow : EditorWindow {
 	string m_inputDir = "";
 	string m_szcPath = "";
+	int bodyPart;
 	int objID;
+	RosePlayer player;
 	
 	// Add menu named "My Window" to the Window menu
 	[MenuItem ("GameObject/Create Other/Rose Object")]
@@ -297,13 +299,18 @@ public class RoseTerrainWindow : EditorWindow {
 		EditorGUILayout.BeginToggleGroup("Animated Object", true);
 		m_szcPath = EditorGUILayout.TextField ("ZSC: ", m_szcPath);
 		objID = EditorGUILayout.IntField ("ID: ", objID);
-		
-		
-		if(GUILayout.Button("Import"))
+		bodyPart = EditorGUILayout.IntField ("Body Part: ", bodyPart);
+
+		if(GUILayout.Button ("Create"))
+			player = new RosePlayer ();
+
+		if(GUILayout.Button("Equip"))
 		{
-			//RosePlayer player = new RosePlayer(RosePlayer.Gender.male);  
+			if( player != null )
+				player.equip( (UnityRose.BodyPartType)bodyPart, objID );
+			//RosePlayer player = new RosePlayer(UnityRose.GenderType.MALE, UnityRose.WeaponType.THSWORD);
 			//UnityRose.ResourceManager.Instance.GenerateAnimationAsset(UnityRose.GenderType.MALE, UnityRose.WeaponType.EMPTY);
-			UnityRose.ResourceManager.Instance.GenerateAnimationAssets();
+			//UnityRose.ResourceManager.Instance.GenerateAnimationAssets();
 		}
 		
 		EditorGUILayout.EndToggleGroup ();

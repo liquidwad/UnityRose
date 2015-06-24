@@ -21,11 +21,49 @@ public class RosePlayer
     private BindPoses bindPoses;
     private GameObject skeleton;
 
-    public RosePlayer(GenderType gender)
+    public RosePlayer()
+	{
+		this.gender = GenderType.MALE;
+		LoadDefault (gender);
+	}
+	public RosePlayer(GenderType gender, WeaponType weapon)
 	{
 		this.gender = gender;
-		LoadPlayer(GenderType.MALE, WeaponType.EMPTY, "New", 97,97,97,2,3,231,97);
+		LoadPlayer (gender, weapon, "New", 97, 97, 97, 2, 3, 231, 97);
 	}
+
+    public void equip(BodyPartType bodyPart, int id)
+    {
+		List<Transform> partTransforms = Utils.findChildren (player, bodyPart.ToString());
+		foreach (Transform partTransform in partTransforms) 
+		{
+#if UNITY_EDITOR
+			GameObject.DestroyImmediate (partTransform.gameObject);
+#else
+			GameObject.Destroy (partTransform.gameObject);
+#endif
+		}
+
+		LoadObject(gender, bodyPart, id);
+
+    }
+
+	public Bounds LoadObject(GenderType gender, BodyPartType bodyPart, int id)
+	{
+		Bounds objectBounds = new Bounds(skeleton.transform.position, Vector3.zero);
+		ResourceManager rm = ResourceManager.Instance;
+		ZSC zsc = rm.getZSC(gender, bodyPart);
+		for (int i = 0; i < zsc.Objects[id].Models.Count; i++)
+		{
+			int ModelID = zsc.Objects[id].Models[i].ModelID;
+			int TextureID = zsc.Objects[id].Models[i].TextureID;
+			
+			Bounds partBounds = LoadPart(bodyPart, zsc.Models[ModelID], zsc.Textures[TextureID].Path);
+			objectBounds.Encapsulate(partBounds);
+		}
+		return objectBounds;
+	}
+
 
 	private Bounds LoadPart(BodyPartType bodyPart, string zmsPath, string texPath)
     {
@@ -91,25 +129,9 @@ public class RosePlayer
 
     }
 
-    public Bounds LoadObject(GenderType gender, BodyPartType bodyPart, int id)
-    {
-        Bounds objectBounds = new Bounds(skeleton.transform.position, Vector3.zero);
-        ResourceManager rm = ResourceManager.Instance;
-        ZSC zsc = rm.getZSC(gender, bodyPart);
-        for (int i = 0; i < zsc.Objects[id].Models.Count; i++)
-        {
-            int ModelID = zsc.Objects[id].Models[i].ModelID;
-            int TextureID = zsc.Objects[id].Models[i].TextureID;
-
-            Bounds partBounds = LoadPart(bodyPart, zsc.Models[ModelID], zsc.Textures[TextureID].Path);
-            objectBounds.Encapsulate(partBounds);
-        }
-        return objectBounds;
-    }
-
     public GameObject LoadDefault(GenderType gender)
     {
-        return LoadPlayer(gender, WeaponType.EMPTY, "New", 0, 0, 0, 0, 0, 0, 0);
+        return LoadPlayer(gender, WeaponType.EMPTY, "New", 0, 0, 0, 0, 1, 0, 0);
     }
 
 	public GameObject LoadPlayer(GenderType gender, WeaponType weapon, string name, int body, int arms, int foot, int hair, int face, int back, int cap)

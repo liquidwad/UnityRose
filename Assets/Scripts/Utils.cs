@@ -55,6 +55,17 @@ public class Utils
 		return null;
 	}
 
+	public static List<Transform> findChildren(GameObject go, string name)
+	{
+		Transform[] children = go.GetComponentsInChildren<Transform> ();
+		List<Transform> result = new List<Transform> ();
+		foreach (Transform child in children)
+			if (child.name == name)
+				result.Add (child);
+		return result;
+	}
+
+
 	public static void calculateMeshTangents(Mesh mesh, bool uv2 = false)
 	{
 		//speed up math by copying the mesh arrays
