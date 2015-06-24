@@ -27,8 +27,7 @@ Unity version of Rose Online
     <li>Run <code>for /R %x in (*.zsc) do ren "%x" *.zsc.bytes</code></li>
     <li>Run <code>for /R %x in (*.stb) do ren "%x" *.stb.bytes</code></li>
     <li>Run <code>for /R %x in (*.stl) do ren "%x" *.stl.bytes</code></li>
-    <li>Generate animation prefabs by running GameObject->Create Other->RoseObject and pressing the second button</code></li>
+    <li>Generate animation prefabs by calling <code>UnityRose.ResourceManager.Instance.GenerateAnimationAssets();</code></li>
     <li>Check Resources folder to make sure Animation resources were generated</code></li>
-    <li>Test by changing the function of the second button in RoseTerrainImporter.cs (uncomment roseplayer and comment Generate...)</code></li>
   </ul>
 </p>
