@@ -202,14 +202,14 @@ public class RosePlayer
 			int ModelID = zsc.Objects[id].Models[i].ModelID;
 			int TextureID = zsc.Objects[id].Models[i].TextureID;
 			
-			Bounds partBounds = LoadPart(bodyPart, zsc.Models[ModelID], zsc.Textures[TextureID].Path);
+			Bounds partBounds = LoadPart(bodyPart, zsc.Objects[id].Models[i].DummyIndex, zsc.Models[ModelID], zsc.Textures[TextureID].Path);
 			objectBounds.Encapsulate(partBounds);
 		}
 		return objectBounds;
 	}
 
 
-	private Bounds LoadPart(BodyPartType bodyPart, string zmsPath, string texPath)
+	private Bounds LoadPart(BodyPartType bodyPart, ZSC.DummyType dummy, string zmsPath, string texPath)
     {
         zmsPath = Utils.FixPath(zmsPath);
 		texPath = Utils.FixPath (texPath).Replace ("dds", "png");
@@ -244,7 +244,10 @@ public class RosePlayer
 				modelObject.transform.parent = Utils.findChild(skeleton, "p_03");
                 break;
             case BodyPartType.WEAPON:
-                modelObject.transform.parent = Utils.findChild(skeleton, "p_00");
+				if(charModel.weapon == WeaponType.DSW || charModel.weapon == WeaponType.KATAR )
+                	modelObject.transform.parent = Utils.findChild(skeleton, dummy == ZSC.DummyType.RightHand? "p_00" : "p_01");
+				else
+					modelObject.transform.parent = Utils.findChild(skeleton, "p_00");
                 break;
             case BodyPartType.SUBWEAPON:
                 modelObject.transform.parent = Utils.findChild(skeleton, "p_02");
