@@ -74,12 +74,18 @@ namespace UnityRose
 
         }
 
-		void OnDisable()
+		public void OnSkeletonChange()
+		{
+			playerMachine = new PlayerState(playerMachine.stateName, "Player State Machine", this.gameObject);
+			playerMachine.Entry();
+		}
+
+		public void OnDisable()
 		{
 			NetworkManager.Send( new DestroyChar( playerInfo.name ));
 		}
 
-		public void OnChangeArmor(BodyPartType bodyPart, int id)
+		public void OnChangeEquip(BodyPartType bodyPart, int id)
 		{
 			rosePlayer.equip (bodyPart, id);
 		}

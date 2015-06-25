@@ -11,6 +11,7 @@ using System.Resources;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityRose;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -65,6 +66,36 @@ public class Utils
 		return result;
 	}
 
+	public static void Destroy( GameObject go )
+	{
+		#if UNITY_EDITOR
+		GameObject.DestroyImmediate (go);
+		#else
+		GameObject.Destroy (go);
+		#endif
+	}
+
+	public static void Destroy( Transform tr )
+	{
+		#if UNITY_EDITOR
+		GameObject.DestroyImmediate (tr);
+		#else
+		GameObject.Destroy (tr);
+		#endif
+	}
+
+
+    public static bool isOneHanded( WeaponType weapon)
+    {
+        return weapon == WeaponType.OHAXE ||
+                weapon == WeaponType.OHMACE ||
+                weapon == WeaponType.OHSWORD ||
+                weapon == WeaponType.OHTOOL ||
+                weapon == WeaponType.WAND ||
+                weapon == WeaponType.XBOX ||
+                weapon == WeaponType.EMPTY;
+
+    }
 
 	public static void calculateMeshTangents(Mesh mesh, bool uv2 = false)
 	{

@@ -16,7 +16,8 @@ public class RoseTerrainWindow : EditorWindow {
 	int bodyPart;
 	int objID;
 	RosePlayer player;
-	
+	Transform transform;
+
 	// Add menu named "My Window" to the Window menu
 	[MenuItem ("GameObject/Create Other/Rose Object")]
 	static void Init () {
@@ -300,9 +301,13 @@ public class RoseTerrainWindow : EditorWindow {
 		m_szcPath = EditorGUILayout.TextField ("ZSC: ", m_szcPath);
 		objID = EditorGUILayout.IntField ("ID: ", objID);
 		bodyPart = EditorGUILayout.IntField ("Body Part: ", bodyPart);
-
-		if(GUILayout.Button ("Create"))
-			player = new RosePlayer (); // Note: Player reference is lost after hitting play.  Must create new after that.
+		transform = EditorGUILayout.ObjectField ("Transform: ", transform, typeof(Transform), true) as Transform;
+		if (GUILayout.Button ("Create")) {
+			if(transform != null)
+				player = new RosePlayer (transform.position); // Note: Player reference is lost after hitting play.  Must create new after that.
+			else
+				player = new RosePlayer();
+		}
 
 		if(GUILayout.Button("Equip"))
 		{

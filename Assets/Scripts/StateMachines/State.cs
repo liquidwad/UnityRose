@@ -373,7 +373,8 @@ public class PlayerState : State
 		//states["AttackMachine"].connections.Add ( new StateConnection(states["walk"], "walking"));
 		
 	}
-	
+
+
 	public override void Entry(bool crossFade = false)
 	{	
 		currentState = states["STANDING"];

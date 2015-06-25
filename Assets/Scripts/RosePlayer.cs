@@ -15,32 +15,79 @@ using UnityEditor;
 public class RosePlayer
 {
     public GameObject player;
-    public GenderType gender; 
-    public WeaponType weapon; 
 	public CharModel charModel;
     private BindPoses bindPoses;
     private GameObject skeleton;
-
+	private ResourceManager rm;
+	private Bounds playerBounds;
 
     public RosePlayer()
 	{
-		this.gender = GenderType.MALE;
-		LoadDefault (gender);
+		charModel = new CharModel ();
+		LoadPlayer (charModel);
 	}
-	public RosePlayer(GenderType gender, WeaponType weapon)
+
+	public RosePlayer(GenderType gender)
 	{
-		this.gender = gender;
-		LoadPlayer (gender, weapon, "New", 97, 97, 97, 2, 3, 231, 97);
+		charModel = new CharModel ();
+		charModel.gender = gender;
+		LoadPlayer (charModel);
 	}
 
 	public RosePlayer(CharModel charModel)
 	{
-		this.gender = charModel.gender;
-		this.charModel = charModel;
+        this.charModel = charModel;
+		LoadPlayer (charModel);
 
-		LoadPlayer (charModel.gender, 
-		            (WeaponType)charModel.equip.weaponID, 
-		            charModel.name, 
+	}
+	public RosePlayer( Vector3 position )
+	{
+		charModel = new CharModel ();
+		charModel.pos = position;
+		LoadPlayer (charModel);
+	}
+	private void LoadPlayer(CharModel charModel)
+	{
+		// Get the correct resources
+		bool male = (charModel.gender == GenderType.MALE);
+		
+		rm = ResourceManager.Instance;
+		
+		player = new GameObject(charModel.name);
+
+		LoadPlayerSkeleton (charModel);
+		
+		//add PlayerController script
+		PlayerController controller = player.AddComponent<PlayerController>();
+		controller.rosePlayer = this;
+		controller.playerInfo.tMovS = charModel.stats.movSpd;
+		
+		//add Character controller
+		Vector3 center = skeleton.transform.FindChild("b1_pelvis").localPosition;
+		center.y = 0.95f;
+		float height = 1.7f;
+		float radius = Math.Max(playerBounds.extents.x, playerBounds.extents.y) / 2.0f;
+		CharacterController charController = player.AddComponent<CharacterController>();
+		charController.center = center;
+		charController.height = height;
+		charController.radius = radius;
+		
+		//add collider
+		CapsuleCollider c = player.AddComponent<CapsuleCollider>();
+		c.center =  center;
+		c.height = height;
+		c.radius = radius;
+		c.direction = 1; // direction y
+		
+		player.transform.position = charModel.pos;
+	}
+
+	private void LoadPlayerSkeleton( CharModel charModel)
+	{
+		LoadPlayerSkeleton(
+		            charModel.gender,
+					charModel.weapon,
+		            charModel.equip.weaponID, 
 		            charModel.equip.chestID, 
 		            charModel.equip.handID, 
 		            charModel.equip.footID, 
@@ -48,30 +95,108 @@ public class RosePlayer
 		            charModel.equip.faceID, 
 		            charModel.equip.backID, 
 		            charModel.equip.capID);
+	}
 
+
+	private void LoadPlayerSkeleton(GenderType gender, WeaponType weapType, int weapon, int body, int arms, int foot, int hair, int face, int back, int cap)
+	{
+
+		// First destroy any children of player
+		int childs = player.transform.childCount;
+		
+		for (int i = childs - 1; i > 0; i--)
+			Utils.Destroy(player.transform.GetChild(i).gameObject);
+
+		Utils.Destroy (skeleton);
+	
+		skeleton = rm.loadSkeleton(gender, weapType);
+		bindPoses = rm.loadBindPoses (skeleton, gender, weapType);
+		skeleton.transform.parent = player.transform;
+		skeleton.transform.localPosition = new Vector3 (0, 0, 0);
+		skeleton.transform.localRotation = Quaternion.Euler (new Vector3 (0, 0, 0));
+
+
+		// If player has already been initialized, make sure it knows that the skeleton has changed in order to restart its state machine with new animations
+		PlayerController controller = player.GetComponent<PlayerController> ();
+		if( controller != null )
+			controller.OnSkeletonChange ();
+
+		//load all objects
+		playerBounds = new Bounds(player.transform.position, Vector3.zero);
+		
+		playerBounds.Encapsulate(LoadObject(BodyPartType.BODY, body));
+		playerBounds.Encapsulate(LoadObject(BodyPartType.ARMS, arms));
+		playerBounds.Encapsulate(LoadObject(BodyPartType.FOOT, foot));
+		playerBounds.Encapsulate(LoadObject(BodyPartType.FACE, face));
+		playerBounds.Encapsulate(LoadObject(BodyPartType.HAIR, hair));
+		playerBounds.Encapsulate(LoadObject(BodyPartType.WEAPON, weapon));
+		LoadObject(BodyPartType.CAP, cap);
+		LoadObject(BodyPartType.BACK, back);
 	}
 
     public void equip(BodyPartType bodyPart, int id)
     {
-		List<Transform> partTransforms = Utils.findChildren (player, bodyPart.ToString());
-		foreach (Transform partTransform in partTransforms) 
-		{
-#if UNITY_EDITOR
-			GameObject.DestroyImmediate (partTransform.gameObject);
-#else
-			GameObject.Destroy (partTransform.gameObject);
-#endif
+		if (bodyPart == BodyPartType.WEAPON) { // TODO: SUBWEAPON
+			WeaponType weapType = rm.getWeaponType (id);
+			charModel.equip.weaponID = id;
+			// Change skeleton if weapon type is different
+			if (weapType != charModel.weapon) {
+				charModel.weapon = weapType;
+				LoadPlayerSkeleton ( charModel );
+				return;
+			}
 		}
 
-		LoadObject(gender, bodyPart, id);
+		charModel.changeID(bodyPart, id);
+
+		List<Transform> partTransforms = Utils.findChildren (player, bodyPart.ToString());
+
+		foreach (Transform partTransform in partTransforms) 
+			Utils.Destroy(partTransform.gameObject);
+
+
+		LoadObject(bodyPart, id);
 
     }
 
-	public Bounds LoadObject(GenderType gender, BodyPartType bodyPart, int id)
+	/*
+    // TODO: expand to allow weapon effects
+    private void equipWeapon(int id)
+    {
+		WeaponType weapType = rm.getWeaponType (id);
+		charModel.equip.weaponID = id;
+		// Change skeleton if weapon type is different
+		if (weapType != this.weaponType) {
+			LoadPlayerSkeleton ( gender, weapType, id, charModel.equip.chestID, charModel.equip.handID, charModel.equip.footID, charModel.equip.hairID, charModel.equip.faceID, charModel.equip.backID, charModel.equip.capID);
+		}
+		else
+
+
+		// First, remove existing weapon and shield if new weapon is two-handed
+		bool removeShield = !Utils.isOneHanded (weaponType);
+		Transform weaponTransform = Utils.findChild (player, BodyPartType.WEAPON.ToString ());
+		Transform shieldTransform = removeShield ? Utils.findChild (player, BodyPartType.SUBWEAPON.ToString ()) : null;
+
+#if UNITY_EDITOR
+		if (shieldTransform != null && removeShield)
+			GameObject.DestroyImmediate (shieldTransform.gameObject);
+		if (weaponTransform != null)
+			GameObject.DestroyImmediate (weaponTransform.gameObject);
+#else
+        if (shieldTransform != null && removeShield) GameObject.Destroy(shieldTransform.gameObject);
+		if (weaponTransform != null) GameObject.Destroy (weaponTransform.gameObject);
+#endif
+        
+		// Equip new weapon
+		LoadObject (BodyPartType.WEAPON, id);
+		
+    }
+	*/
+
+    private Bounds LoadObject(BodyPartType bodyPart, int id)
 	{
 		Bounds objectBounds = new Bounds(skeleton.transform.position, Vector3.zero);
-		ResourceManager rm = ResourceManager.Instance;
-		ZSC zsc = rm.getZSC(gender, bodyPart);
+		ZSC zsc = rm.getZSC(charModel.gender, bodyPart); 
 		for (int i = 0; i < zsc.Objects[id].Models.Count; i++)
 		{
 			int ModelID = zsc.Objects[id].Models[i].ModelID;
@@ -118,6 +243,12 @@ public class RosePlayer
             case BodyPartType.BACK:
 				modelObject.transform.parent = Utils.findChild(skeleton, "p_03");
                 break;
+            case BodyPartType.WEAPON:
+                modelObject.transform.parent = Utils.findChild(skeleton, "p_00");
+                break;
+            case BodyPartType.SUBWEAPON:
+                modelObject.transform.parent = Utils.findChild(skeleton, "p_02");
+                break;
             default:
 				modelObject.transform.parent = skeleton.transform.parent.transform;
                 break;
@@ -148,60 +279,5 @@ public class RosePlayer
 
     }
 
-    public GameObject LoadDefault(GenderType gender)
-    {
-        return LoadPlayer(gender, WeaponType.EMPTY, "New", 0, 0, 0, 0, 1, 0, 0);
-    }
-
-	public GameObject LoadPlayer(GenderType gender, WeaponType weapon, string name, int body, int arms, int foot, int hair, int face, int back, int cap)
-	{
-        // Get the correct resources
-        bool male = (gender == GenderType.MALE);
-
-        ResourceManager rm = ResourceManager.Instance;
-
-        player = new GameObject(name);
-		skeleton = rm.loadSkeleton(gender, weapon);
-		bindPoses = rm.loadBindPoses (skeleton, gender, weapon);
-        skeleton.transform.parent = player.transform;
-
-		//load all objects
-        Bounds playerBounds = new Bounds(player.transform.position, Vector3.zero);
- 
-        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.BODY, body));
-        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.ARMS, arms));
-        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.FOOT, foot));
-        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.FACE, face));
-        playerBounds.Encapsulate(LoadObject(gender, BodyPartType.HAIR, hair));
-        LoadObject(gender, BodyPartType.CAP, cap);
-        LoadObject(gender, BodyPartType.BACK, back);
-
-        //add PlayerController script
-        PlayerController controller = player.AddComponent<PlayerController>();
-		controller.rosePlayer = this;
-		controller.playerInfo.tMovS = charModel.stats.movSpd;
-
-        //add Character controller
-        Vector3 center = skeleton.transform.FindChild("b1_pelvis").localPosition;
-        center.y = 0.95f;
-        float height = 1.7f;
-        float radius = Math.Max(playerBounds.extents.x, playerBounds.extents.y) / 2.0f;
-        CharacterController charController = player.AddComponent<CharacterController>();
-        charController.center = center;
-        charController.height = height;
-        charController.radius = radius;
-
-        //add collider
-        CapsuleCollider c = player.AddComponent<CapsuleCollider>();
-        c.center =  center;
-        c.height = height;
-        c.radius = radius;
-        c.direction = 1; // direction y
-
-        player.transform.position = new Vector3(5200.0f, 0.0f, 5653.0f);
-
-        return player;
-
-	}
 
 }

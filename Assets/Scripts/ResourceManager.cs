@@ -28,6 +28,22 @@ namespace UnityRose
     /// </summary>
     public class ResourceManager
     {
+		public static Dictionary<int, WeaponType> weapon_type_lookup = new Dictionary<int, WeaponType>() {
+			{ 211, WeaponType.OHSWORD},
+			{ 212, WeaponType.OHMACE},
+			{ 271, WeaponType.XBOX},
+			{ 221, WeaponType.THSWORD},
+			{ 223, WeaponType.THBLUNT},
+			{ 222, WeaponType.THSPEAR},
+			{ 231, WeaponType.BOW},
+			{ 232, WeaponType.GUN},
+			{ 233, WeaponType.CANNON},
+			{ 241, WeaponType.STAFF},
+			{ 242, WeaponType.WAND},
+			{ 251, WeaponType.KATAR},
+			{ 252, WeaponType.DSW},
+		};
+
         // Male ZSC's (equipment model links)
         public ZSC zsc_body_male;
         public ZSC zsc_arms_male;
@@ -47,6 +63,8 @@ namespace UnityRose
         // Unisex ZSC's
         public ZSC zsc_back;
         public ZSC zsc_faceItem;
+        public ZSC zsc_weapon;
+        public ZSC zsc_subweapon;
 
         // ZMD's (skeleton)
         public ZMD zmd_male;
@@ -55,6 +73,8 @@ namespace UnityRose
         // STB's
         public static STB stb_animation_list;
         public static STB stb_animation_type;
+		public static STB stb_weapon_list;
+
         // TODO: add any other common persistent resources here
 
         
@@ -86,11 +106,13 @@ namespace UnityRose
             zsc_back = (ZSC)loadResource("3DData/Avatar/LIST_BACK.zsc");
             zsc_faceItem = (ZSC)loadResource("3DData/Avatar/LIST_FACEIEM.zsc");
 
-            //zmd_male = (ZMD)loadResource("3DData/Avatar/MALE.ZMD");
-            //zmd_female = (ZMD)loadResource("3DData/Avatar/FEMALE.ZMD");
+            zsc_weapon = (ZSC)loadResource("3DDATA/WEAPON/LIST_WEAPON.zsc");
+            zsc_subweapon = (ZSC)loadResource("3DDATA/WEAPON/LIST_SUBWPN.zsc");
 
             stb_animation_list = (STB)loadResource("3Ddata/STB/FILE_MOTION.STB");
             stb_animation_type = (STB)loadResource("3DDATA/STB/TYPE_MOTION.STB");
+
+			stb_weapon_list = (STB)loadResource("3DDATA/STB/LIST_WEAPON.STB");
 
             cache = new Cache(this, CACHE_SIZE);
         }
@@ -133,6 +155,8 @@ namespace UnityRose
                     return zsc_back;
                 case BodyPartType.FACEITEM:
                     return zsc_faceItem;
+				case BodyPartType.WEAPON:
+					return zsc_weapon;
                 default:
                     return null;
             }
@@ -216,11 +240,40 @@ namespace UnityRose
 			return poses;
 		}
 
-        /// TODO: 
-        /// Add functions to populate given character GameObject reference with loaded ZMS and Skeleton structures
-        /// from cache and prefabs.  No editor-only functions are allowed here because this will be used in runtime
-        /// This will be used to change armor parts during runtime
-        /// 
+
+        /// <summary>
+        /// Get Animation ZMO File path
+        /// </summary>
+        /// <param name="WeaponType">Equiped Weapon</param>
+        /// <param name="Animation">Player Action</param>
+        /// <param name="Gender">Player Gender</param>
+        /// <returns> The file path of the given animation </returns>
+        public string GetZMOPath(WeaponType WeaponType, ActionType Action, GenderType Gender)
+        {
+            string filePath = stb_animation_list.Cells[int.Parse(stb_animation_type.Cells[(int)Action][(int)WeaponType])][(int)Gender];
+
+            //if no female animation then use male one
+            if (filePath == "")
+                filePath = stb_animation_list.Cells[int.Parse(stb_animation_type.Cells[(int)Action][(int)WeaponType])][(int)GenderType.MALE];
+
+
+            return filePath;
+        }
+
+        public WeaponType getWeaponType(int weaponID)
+        {
+			int typeID = 0; 
+			WeaponType type = WeaponType.EMPTY;
+			try {
+				typeID = int.Parse(stb_weapon_list.Cells [weaponID][5]); // TODO: create enums for the columns and use them to look things up
+				type = weapon_type_lookup [typeID];
+			} catch ( Exception e){
+				type = WeaponType.EMPTY;
+			}
+
+			return type;
+        }
+
 #if UNITY_EDITOR
 
 
@@ -325,25 +378,6 @@ namespace UnityRose
 
 
 #endif
-
-        /// <summary>
-        /// Get Animation ZMO File path
-        /// </summary>
-        /// <param name="WeaponType">Equiped Weapon</param>
-        /// <param name="Animation">Player Action</param>
-        /// <param name="Gender">Player Gender</param>
-        /// <returns> The file path of the given animation </returns>
-        public string GetZMOPath(WeaponType WeaponType, ActionType Action, GenderType Gender)
-        {
-            string filePath = stb_animation_list.Cells[int.Parse(stb_animation_type.Cells[(int)Action][(int)WeaponType])][(int)Gender];
-
-            //if no female animation then use male one
-            if (filePath == "")
-                filePath = stb_animation_list.Cells[int.Parse(stb_animation_type.Cells[(int)Action][(int)WeaponType])][(int)GenderType.MALE];
-
-
-            return filePath;
-        }
 
     }
 }

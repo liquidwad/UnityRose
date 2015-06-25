@@ -58,7 +58,6 @@ namespace UnityRose
         SHIELD,
     };
 
-
     public enum ActionType
     {
         STANDING = 0,
@@ -90,12 +89,14 @@ namespace UnityRose
     public enum BodyPartType
     {
         ARMS = 1,
-        FOOT,
-        FACE,
-        BODY,
-        BACK,
-        HAIR,
-        CAP,
-        FACEITEM,
+        FOOT = 2,
+        BODY = 3,
+        CAP = 4,
+		FACE = 5,
+        FACEITEM = 6,
+		BACK = 7,
+		HAIR = 8,
+        WEAPON = 9,
+        SUBWEAPON = 10,
     }
 }

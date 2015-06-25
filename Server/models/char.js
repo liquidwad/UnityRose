@@ -27,14 +27,16 @@ var charSchema = new Schema({
 		atkSpd: { type: Number, default: 10 }
 	},
 	equip: {
-		faceID: Number,
-		hairID: Number,
-		chestID: Number,
-		footID: Number,
-		handID: Number,
-		weaponID: Number,
-		shieldID: Number,
-		backID: Number
+		faceID: { type: Number, default: 1 },
+		hairID: { type: Number, default: 0 },
+		chestID: { type: Number, default: 0  },
+		footID: { type: Number, default: 0 },
+		handID: { type: Number, default: 0 },
+		weaponID: { type: Number, default: 1 },
+		shieldID: { type: Number, default: 0 },
+		backID: { type: Number, default: 0 },
+		maskID: { type: Number, default: 0 },
+		capID: { type: Number, default: 0 }
 	}
 		
 });
