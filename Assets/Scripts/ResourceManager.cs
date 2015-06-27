@@ -162,6 +162,8 @@ namespace UnityRose
                     return zsc_faceItem;
 				case BodyPartType.WEAPON:
 					return zsc_weapon;
+				case BodyPartType.SUBWEAPON:
+					return zsc_subweapon;
                 default:
                     return null;
             }

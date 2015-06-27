@@ -94,11 +94,12 @@ public class RosePlayer
 		            charModel.equip.hairID, 
 		            charModel.equip.faceID, 
 		            charModel.equip.backID, 
-		            charModel.equip.capID);
+		            charModel.equip.capID,
+                    charModel.equip.shieldID);
 	}
 
 
-	private void LoadPlayerSkeleton(GenderType gender, WeaponType weapType, int weapon, int body, int arms, int foot, int hair, int face, int back, int cap)
+	private void LoadPlayerSkeleton(GenderType gender, WeaponType weapType, int weapon, int body, int arms, int foot, int hair, int face, int back, int cap, int shield)
 	{
 
 		// First destroy any children of player
@@ -129,24 +130,25 @@ public class RosePlayer
 		playerBounds.Encapsulate(LoadObject(BodyPartType.FOOT, foot));
 		playerBounds.Encapsulate(LoadObject(BodyPartType.FACE, face));
         LoadObject(BodyPartType.CAP, cap);
-		string hairOffset = rm.stb_cap_list.Cells[cap][34];
-		if (hairOffset != "")
-        {
-			playerBounds.Encapsulate(LoadObject(BodyPartType.HAIR, hair - (hair%5) + int.Parse(hairOffset)));
-        }
-        else
-            playerBounds.Encapsulate(LoadObject(BodyPartType.HAIR, hair));
+		String hairOffsetStr = rm.stb_cap_list.Cells[cap][34];
+        int hairOffset = (hairOffsetStr == "") ? 0 : int.Parse(hairOffsetStr);
+		playerBounds.Encapsulate(LoadObject(BodyPartType.HAIR, hair - hair%5 + hairOffset));
 
-
-        playerBounds.Encapsulate(LoadObject(BodyPartType.WEAPON, weapon));
+        LoadObject(BodyPartType.SUBWEAPON, shield);
+        LoadObject(BodyPartType.WEAPON, weapon);
 		LoadObject(BodyPartType.BACK, back);
 	}
 
     public void equip(BodyPartType bodyPart, int id, bool changeId = true)
     {
-		if (bodyPart == BodyPartType.WEAPON) { // TODO: SUBWEAPON
+		if (bodyPart == BodyPartType.WEAPON) { 
 			WeaponType weapType = rm.getWeaponType (id);
 			charModel.equip.weaponID = id;
+
+            // if this weapon is two-handed and a subweapon is equipped, unequip the subweapon first
+            if ( !Utils.isOneHanded(weapType) && charModel.equip.shieldID > 0)
+                equip(BodyPartType.SUBWEAPON, 0);
+
 			// Change skeleton if weapon type is different
 			if (weapType != charModel.weapon) {
 				charModel.weapon = weapType;
@@ -155,12 +157,17 @@ public class RosePlayer
 			}
 		}
 
+        // If equipping subweapon and a two-hand weapon is equipped, first unequip the 2-hand
+        if (( bodyPart == BodyPartType.SUBWEAPON) && id > 0 && !Utils.isOneHanded(charModel.weapon))
+                equip(BodyPartType.WEAPON, 0);
+
+         
         // If equipping cap, first make sure the hair is changed to the right type
         if(bodyPart == BodyPartType.CAP)
         {
-            string hairOffset = rm.stb_cap_list.Cells[id][34];
-			if (hairOffset != "")
-				equip(BodyPartType.HAIR, charModel.equip.hairID - (charModel.equip.hairID%5) + int.Parse(hairOffset), false);
+            String hairOffsetStr = rm.stb_cap_list.Cells[id][34];
+            int hairOffset = (hairOffsetStr == "") ? 0 : int.Parse(hairOffsetStr);
+            equip(BodyPartType.HAIR, charModel.equip.hairID - (charModel.equip.hairID)%5 + hairOffset, false);
         }
 
 		if( changeId)
@@ -176,39 +183,6 @@ public class RosePlayer
 
     }
 
-	/*
-    // TODO: expand to allow weapon effects
-    private void equipWeapon(int id)
-    {
-		WeaponType weapType = rm.getWeaponType (id);
-		charModel.equip.weaponID = id;
-		// Change skeleton if weapon type is different
-		if (weapType != this.weaponType) {
-			LoadPlayerSkeleton ( gender, weapType, id, charModel.equip.chestID, charModel.equip.handID, charModel.equip.footID, charModel.equip.hairID, charModel.equip.faceID, charModel.equip.backID, charModel.equip.capID);
-		}
-		else
-
-
-		// First, remove existing weapon and shield if new weapon is two-handed
-		bool removeShield = !Utils.isOneHanded (weaponType);
-		Transform weaponTransform = Utils.findChild (player, BodyPartType.WEAPON.ToString ());
-		Transform shieldTransform = removeShield ? Utils.findChild (player, BodyPartType.SUBWEAPON.ToString ()) : null;
-
-#if UNITY_EDITOR
-		if (shieldTransform != null && removeShield)
-			GameObject.DestroyImmediate (shieldTransform.gameObject);
-		if (weaponTransform != null)
-			GameObject.DestroyImmediate (weaponTransform.gameObject);
-#else
-        if (shieldTransform != null && removeShield) GameObject.Destroy(shieldTransform.gameObject);
-		if (weaponTransform != null) GameObject.Destroy (weaponTransform.gameObject);
-#endif
-        
-		// Equip new weapon
-		LoadObject (BodyPartType.WEAPON, id);
-		
-    }
-	*/
 
     private Bounds LoadObject(BodyPartType bodyPart, int id)
 	{
