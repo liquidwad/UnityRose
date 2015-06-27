@@ -128,13 +128,21 @@ public class RosePlayer
 		playerBounds.Encapsulate(LoadObject(BodyPartType.ARMS, arms));
 		playerBounds.Encapsulate(LoadObject(BodyPartType.FOOT, foot));
 		playerBounds.Encapsulate(LoadObject(BodyPartType.FACE, face));
-		playerBounds.Encapsulate(LoadObject(BodyPartType.HAIR, hair));
-		playerBounds.Encapsulate(LoadObject(BodyPartType.WEAPON, weapon));
-		LoadObject(BodyPartType.CAP, cap);
+        LoadObject(BodyPartType.CAP, cap);
+		string hairOffset = rm.stb_cap_list.Cells[cap][34];
+		if (hairOffset != "")
+        {
+			playerBounds.Encapsulate(LoadObject(BodyPartType.HAIR, hair - (hair%5) + int.Parse(hairOffset)));
+        }
+        else
+            playerBounds.Encapsulate(LoadObject(BodyPartType.HAIR, hair));
+
+
+        playerBounds.Encapsulate(LoadObject(BodyPartType.WEAPON, weapon));
 		LoadObject(BodyPartType.BACK, back);
 	}
 
-    public void equip(BodyPartType bodyPart, int id)
+    public void equip(BodyPartType bodyPart, int id, bool changeId = true)
     {
 		if (bodyPart == BodyPartType.WEAPON) { // TODO: SUBWEAPON
 			WeaponType weapType = rm.getWeaponType (id);
@@ -147,7 +155,16 @@ public class RosePlayer
 			}
 		}
 
-		charModel.changeID(bodyPart, id);
+        // If equipping cap, first make sure the hair is changed to the right type
+        if(bodyPart == BodyPartType.CAP)
+        {
+            string hairOffset = rm.stb_cap_list.Cells[id][34];
+			if (hairOffset != "")
+				equip(BodyPartType.HAIR, charModel.equip.hairID - (charModel.equip.hairID%5) + int.Parse(hairOffset), false);
+        }
+
+		if( changeId)
+			charModel.changeID(bodyPart, id);
 
 		List<Transform> partTransforms = Utils.findChildren (player, bodyPart.ToString());
 
@@ -196,7 +213,8 @@ public class RosePlayer
     private Bounds LoadObject(BodyPartType bodyPart, int id)
 	{
 		Bounds objectBounds = new Bounds(skeleton.transform.position, Vector3.zero);
-		ZSC zsc = rm.getZSC(charModel.gender, bodyPart); 
+		ZSC zsc = rm.getZSC(charModel.gender, bodyPart);
+
 		for (int i = 0; i < zsc.Objects[id].Models.Count; i++)
 		{
 			int ModelID = zsc.Objects[id].Models[i].ModelID;
@@ -237,7 +255,7 @@ public class RosePlayer
             case BodyPartType.HAIR:
 				modelObject.transform.parent = Utils.findChild(skeleton, "b1_head");
                 break;
-            case BodyPartType.CAP:
+            case BodyPartType.CAP:  // TODO: figure out how to fix issue of hair coming out of cap
 				modelObject.transform.parent = Utils.findChild(skeleton, "p_06");
                 break;
             case BodyPartType.BACK:

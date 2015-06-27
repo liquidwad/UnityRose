@@ -71,9 +71,12 @@ namespace UnityRose
         public ZMD zmd_female;
 
         // STB's
-        public static STB stb_animation_list;
-        public static STB stb_animation_type;
-		public static STB stb_weapon_list;
+        public STB stb_animation_list;
+        public STB stb_animation_type;
+		public STB stb_weapon_list;
+        public STB stb_cap_list;
+        public STB stb_hair_list;
+
 
         // TODO: add any other common persistent resources here
 
@@ -113,6 +116,8 @@ namespace UnityRose
             stb_animation_type = (STB)loadResource("3DDATA/STB/TYPE_MOTION.STB");
 
 			stb_weapon_list = (STB)loadResource("3DDATA/STB/LIST_WEAPON.STB");
+            stb_cap_list = (STB)loadResource("3DDATA/STB/LIST_CAP.STB");
+            stb_hair_list = (STB)loadResource("3DDATA/STB/LIST_HAIR.STB");
 
             cache = new Cache(this, CACHE_SIZE);
         }

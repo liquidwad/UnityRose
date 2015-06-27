@@ -269,7 +269,8 @@ namespace UnityRose.Formats
 					clip.SetCurve(cbn, typeof(Transform), "localPosition.z", curvez);
 				} 
 			}
-			
+
+			clip.EnsureQuaternionContinuity ();
 			return clip;
 		}
 
