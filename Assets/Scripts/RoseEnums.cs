@@ -80,6 +80,15 @@ namespace UnityRose
         PICKUP,
     };
 
+    public enum RigType
+    {
+        FOOT = 0,
+        CART,
+        CASTLEGEAR,
+        FLIGHT,
+        CHARSELECT,
+    }
+
     public enum GenderType
     {
         MALE = 1,

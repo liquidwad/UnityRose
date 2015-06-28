@@ -62,6 +62,8 @@ namespace UnityRose
 		public Stats stats { get; set; }
 		public GenderType gender { get; set; }
 		public WeaponType weapon { get; set; }
+        public RigType rig { get; set; }
+        public States state { get; set; }
 		public Equip equip { get; set; }
 
 		public CharModel()
@@ -120,6 +122,8 @@ namespace UnityRose
 			this.pos = pos;
 			this.stats = stats;
 			this.equip = equip;
+            this.rig = RigType.FOOT;
+            this.state = States.STANDING;
 		}
 
 		public void changeID(BodyPartType bodyPart, int id)

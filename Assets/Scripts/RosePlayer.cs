@@ -40,7 +40,8 @@ public class RosePlayer
 		LoadPlayer (charModel);
 
 	}
-	public RosePlayer( Vector3 position )
+
+    public RosePlayer( Vector3 position )
 	{
 		charModel = new CharModel ();
 		charModel.pos = position;
@@ -80,13 +81,15 @@ public class RosePlayer
 		c.direction = 1; // direction y
 		
 		player.transform.position = charModel.pos;
-	}
+        controller.SetAnimationStateMachine(charModel.rig, charModel.state);
+    }
 
 	private void LoadPlayerSkeleton( CharModel charModel)
 	{
 		LoadPlayerSkeleton(
 		            charModel.gender,
 					charModel.weapon,
+                    charModel.rig,
 		            charModel.equip.weaponID, 
 		            charModel.equip.chestID, 
 		            charModel.equip.handID, 
@@ -99,7 +102,7 @@ public class RosePlayer
 	}
 
 
-	private void LoadPlayerSkeleton(GenderType gender, WeaponType weapType, int weapon, int body, int arms, int foot, int hair, int face, int back, int cap, int shield)
+	private void LoadPlayerSkeleton(GenderType gender, WeaponType weapType, RigType rig, int weapon, int body, int arms, int foot, int hair, int face, int back, int cap, int shield)
 	{
 
 		// First destroy any children of player
@@ -110,8 +113,12 @@ public class RosePlayer
 
 		Utils.Destroy (skeleton);
 	
-		skeleton = rm.loadSkeleton(gender, weapType);
-		bindPoses = rm.loadBindPoses (skeleton, gender, weapType);
+        if( rig == RigType.FOOT)
+		    skeleton = rm.loadSkeleton(gender, weapType);
+        else
+            skeleton = rm.loadSkeleton(gender, rig);
+
+        bindPoses = rm.loadBindPoses (skeleton, gender, weapType);
 		skeleton.transform.parent = player.transform;
 		skeleton.transform.localPosition = new Vector3 (0, 0, 0);
 		skeleton.transform.localRotation = Quaternion.Euler (new Vector3 (0, 0, 0));
@@ -274,5 +281,10 @@ public class RosePlayer
 
     }
 
+    public void setAnimationState(States state)
+    {
+        charModel.state = state;
+        player.GetComponent<PlayerController>().SetAnimationState(state);
+    }
 
 }

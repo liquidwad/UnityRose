@@ -6,11 +6,12 @@ namespace UnityRose
 	public class CharSelectUI : MonoBehaviour 
 	{
 		public Transform[] playerPositions;
-		public List<RosePlayer> players;
-		
+		public Dictionary<int,RosePlayer> players;
+        int currentPlayer;
+
 		// Use this for initialization
 		void Start () {
-			players = new List<RosePlayer> ();
+			players = new Dictionary<int, RosePlayer> ();
 			// TODO: get packets from server to populate players
 		}
 
@@ -21,16 +22,35 @@ namespace UnityRose
 
 			// Generate a default player
 			CharModel charModel = new CharModel ();
-			RosePlayer player = new RosePlayer (charModel);
-			Vector3 altarPos = playerPositions [players.Count].position;
+            charModel.rig = RigType.CHARSELECT;
+            charModel.state = States.HOVERING;
+            RosePlayer player = new RosePlayer (charModel);
+            int id = players.Count;
+			Vector3 altarPos = playerPositions [id].position;
 			player.player.transform.position = new Vector3 (altarPos.x, altarPos.y + 2.1f, altarPos.z);
 			player.player.transform.LookAt (Camera.main.transform);
-			players.Add ( player );
+			players.Add ( id, player );
+            currentPlayer = id;
 
 		}
 
-		// Update is called once per frame
-		void Update () {
+        void OnPlayerClick(int id)
+        {
+            if (id != currentPlayer)
+            {
+                players[id].setAnimationState(States.STANDUP);
+                players[currentPlayer].setAnimationState(States.SIT);
+            }
+            
+        }
+
+        void OnPlayerDoubleClick(int id)
+        {
+            players[id].setAnimationState(States.SELECT);
+        }
+
+        // Update is called once per frame
+        void Update () {
 		
 		}
 	}

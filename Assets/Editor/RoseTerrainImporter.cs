@@ -9,6 +9,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using UnityRose.Game;
+using UnityRose;
 
 public class RoseTerrainWindow : EditorWindow {
 	string m_inputDir = "";
@@ -309,18 +310,60 @@ public class RoseTerrainWindow : EditorWindow {
 				player = new RosePlayer();
 		}
 
-		if(GUILayout.Button("Equip"))
-		{
-			if( player != null )
-				player.equip( (UnityRose.BodyPartType)bodyPart, objID );
+        if (GUILayout.Button("Create Char Select"))
+        {
+            CharModel model = new CharModel();
+            model.rig = RigType.CHARSELECT;
+            model.state = States.HOVERING;
 
-			//RosePlayer player = new RosePlayer(UnityRose.GenderType.MALE, UnityRose.WeaponType.THSWORD);
-			//UnityRose.ResourceManager.Instance.GenerateAnimationAsset(UnityRose.GenderType.MALE, UnityRose.WeaponType.EMPTY);
-			//UnityRose.ResourceManager.Instance.GenerateAnimationAssets();
-		}
-		
-		EditorGUILayout.EndToggleGroup ();
+            if(transform != null)
+                model.pos = transform.position;
+
+            player = new RosePlayer(model); // Note: Player reference is lost after hitting play.  Must create new after that.
+ 
+        }
+
+        if (GUILayout.Button("Equip"))
+		{
+            if( player != null )
+                player.equip( (BodyPartType)bodyPart, objID );
+
+            //RosePlayer player = new RosePlayer(GenderType.MALE, WeaponType.THSWORD);
+            //ResourceManager.Instance.GenerateAnimationAsset(GenderType.MALE, WeaponType.EMPTY);
+            //ResourceManager.Instance.GenerateAnimationAssets();
+            //GenerateCharSelectAnimations();
+
+        }
+
+        if (GUILayout.Button("GenerateAnimations"))
+        {
+            //RosePlayer player = new RosePlayer(GenderType.MALE, WeaponType.THSWORD);
+            //ResourceManager.Instance.GenerateAnimationAsset(GenderType.MALE, WeaponType.EMPTY);
+            //ResourceManager.Instance.GenerateAnimationAssets();
+            GenerateCharSelectAnimations();
+        }
+
+        EditorGUILayout.EndToggleGroup ();
 	} // OnGui()
+
+    
+    void GenerateCharSelectAnimations()
+    {
+        foreach (GenderType gender in Enum.GetValues(typeof(GenderType)))
+        {
+            bool m = (gender == GenderType.MALE);
+            Dictionary<String, String> clips = new Dictionary<String, String>();
+            clips.Add("standup", "3ddata/motion/avatar/empty_stand_" + (m ? "m" : "f") + "1.zmo");
+            clips.Add("standing", "3ddata/motion/avatar/empty_standing_" + (m ? "m" : "f") + "1.zmo");
+            clips.Add("sit", "3ddata/motion/avatar/empty_sit_" + (m ? "m" : "f") + "1.zmo");
+            clips.Add("sitting", "3ddata/motion/avatar/empty_siting_" + (m ? "m" : "f") + "1.zmo");
+
+            clips.Add("hovering", "3ddata/motion/avatar/event_creat_m1.zmo");
+            clips.Add("select", "3ddata/motion/avatar/event_select_m1.zmo");
+
+            ResourceManager.Instance.GenerateAnimationAsset(gender, RigType.CHARSELECT, clips);
+        }
+    }
 }
 
 #endif

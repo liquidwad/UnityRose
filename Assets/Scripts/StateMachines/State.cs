@@ -33,6 +33,9 @@ public enum States
     JUMP1,
     JUMP2,
     PICKUP,
+    // CharSelect values
+    SELECT,
+    HOVERING,
 };
 
 /*
@@ -400,4 +403,71 @@ public class PlayerState : State
 		return this;
 	}
 	
+}
+
+
+public class CharSelectState : State
+{
+    private Dictionary<string, State> states;
+    private State currentState;
+    private States initialState; 
+
+    public CharSelectState(States cState, string name, GameObject gameObject)
+        : base(cState, gameObject)
+    {
+        
+        // Generate list of states
+        states = new Dictionary<string, State>();
+        states.Add("HOVERING", new State(States.HOVERING, gameObject));
+        states.Add("SELECT", new State(States.SELECT, gameObject, WrapMode.Once));
+
+        states.Add("STANDING", new State(States.STANDING, gameObject));
+        states.Add("sitStand", new TransitionState(States.STANDUP, states["STANDING"], gameObject));
+
+        states.Add("SITTING", new State(States.SITTING, gameObject));
+        states.Add("SIT", new TransitionState(States.SIT, states["SITTING"], gameObject));
+
+        // State connections:
+        // Hovering -> standing -> select 
+        //                |     |
+        //                |     -> [sit -> sitting]
+        //                |                      |
+        //                <------------------stand
+
+        states["HOVERING"].connections.Add(new StateConnection(States.STANDING, states["STANDING"], "standing"));
+
+        states["STANDING"].connections.Add(new StateConnection(States.SELECT, states["SELECT"], "select"));
+        states["STANDING"].connections.Add(new StateConnection(States.SITTING, states["SIT"], "sit"));
+
+        states["SITTING"].connections.Add(new StateConnection(States.STANDING, states["sitStand"], "standing"));
+
+        states["SELECT"].connections.Add(new StateConnection(States.STANDING, states["STANDING"], "standing"));
+
+    }
+
+
+    public override void Entry(bool crossFade = false)
+    {
+        base.Entry();
+    }
+
+    public override void Exit(bool crossFade = false)
+    {
+        currentState.Exit(crossFade);
+    }
+
+    public override State Evaluate(States s)
+    {
+        State result = currentState.Evaluate(s);
+
+        if (result != currentState)
+        {
+            currentState.Exit(true);
+            currentState = result;
+            currentState.Entry(true);
+        }
+
+        return this;
+    }
+
 }

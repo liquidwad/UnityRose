@@ -25,7 +25,7 @@ namespace UnityRose
         private float camRayLength = 500f;
         private Vector3 destinationPosition;
         private CharacterController controller;
-		private PlayerState playerMachine;
+		private State animationStateMachine;
         private bool isWalking = false;
         private States state = States.STANDING;
 		public RosePlayer rosePlayer;
@@ -40,8 +40,6 @@ namespace UnityRose
         // Use this for initialization
         void Start()
         {	
-            playerMachine = new PlayerState(States.STANDING,"Player State Machine", this.gameObject);
-            playerMachine.Entry();
 			floorMask = LayerMask.GetMask("Floor")|LayerMask.GetMask("MapObjects");
             controller = this.gameObject.GetComponent<CharacterController>();
             destinationPosition = transform.position;
@@ -74,10 +72,34 @@ namespace UnityRose
 
         }
 
+
+        public void SetAnimationStateMachine(RigType rig, States initialState)
+        {
+            state = initialState;
+            switch (rig)
+            {
+                case RigType.FOOT:
+                    animationStateMachine = new PlayerState(initialState, "Player State Machine", this.gameObject);
+                    break;
+                case RigType.CHARSELECT:
+                    animationStateMachine = new CharSelectState(initialState, "Char Select State Machine", this.gameObject);
+                    break;
+                default:
+                    break;
+            }
+
+            animationStateMachine.Entry();
+        }
+
+        public void SetAnimationState(States state)
+        {
+            this.state = state;
+        }
+
 		public void OnSkeletonChange()
 		{
-			playerMachine = new PlayerState(playerMachine.stateName, "Player State Machine", this.gameObject);
-			playerMachine.Entry();
+            // Persist current rig and animation state
+            SetAnimationStateMachine(rosePlayer.charModel.rig, animationStateMachine.stateName);
 		}
 
 		public void OnDisable()
@@ -98,48 +120,54 @@ namespace UnityRose
 			{
 				funcQueue.Dequeue().Invoke();
 			}
-			
-			// Only take input if this player is the main player
-			if( this.isMainPlayer )
-			{
-				// TODO: remove this after debugging is over
-				if( Input.GetKeyDown( KeyCode.J ) )
-				{
-					// this packet is reflected to all clients by server (for debugging only)
-					NetworkManager.Send( new InstantiateChar(  false, gameObject.transform.position, gameObject.transform.rotation, playerInfo ) ); //gameObject.name, gameObject.transform.position, gameObject.transform.rotation ));
-				}
+
+            // Only handle walking movement if the correct rig is used
+            if(rosePlayer.charModel.rig == RigType.FOOT)
+            {
+
+                // Only take input if this player is the main player
+                if ( this.isMainPlayer )
+			    {
+				    // TODO: remove this after debugging is over
+				    if( Input.GetKeyDown( KeyCode.J ) )
+				    {
+					    // this packet is reflected to all clients by server (for debugging only)
+					    NetworkManager.Send( new InstantiateChar(  false, gameObject.transform.position, gameObject.transform.rotation, playerInfo ) ); //gameObject.name, gameObject.transform.position, gameObject.transform.rotation ));
+				    }
 				
 				
-				bool locate = false;
-				switch (Application.platform)
-				{
-					case RuntimePlatform.IPhonePlayer:
-					case RuntimePlatform.Android:
-					case RuntimePlatform.WP8Player:
-						locate = Input.touchCount > 0;
-					break;
-					default:
-						locate = Input.GetMouseButton(0);
-					break;
+				    bool locate = false;
+				    switch (Application.platform)
+				    {
+					    case RuntimePlatform.IPhonePlayer:
+					    case RuntimePlatform.Android:
+					    case RuntimePlatform.WP8Player:
+						    locate = Input.touchCount > 0;
+					    break;
+					    default:
+						    locate = Input.GetMouseButton(0);
+					    break;
 					
-				}
+				    }
 				
-				if ( locate )
-	            	LocatePosition();
-        	}	
+				    if ( locate )
+	            	    LocatePosition();
+        	    }	
             
 
-            MoveToPosition();
+                MoveToPosition();
 
-			// TODO: use character state packets to control state
-            if (isWalking)
-                state = States.RUN;
-            else
-                state = States.STANDING;
+            
+                // TODO: use character state packets to control state
+                if (isWalking)
+                    state = States.RUN;
+                else
+                    state = States.STANDING;
+            }
 
-
-            if (playerMachine != null)
-                playerMachine.Evaluate(state);
+            // Evaluate the animation state machine
+            if (animationStateMachine != null)
+                animationStateMachine.Evaluate(state);
 
         }
 

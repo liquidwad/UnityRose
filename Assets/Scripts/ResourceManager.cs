@@ -232,13 +232,21 @@ namespace UnityRose
 			return clone as GameObject;
         }
 
-		/// <summary>
-		/// Load bindposes and bones matrices from resources scriptable object
-		/// </summary>
-		/// <param name="gender"></param>
-		/// <param name="weapon"></param>
-		/// <returns></returns>
-		public BindPoses loadBindPoses(GameObject skeleton, GenderType gender, WeaponType weapon)
+        public GameObject loadSkeleton(GenderType gender, RigType rig)
+        {
+            var prefab = Resources.Load("Animation/" + gender.ToString() + "/" + rig.ToString() + "/skeleton");
+            var clone = GameObject.Instantiate(prefab);
+            return clone as GameObject;
+        }
+
+
+        /// <summary>
+        /// Load bindposes and bones matrices from resources scriptable object
+        /// </summary>
+        /// <param name="gender"></param>
+        /// <param name="weapon"></param>
+        /// <returns></returns>
+        public BindPoses loadBindPoses(GameObject skeleton, GenderType gender, WeaponType weapon)
 		{
 			BindPoses poses =  ScriptableObject.Instantiate<BindPoses>((BindPoses)Resources.Load ("Animation/" + gender.ToString () + "/" + weapon.ToString () + "/bindPoses"));
 			for (int i = 0; i < poses.boneNames.Length; i++) {
@@ -299,7 +307,7 @@ namespace UnityRose
             }
         }
 
-		private string[] getBoneNames(Transform[] transforms)
+        private string[] getBoneNames(Transform[] transforms)
 		{
 			List<string> names = new List<string> ();
 			foreach (Transform transform in transforms) 
@@ -332,6 +340,25 @@ namespace UnityRose
             PrefabUtility.CreatePrefab(path, skeleton);
         }
 
+        public void GenerateAnimationAsset(GenderType gender, RigType rig, Dictionary<String,String> zmoPaths)
+        {
+            GameObject skeleton = new GameObject("skeleton");
+            bool male = (gender == GenderType.MALE);
+            ZMD zmd = new ZMD(male ? "Assets/3DData/Avatar/MALE.ZMD" : "Assets/3DData/Avatar/FEMALE.ZMD");
+            zmd.buildSkeleton(skeleton);
+
+            BindPoses poses = ScriptableObject.CreateInstance<BindPoses>();
+            poses.bindPoses = zmd.bindposes;
+            poses.boneNames = getBoneNames(zmd.boneTransforms);
+            poses.boneTransforms = zmd.boneTransforms;
+            LoadClips(skeleton, zmd, gender, rig, zmoPaths);
+            string path = "Assets/Resources/Animation/" + gender.ToString() + "/" + rig.ToString() + "/skeleton.prefab";
+            AssetDatabase.CreateAsset(poses, path.Replace("skeleton.prefab", "bindPoses.asset"));
+            AssetDatabase.SaveAssets();
+            PrefabUtility.CreatePrefab(path, skeleton);
+        }
+
+
         /// <summary>
         /// Loads all animations for given weapon type and gender. The clips are saved to Animation/{gender}/{weapon}/clips/{action}.anim 
         /// Used only in editor to generate prefabs
@@ -357,6 +384,26 @@ namespace UnityRose
             }
 
 			Animation animation = skeleton.AddComponent<Animation> ();
+            AnimationUtility.SetAnimationClips(animation, clips.ToArray());
+        }
+
+
+        public void LoadClips(GameObject skeleton, ZMD zmd, GenderType gender, RigType rig, Dictionary<String, String> zmoPaths)
+        {
+            List<AnimationClip> clips = new List<AnimationClip>();
+
+            foreach (KeyValuePair<String, String> motion in zmoPaths)
+            {
+                string unityPath = "Assets/Resources/Animation/" + gender.ToString() + "/" + rig.ToString() + "/clips/" + motion.Key + ".anim";
+
+                AnimationClip clip = new ZMO("Assets/" + motion.Value).buildAnimationClip(zmd);
+                clip.name = motion.Key;
+                clip.legacy = true;
+                clip = (AnimationClip)Utils.SaveReloadAsset(clip, unityPath, ".anim");
+                clips.Add(clip);
+            }
+
+            Animation animation = skeleton.AddComponent<Animation>();
             AnimationUtility.SetAnimationClips(animation, clips.ToArray());
         }
 
