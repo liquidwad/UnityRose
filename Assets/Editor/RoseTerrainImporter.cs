@@ -354,7 +354,7 @@ public class RoseTerrainWindow : EditorWindow {
             bool m = (gender == GenderType.MALE);
             Dictionary<String, String> clips = new Dictionary<String, String>();
             clips.Add("standup", "3ddata/motion/avatar/empty_stand_" + (m ? "m" : "f") + "1.zmo");
-            clips.Add("standing", "3ddata/motion/avatar/empty_standing_" + (m ? "m" : "f") + "1.zmo");
+            clips.Add("standing", "3ddata/motion/avatar/empty_stop1_" + (m ? "m" : "f") + "1.zmo");
             clips.Add("sit", "3ddata/motion/avatar/empty_sit_" + (m ? "m" : "f") + "1.zmo");
             clips.Add("sitting", "3ddata/motion/avatar/empty_siting_" + (m ? "m" : "f") + "1.zmo");
 

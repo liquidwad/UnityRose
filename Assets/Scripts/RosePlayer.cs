@@ -11,8 +11,9 @@ using UnityRose.Formats;
 using System.IO;
 using UnityRose;
 using UnityEditor;
+using UnityEngine.EventSystems;
 
-public class RosePlayer
+public class RosePlayer : IPointerClickHandler
 {
     public GameObject player;
 	public CharModel charModel;
@@ -53,10 +54,13 @@ public class RosePlayer
 		bool male = (charModel.gender == GenderType.MALE);
 		
 		rm = ResourceManager.Instance;
-		
-		player = new GameObject(charModel.name);
+
+        player = new GameObject(charModel.name);
 
 		LoadPlayerSkeleton (charModel);
+
+        // Set layer to Players
+        player.layer = LayerMask.NameToLayer("Players");
 		
 		//add PlayerController script
 		PlayerController controller = player.AddComponent<PlayerController>();
@@ -79,6 +83,17 @@ public class RosePlayer
 		c.height = height;
 		c.radius = radius;
 		c.direction = 1; // direction y
+
+        /*
+        //add event trigger
+        EventTrigger eventTrigger = player.AddComponent<EventTrigger>();
+        EventTrigger.Entry entry = new EventTrigger.Entry();
+        entry.eventID = EventTriggerType.PointerClick;
+        BaseEventData eventData = new BaseEventData(eventSystem);
+        eventData.selectedObject
+        entry.callback.AddListener( (eventData) => { controller.})
+        */
+
 		
 		player.transform.position = charModel.pos;
         controller.SetAnimationStateMachine(charModel.rig, charModel.state);
@@ -287,4 +302,8 @@ public class RosePlayer
         player.GetComponent<PlayerController>().SetAnimationState(state);
     }
 
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        Debug.Log("I was clicked");
+    }
 }

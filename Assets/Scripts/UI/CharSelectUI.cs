@@ -1,13 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
+using System;
 
 namespace UnityRose
 {
-	public class CharSelectUI : MonoBehaviour 
+	public class CharSelectUI : MonoBehaviour
 	{
 		public Transform[] playerPositions;
 		public Dictionary<int,RosePlayer> players;
-        int currentPlayer;
+        RosePlayer currentPlayer;
 
 		// Use this for initialization
 		void Start () {
@@ -23,26 +25,20 @@ namespace UnityRose
 			// Generate a default player
 			CharModel charModel = new CharModel ();
             charModel.rig = RigType.CHARSELECT;
-            charModel.state = States.HOVERING;
+            charModel.state = States.SITTING;
             RosePlayer player = new RosePlayer (charModel);
             int id = players.Count;
 			Vector3 altarPos = playerPositions [id].position;
 			player.player.transform.position = new Vector3 (altarPos.x, altarPos.y + 2.1f, altarPos.z);
 			player.player.transform.LookAt (Camera.main.transform);
 			players.Add ( id, player );
-            currentPlayer = id;
+            currentPlayer = player;
+
+            //player.player.GetComponent<PlayerController>().OnClick.AddListener(() => { OnPointerClick(); });
 
 		}
 
-        void OnPlayerClick(int id)
-        {
-            if (id != currentPlayer)
-            {
-                players[id].setAnimationState(States.STANDUP);
-                players[currentPlayer].setAnimationState(States.SIT);
-            }
-            
-        }
+
 
         void OnPlayerDoubleClick(int id)
         {
@@ -51,7 +47,71 @@ namespace UnityRose
 
         // Update is called once per frame
         void Update () {
-		
-		}
-	}
+
+            bool locate = false;
+            switch (Application.platform)
+            {
+                case RuntimePlatform.IPhonePlayer:
+                case RuntimePlatform.Android:
+                case RuntimePlatform.WP8Player:
+                    locate = Input.touchCount > 0;
+                    break;
+                default:
+                    locate = Input.GetMouseButton(0);
+                    break;
+
+            }
+
+            if (locate)
+                LocatePlayer();
+        }
+
+        void LocatePlayer()
+        {
+            Debug.Log("LocatePlayer()");
+            Vector2 screenPoint;
+            bool fire = false;
+            switch (Application.platform)
+            {
+                case RuntimePlatform.IPhonePlayer:
+                case RuntimePlatform.Android:
+                case RuntimePlatform.WP8Player:
+                    screenPoint = Input.GetTouch(0).position;
+                    fire = (Input.GetTouch(0).tapCount > 0) && (Input.GetTouch(0).phase == TouchPhase.Ended);
+                    break;
+                default:
+                    screenPoint = Input.mousePosition;
+                    fire = Input.GetMouseButtonDown(0);
+                    break;
+
+            }
+
+            Ray camRay = Camera.main.ScreenPointToRay(screenPoint);
+            RaycastHit playerHit;
+
+            if (fire)
+            {
+                // Perform the raycast and if it hits something on the floor layer...
+                if (Physics.Raycast(camRay, out playerHit, 500.0f))//, LayerMask.NameToLayer("Players")))
+                    OnPointerClick(playerHit.transform);
+            }
+        }
+
+
+        void OnPointerClick(Transform clickedTransform)
+        {
+            Debug.Log("OnPointerCLick");
+            PlayerController controller = clickedTransform.gameObject.GetComponent<PlayerController>();
+            if (controller != null)
+            {
+                RosePlayer clickedPlayer = controller.rosePlayer;
+                if (clickedPlayer != currentPlayer)
+                {
+                    clickedPlayer.setAnimationState(States.STANDUP);
+                    currentPlayer.setAnimationState(States.SIT);
+                    currentPlayer = clickedPlayer;
+                }
+            }
+        }
+    }
 }

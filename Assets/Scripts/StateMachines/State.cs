@@ -85,7 +85,7 @@ public class StateConnection
 public class State
 {
 
-    public States stateName;
+    public States state;
  	public string Name { get; set; }
 	public GameObject gameObject { get; set; }
 	
@@ -93,18 +93,18 @@ public class State
 	public List<StateConnection> connections { get; set; }
 	protected Animation animation;
 	protected WrapMode wrapMode;
-	
-	public State(States stateName, GameObject gameObject, WrapMode wrapMode = WrapMode.Loop)
-	{
-        this.stateName = stateName;
-        clipName = Name = stateName.ToString().ToLower();
-		this.gameObject = gameObject;
-		this.wrapMode = wrapMode;
-		connections = new List<StateConnection>();
-		animation = gameObject.GetComponentInChildren<Animation>(); // TODO: add exception if no animation	
-	}
-	
-	public virtual void Exit(bool crossFade = true)
+
+    public State(States state, GameObject gameObject, WrapMode wrapMode = WrapMode.Loop)
+    {
+        this.state = state;
+        clipName = Name = state.ToString().ToLower();
+        this.gameObject = gameObject;
+        this.wrapMode = wrapMode;
+        connections = new List<StateConnection>();
+        animation = gameObject.GetComponentInChildren<Animation>(); // TODO: add exception if no animation	
+    }
+
+    public virtual void Exit(bool crossFade = true)
 	{
         if (!crossFade)
             animation.Stop(clipName);
@@ -133,7 +133,7 @@ public class State
 				return connection.nextState;
              */
 
-            if (s != this.stateName && s == connection.stateName)
+            if (s != this.state && s == connection.stateName)
             {
                 return connection.nextState;
             }
@@ -410,19 +410,19 @@ public class CharSelectState : State
 {
     private Dictionary<string, State> states;
     private State currentState;
-    private States initialState; 
+    private States initialState;
 
-    public CharSelectState(States cState, string name, GameObject gameObject)
-        : base(cState, gameObject)
+    public CharSelectState(States initialState, string name, GameObject gameObject)
+        : base(initialState, gameObject)
     {
-        
+        this.initialState = initialState;
         // Generate list of states
         states = new Dictionary<string, State>();
         states.Add("HOVERING", new State(States.HOVERING, gameObject));
         states.Add("SELECT", new State(States.SELECT, gameObject, WrapMode.Once));
 
         states.Add("STANDING", new State(States.STANDING, gameObject));
-        states.Add("sitStand", new TransitionState(States.STANDUP, states["STANDING"], gameObject));
+        states.Add("STANDUP", new TransitionState(States.STANDUP, states["STANDING"], gameObject));
 
         states.Add("SITTING", new State(States.SITTING, gameObject));
         states.Add("SIT", new TransitionState(States.SIT, states["SITTING"], gameObject));
@@ -439,7 +439,7 @@ public class CharSelectState : State
         states["STANDING"].connections.Add(new StateConnection(States.SELECT, states["SELECT"], "select"));
         states["STANDING"].connections.Add(new StateConnection(States.SITTING, states["SIT"], "sit"));
 
-        states["SITTING"].connections.Add(new StateConnection(States.STANDING, states["sitStand"], "standing"));
+        states["SITTING"].connections.Add(new StateConnection(States.STANDING, states["STANDUP"], "standing"));
 
         states["SELECT"].connections.Add(new StateConnection(States.STANDING, states["STANDING"], "standing"));
 
@@ -448,6 +448,7 @@ public class CharSelectState : State
 
     public override void Entry(bool crossFade = false)
     {
+        currentState = states[initialState.ToString()];
         base.Entry();
     }
 

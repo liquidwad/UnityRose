@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using Network.Packets;
 using Network;
-
+using UnityEngine.EventSystems;
 
 namespace UnityRose
 {
@@ -99,7 +99,7 @@ namespace UnityRose
 		public void OnSkeletonChange()
 		{
             // Persist current rig and animation state
-            SetAnimationStateMachine(rosePlayer.charModel.rig, animationStateMachine.stateName);
+            SetAnimationStateMachine(rosePlayer.charModel.rig, animationStateMachine.state);
 		}
 
 		public void OnDisable()
@@ -243,7 +243,7 @@ namespace UnityRose
                 isWalking = false;
             }         
         }
-        
+
     }
 }
 
