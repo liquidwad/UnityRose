@@ -99,6 +99,13 @@ public class RosePlayer : IPointerClickHandler
         controller.SetAnimationStateMachine(charModel.rig, charModel.state);
     }
 
+    public void Destroy()
+    {
+        GameObject.Destroy(bindPoses);
+        GameObject.Destroy(skeleton);
+        GameObject.Destroy(player);
+    }
+
 	private void LoadPlayerSkeleton( CharModel charModel)
 	{
 		LoadPlayerSkeleton(
@@ -203,6 +210,18 @@ public class RosePlayer : IPointerClickHandler
 
 		LoadObject(bodyPart, id);
 
+    }
+
+    public void changeGender(GenderType gender)
+    {
+        charModel.gender = gender;
+        LoadPlayerSkeleton(charModel);
+    }
+
+    public void changeName(string name)
+    {
+        charModel.name = name;
+        player.name = name;
     }
 
 
