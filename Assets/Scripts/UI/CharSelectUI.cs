@@ -15,8 +15,37 @@ namespace UnityRose
 		void Start () {
 			players = new Dictionary<int, RosePlayer> ();
 			// TODO: get packets from server to populate players
+			// For now simulate loading 3 players
+			onLoad ( new CharModel("Hadak", GenderType.MALE) );
+			CharModel hawker = new CharModel("Ferkh", GenderType.FEMALE);
+			hawker.equip = new Equip(97,97,97,97,0,0,1,0,0,0);
+			onLoad ( hawker );
+			CharModel knight = new CharModel("3awd", GenderType.MALE);
+			knight.equip = new Equip(42,42,42,42,0,0,1,0,0,0);
+			onLoad ( knight );
+			onLoad ( new CharModel("Hadik", GenderType.FEMALE ));
+				
+			
 		}
 
+		public void onLoad(CharModel charModel) {
+			// Do nothing if we already reached the max number of chars
+			if (players.Count >= 5)
+				return;
+				
+			// Generate a default player
+			charModel.rig = RigType.CHARSELECT;
+			charModel.state = States.SITTING;
+			RosePlayer player = new RosePlayer (charModel);
+			int id = players.Count;
+			Vector3 altarPos = playerPositions [id].position;
+			player.player.transform.position = new Vector3 (altarPos.x, altarPos.y + 2.1f, altarPos.z);
+			player.player.transform.LookAt (Camera.main.transform);
+			players.Add ( id, player );
+			currentPlayer = player;
+			
+		}
+		
 		public void onCreate() { 
 			// Do nothing if we already reached the max number of chars
 			if (players.Count >= 5)
@@ -25,16 +54,16 @@ namespace UnityRose
 			// Generate a default player
 			CharModel charModel = new CharModel ();
             charModel.rig = RigType.CHARSELECT;
-            charModel.state = States.SITTING;
+            charModel.state = States.HOVERING;
             RosePlayer player = new RosePlayer (charModel);
             int id = players.Count;
 			Vector3 altarPos = playerPositions [id].position;
 			player.player.transform.position = new Vector3 (altarPos.x, altarPos.y + 2.1f, altarPos.z);
 			player.player.transform.LookAt (Camera.main.transform);
 			players.Add ( id, player );
+			if(currentPlayer != null)
+				currentPlayer.setAnimationState(States.SIT);
             currentPlayer = player;
-
-            //player.player.GetComponent<PlayerController>().OnClick.AddListener(() => { OnPointerClick(); });
 
 		}
 

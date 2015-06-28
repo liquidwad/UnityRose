@@ -51,6 +51,21 @@ namespace UnityRose
 			maskID = 0;
 			capID = 0;
 		}
+		
+		public Equip(int chest, int foot, int hand, int cap, int weapon, int shield, int face, int hair,  int back, int mask)
+		{
+			chestID = chest;
+			footID = foot;
+			handID = hand;
+			capID = cap;
+			weaponID = weapon;
+			shieldID = shield;
+			faceID = face;
+			hairID = hair;
+			backID = back;
+			maskID = mask;
+			
+		}
 	}
 
 	public class CharModel {

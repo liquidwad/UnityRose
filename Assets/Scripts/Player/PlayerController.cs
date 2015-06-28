@@ -94,6 +94,8 @@ namespace UnityRose
         public void SetAnimationState(States state)
         {
             this.state = state;
+			if (animationStateMachine != null)
+				animationStateMachine.Evaluate(state);
         }
 
 		public void OnSkeletonChange()

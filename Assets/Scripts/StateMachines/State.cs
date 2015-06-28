@@ -79,6 +79,14 @@ public class StateConnection
 		this.paramName = parameter;
 		
 	}
+	
+	public StateConnection(States stateName,State nextState)
+	{
+		this.stateName = stateName;
+		this.nextState = nextState;
+		this.paramName = "";
+		
+	}
 }
 
 
@@ -432,16 +440,16 @@ public class CharSelectState : State
         //                |     |
         //                |     -> [sit -> sitting]
         //                |                      |
-        //                <------------------stand
+        //                <----------------standup
 
-        states["HOVERING"].connections.Add(new StateConnection(States.STANDING, states["STANDING"], "standing"));
+        states["HOVERING"].connections.Add(new StateConnection(States.STANDING, states["STANDING"]));
 
-        states["STANDING"].connections.Add(new StateConnection(States.SELECT, states["SELECT"], "select"));
-        states["STANDING"].connections.Add(new StateConnection(States.SITTING, states["SIT"], "sit"));
+        states["STANDING"].connections.Add(new StateConnection(States.SELECT, states["SELECT"]));
+        states["STANDING"].connections.Add(new StateConnection(States.SIT, states["SIT"]));
 
-        states["SITTING"].connections.Add(new StateConnection(States.STANDING, states["STANDUP"], "standing"));
+        states["SITTING"].connections.Add(new StateConnection(States.STANDUP, states["STANDUP"]));
 
-        states["SELECT"].connections.Add(new StateConnection(States.STANDING, states["STANDING"], "standing"));
+        states["SELECT"].connections.Add(new StateConnection(States.STANDING, states["STANDING"]));
 
     }
 
