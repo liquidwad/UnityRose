@@ -109,6 +109,15 @@ namespace UnityRose
 
         }
 
+        public void onCancel()
+        {
+            // Delete current char
+            onDelete();
+
+            // Hide the new char panel
+            newCharPanel.SetActive(false);
+        }
+
         public void onDelete()
         {
             if (currentPlayer != null)
@@ -186,6 +195,9 @@ namespace UnityRose
         
         // Update is called once per frame
         void Update () {
+            // Ignore clicks if the NewCharPanel is active
+            if (newCharPanel.active)
+                return;
 
             bool locate = false;
             switch (Application.platform)
