@@ -41,7 +41,10 @@ $RECYCLE.BIN/
  
 # Unity3D Generated File On Crash Reports
 sysinfo.txt
- 
+
+#custom addition files to exclude
+*.unity
+
 #folders
 Temp/
 Assets/3DDATA/
@@ -80,3 +83,5 @@ packages/JsonFx.2.0.1209.2802/lib/wp40/JsonFx.dll
 packages/JsonFx.2.0.1209.2802/lib/wp40/JsonFx.xml
 packages/repositories.config
 *.sln
+*.unity
+Assets/Scenes/Maps/charSelect.unity
