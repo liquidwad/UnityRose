@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using JsonFx.Json;
+using UnityRose;
 
 
 namespace Network.Packets
@@ -8,9 +9,18 @@ namespace Network.Packets
 	public enum UserOperation
 	{
 		REGISTER = 0,
-		LOGIN = 1,
-		CHARSELECT = 2
+		LOGIN,
+        SELECTCHAR,
+        CREATECHAR,
+        DELETECHAR,
 	}
+
+    public enum CharSelectOperation
+    {
+        CREATE = 0,
+        DELETE = 1,
+        SELECT = 2
+    }
 	
 	public enum LoginStatus
 	{
@@ -23,26 +33,37 @@ namespace Network.Packets
 	public enum RegisterResponse
 	{
 		ERROR = 0,
-		USERINVALID_EXISTS = 1,
-		SUCCESS = 2,
-		USERINVALID_TOOSHORT = 3,
-		USERINVALID_BADCHARS = 4,
-		PASSWORD_TOOSHORT = 5,
-		EMAIL_USED = 6,
-		EMAIL_INVALID = 7
+		VALID,
+		USERNAME_TOO_SHORT,
+		USERNAME_BAD_CHARS,
+		USERNAME_EXISTS,
+        PASSWORD_TOO_SHORT,
+		EMAIL_USED,
+		EMAIL_INVALID,
 	}
-	
-	///////////////// Client -> Server packets //////////////////////
-	public class RegisterPacket: Packet 
+
+    // All user packets must derive from this one
+    public class UserPacket : Packet
+    {
+        public UserPacket()
+        {
+            type = (int)PacketType.USER;
+        }
+    }
+
+    ///////////////// Client -> Server packets //////////////////////
+    public class RegisterPacket: UserPacket 
 	{
-		public string username { get; set; }
-		
-		public string password { get; set; }
-		
-		public string email { get; set; }
+        [JsonMember]
+        public string username { get; set; }
+        [JsonMember]
+        public string password { get; set; }
+        [JsonMember]
+        public string email { get; set; }
 		
 		public RegisterPacket()
 		{
+            
 		}
 		
 		public RegisterPacket(string username, string email, string password)
@@ -51,23 +72,17 @@ namespace Network.Packets
 			this.password = password;
 			this.email = email;
 			operation = (int)UserOperation.REGISTER;
-			type = (int)PacketType.USER;
-		}
-		
-		public override string toString()
-		{
-			writer.Write (this);			
-			return output.ToString();
 		}
 	}
 	
 	
 	// This packet is used by the user to login to the char select scene
-	public class LoginPacket: Packet
+	public class LoginPacket: UserPacket
 	{
-		public string username { get; set; }
-		
-		public string password {get; set; }
+        [JsonMember]
+        public string username { get; set; }
+        [JsonMember]
+        public string password {get; set; }
 		
 		public LoginPacket()
 		{
@@ -79,66 +94,25 @@ namespace Network.Packets
 			this.username = username;
 			this.password = password;
 			operation = (int)UserOperation.LOGIN;
-			type = (int)PacketType.USER;
 		}
 		
-		public override string toString()
-		{
-			writer.Write (this);			
-			return output.ToString();
-		}
 	}
-	
-	// This packet is sent by the client after selecting a character in the char select scene
-	public class CharSelectPacket: Packet
+
+    ///////////////// Server -> Client packets //////////////////////
+    public class LoginReply: Packet
 	{
-		public string characterID {get; set; }
-		
-		public CharSelectPacket()
-		{
-		}
-		
-		public CharSelectPacket(string characterID)
-		{
-			this.characterID = characterID;
-			type = (int)PacketType.USER;
-			operation = (int)UserOperation.CHARSELECT;
-		}
-		
-		public override string toString()
-		{
-			writer.Write (this);			
-			return output.ToString();
-		}
-	}
-	
-	public class LoginResponse{
-		public int status { get; set; }
-		public int numChars { get; set; }
-	}
-	
-	///////////////// Server -> Client packets //////////////////////
-	public class LoginReply: Packet
-	{
-		//[JsonMember]
-		//public int response { get; set; }
-		public LoginResponse response {get; set;}
+		[JsonMember]
+		public int response {get; set;}
 		
 		public LoginReply()
 		{
 			type = (int)PacketType.USER;
 			operation = (int)UserOperation.LOGIN;
 		}
-		
-		public override string toString()
-		{
-			writer.Write (this);			
-			return output.ToString();
-		}
+
 	}
 	
 	
-	[JsonOptIn]
 	public class RegisterReply: Packet
 	{
 		[JsonMember]
@@ -150,12 +124,35 @@ namespace Network.Packets
 			type = (int)PacketType.USER;
 			operation = (int)UserOperation.REGISTER;
 		}
-		
-		public override string toString()
-		{
-			writer.Write (this);			
-			return output.ToString();
-		}
 	}
+
+
+    ///////////////// Two-way packets //////////////////////
+
+    // This packet is sent by the client after creating, deleting, or choosing a character in the char select scene
+    public class CharSelectPacket : UserPacket
+    {
+        [JsonMember]
+        public string charID { get; set; }
+
+        [JsonMember]
+        public CharModel charModel { get; set; }
+
+        public CharSelectPacket()
+        {
+        }
+
+        public CharSelectPacket(UserOperation op, string charID)
+        {
+            operation = (int)op;
+            this.charID = charID;
+        }
+
+        public CharSelectPacket(CharModel charModel)
+        {
+            operation = (int)UserOperation.CREATECHAR;
+            this.charModel = charModel;
+        }
+    }
 }
 

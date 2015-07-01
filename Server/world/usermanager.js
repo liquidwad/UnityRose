@@ -4,9 +4,11 @@ var _ = require('lodash'),
 	validator = require('validator'),
 	mongoose = require('mongoose'),
 	UserModel = require('../models/user'),
+	CharModel = require('../models/char'),
 	User = require('./user'),
 	loginPacket = require('../packets/user/loginpacket'),
 	registerPacket = require('../packets/user/registerpacket'),
+	spawnCharPacket = require('../packets/user/spawnCharPacket'),
 	opcodes = require('../packets/opcodes'),
 	crypto = require('../crypto');
 
@@ -39,6 +41,7 @@ var UserManager = function() {
 				response = opcodes.loginCallbackOperation.Error;
 			} else {
 				if(user) {
+					user.online = true;
 					userManager.addUser(client, user);
 					response = opcodes.loginCallbackOperation.Valid;
 				} else {
@@ -47,11 +50,35 @@ var UserManager = function() {
 				}
 			}
 
-			var encryptedPacket = crypto.encrypt( loginPacket( response, user.numChars ) );
+			var encryptedPacket = crypto.encrypt( loginPacket( response) );
 			client.write( encryptedPacket );
 		});
 	};
 
+	
+	// Sends a packet for each character the user owns to the client
+	// With a character model for each
+	this.spawnChars = function(client, user) {
+		var userManager = this;
+		
+		// For each char ID found in user
+		_.each(user._chars, function(char) {
+			// Find the char with this char ID in the char database
+			CharModel.findOne({ 
+				_charID: char
+			}, function(err, char) {
+	
+				if(!err && char)
+				{
+					var encryptedPacket = crypto.encrypt( spawnCharPacket( char ) );
+					client.write( encryptedPacket );
+				}
+				
+			}); // end findOne
+		});  // end each
+		
+	};
+	
 
 	this.sendRegistrationResponse = function(client, response) {
 		var encryptedPacket = crypto.encrypt( registerPacket( response ) );

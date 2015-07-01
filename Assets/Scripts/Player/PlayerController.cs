@@ -14,7 +14,7 @@ using UnityEngine.EventSystems;
 namespace UnityRose
 {
 
-    public class PlayerController : MonoBehaviour
+    public class PlayerController : NetworkMonoBehaviour
     {
     	public bool isMainPlayer = false;
 		public PlayerInfo playerInfo;
@@ -29,8 +29,6 @@ namespace UnityRose
         private bool isWalking = false;
         private States state = States.STANDING;
 		public RosePlayer rosePlayer;
-
-		public Queue<Action> funcQueue;
 		
 		void Awake()
 		{
@@ -44,8 +42,8 @@ namespace UnityRose
             controller = this.gameObject.GetComponent<CharacterController>();
             destinationPosition = transform.position;
 			playerInfo.name = this.name;
-			
-			funcQueue = new Queue<Action>();
+
+            base.Init();
            
            /*
             // Add definitions for all packet received delegates  
@@ -118,10 +116,7 @@ namespace UnityRose
         // Update is called once per frame
         void Update()
         {
-			while(funcQueue.Count > 0) 
-			{
-				funcQueue.Dequeue().Invoke();
-			}
+            base.ProcessPackets();
 
             // Only handle walking movement if the correct rig is used
             if(rosePlayer.charModel.rig == RigType.FOOT)

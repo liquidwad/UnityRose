@@ -69,17 +69,18 @@ namespace UnityRose
 	}
 
 	public class CharModel {
+        public string _charID { get; set; }
 		public string name { get; set; }
 		public Job1Type job1 { get; set; }
 		public Job2Type job2 { get; set; }
 		public int level { get; set; }
 		public Vector3 pos { get; set; }
-		public Stats stats { get; set; }
 		public GenderType gender { get; set; }
 		public WeaponType weapon { get; set; }
         public RigType rig { get; set; }
         public States state { get; set; }
-		public Equip equip { get; set; }
+        public Stats stats { get; set; }
+        public Equip equip { get; set; }
 
 		public CharModel()
 		{

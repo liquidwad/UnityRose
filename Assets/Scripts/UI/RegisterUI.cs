@@ -11,13 +11,14 @@ using UnityEngine.EventSystems;
 using Network;
 using Network.Packets;
 
-public class RegisterUI : MonoBehaviour {
+public class RegisterUI : NetworkMonoBehaviour {
 
 	EventSystem system;
 	
 	GameObject messageBox;
 	
 	public Button registerButton;
+    public Text errorText;
 	public Color errorColor;
 	public int minPwLength;
 	public char[] invalidUserNameChars;
@@ -32,9 +33,11 @@ public class RegisterUI : MonoBehaviour {
 	private bool passwordValid;
 	private bool passwordMatchValid;
 	private bool emailValid;
-	
+    private bool success;
+
 	// Use this for initialization
 	void Start () {
+        base.Init();
 		system = EventSystem.current;
 		registerButton.interactable = false;
 		userNameValid = false;
@@ -44,33 +47,68 @@ public class RegisterUI : MonoBehaviour {
 		
 		UserManager.Instance.registerCallback(UserOperation.REGISTER, (object obj) =>
 		{
-			RegisterReply packet = (RegisterReply)obj;
+            funcQueue.Enqueue(() => {
+            
+                RegisterReply packet = (RegisterReply)obj;
 			
-			RegisterResponse registrationResponse = (RegisterResponse)packet.response;
+			    RegisterResponse registrationResponse = (RegisterResponse)packet.response;
 			
-			switch(registrationResponse)
-			{
-				case RegisterResponse.SUCCESS:
-				case RegisterResponse.ERROR:
-				case RegisterResponse.EMAIL_INVALID:
-				default:
-					break;
-			}
-			
-			Debug.Log ("Nigga you have registered with this return code " + packet.response);
-		});
+			    switch(registrationResponse)
+			    {
+				    case RegisterResponse.VALID:
+                        // TODO: show a message box telling them the registration was successful
+                        errorText.color = Color.green;
+                        errorText.text = "Registration successful!";
+                        Application.LoadLevel("loginScene");
+                        break;
+				
+				    case RegisterResponse.EMAIL_INVALID:
+                        errorText.text = "Invalid email";
+                        break;
+                    case RegisterResponse.EMAIL_USED:
+                        errorText.text = "Email already used";
+                        break;
+                    case RegisterResponse.PASSWORD_TOO_SHORT:
+                        errorText.text = "Password too short";
+                        break;
+                    case RegisterResponse.USERNAME_BAD_CHARS:
+                        errorText.text = "Username contains invalid characters";
+                        break;
+                    case RegisterResponse.USERNAME_EXISTS:
+                        errorText.text = "Username already taken";
+                        break;
+                    case RegisterResponse.USERNAME_TOO_SHORT:
+                        errorText.text = "Username is too short. Must be at least 6 characters.";
+                        break;
+                    default:
+                        errorText.text = "An unknown error occurred: " + (int)registrationResponse;
+					    break;
+			    }
+
+            }); // End Enqueue
+
+        }); // End registerCallback
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		Utils.handleTab( system );
-		
-		if ( userNameValid &&  passwordValid && passwordMatchValid && emailValid )
+
+        base.ProcessPackets();
+
+        if ( userNameValid &&  passwordValid && passwordMatchValid && emailValid )
 			registerButton.interactable = true;
 		else
 			registerButton.interactable = false;
+
 	}
 	
+    public void onClearError()
+    {
+        errorText.color = Color.red;
+        errorText.text = "";
+    }
+
 	public void backBtn() {
 		Application.LoadLevel("loginScene");
 	}

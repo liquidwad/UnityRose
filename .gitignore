@@ -85,3 +85,5 @@ packages/repositories.config
 *.sln
 *.unity
 Assets/Scenes/Maps/charSelect.unity
+*.unity
+*.csproj

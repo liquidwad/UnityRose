@@ -4,15 +4,12 @@ var crypto = require('crypto'),
 	type = require('../type'),
 	opcodes = require('./opcodes');
 
-module.exports = function(response, numChars) 
+module.exports = function(response) 
 {
 	var packet = {
 		type: type.User,
 		operation: opcodes.userOperation.Login,
-		response: {
-			status: response,
-			numChars: numChars
-		}
+		response: response
 	};
 
 	return packet;

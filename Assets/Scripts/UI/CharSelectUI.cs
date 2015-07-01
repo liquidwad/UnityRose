@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System;
+using Network;
+using Network.Packets;
 
 namespace UnityRose
 {
-    public class CharSelectUI : MonoBehaviour
+    public class CharSelectUI : NetworkMonoBehaviour
     {
         public Transform[] playerPositions;
         public GameObject newCharPanel;
@@ -15,10 +17,22 @@ namespace UnityRose
 
         // Use this for initialization
         void Start() {
+            base.Init();
             newCharPanel = GameObject.Find("NewCharPanel");
             newCharPanel.SetActive(false);
 
             players = new Dictionary<RosePlayer, int>();
+
+            UserManager.Instance.registerCallback(UserOperation.CREATECHAR, (object obj) =>
+            {
+                funcQueue.Enqueue(() => {
+                    CharSelectPacket packet = (CharSelectPacket)obj;
+                    onLoad(packet.charModel);
+
+                });
+            });
+
+            /*
             // TODO: get packets from server to populate players
             // For now simulate loading 3 players
             onLoad(new CharModel("Hadak", GenderType.MALE));
@@ -28,9 +42,38 @@ namespace UnityRose
             CharModel knight = new CharModel("3awd", GenderType.MALE);
             knight.equip = new Equip(42, 42, 42, 42, 0, 0, 1, 0, 0, 0);
             onLoad(knight);
+            */
 
 
         }
+
+        // Update is called once per frame
+        void Update()
+        {
+            base.ProcessPackets();
+
+            // Ignore clicks if the NewCharPanel is active
+            if (newCharPanel.active)
+                return;
+
+            bool locate = false;
+            switch (Application.platform)
+            {
+                case RuntimePlatform.IPhonePlayer:
+                case RuntimePlatform.Android:
+                case RuntimePlatform.WP8Player:
+                    locate = Input.touchCount > 0;
+                    break;
+                default:
+                    locate = Input.GetMouseButton(0);
+                    break;
+
+            }
+
+            if (locate)
+                LocatePlayer();
+        }
+
 
         public void onLoad(CharModel charModel) {
             // Do nothing if we already reached the max number of chars
@@ -92,6 +135,9 @@ namespace UnityRose
 
         public void onCreate()
         {
+            // Tell the server that we have created a new char
+            NetworkManager.Send(new CharSelectPacket(currentPlayer.charModel));
+
             // Hide the new char panel
             newCharPanel.SetActive(false);
 
@@ -107,6 +153,11 @@ namespace UnityRose
             // Make them stand 
             currentPlayer.setAnimationState(States.STANDING);
 
+        }
+
+        public void onNetworkCreate()
+        {
+            // TODO
         }
 
         public void onCancel()
@@ -193,30 +244,6 @@ namespace UnityRose
         }
 
         
-        // Update is called once per frame
-        void Update () {
-            // Ignore clicks if the NewCharPanel is active
-            if (newCharPanel.active)
-                return;
-
-            bool locate = false;
-            switch (Application.platform)
-            {
-                case RuntimePlatform.IPhonePlayer:
-                case RuntimePlatform.Android:
-                case RuntimePlatform.WP8Player:
-                    locate = Input.touchCount > 0;
-                    break;
-                default:
-                    locate = Input.GetMouseButton(0);
-                    break;
-
-            }
-
-            if (locate)
-                LocatePlayer();
-        }
-
         void LocatePlayer()
         {
             Vector2 screenPoint;

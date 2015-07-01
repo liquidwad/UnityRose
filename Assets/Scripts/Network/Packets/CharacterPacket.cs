@@ -35,11 +35,6 @@ namespace Network.Packets
 			operation = (int)CharacterOperation.DEFAULT;
 		}
 		
-		public override string toString()
-		{
-			writer.Write (this);			
-			return output.ToString();
-		}
 	}
 
 	// Two way packet for sending/receiving ground click events
@@ -61,11 +56,6 @@ namespace Network.Packets
 			operation = (int)CharacterOperation.GROUNDCLICK;
 		}
 		
-		public override string toString()
-		{
-			writer.Write (this);
-			return output.ToString();
-		}
 	}
 	
 	// Client -> Server packet for player load completed
@@ -82,11 +72,6 @@ namespace Network.Packets
 			this.clientID = clientID;
 		}
 		
-		public override string toString()
-		{
-			writer.Write (this);			
-			return output.ToString();
-		}
 	}
 	
 	// Server -> Client packet for initializing a new character
@@ -119,11 +104,6 @@ namespace Network.Packets
 			this.pInfo = info;
 		}
 		
-		public override string toString()
-		{
-			writer.Write (this);			
-			return output.ToString();
-		}
 	}
 	
 	[JsonOptIn]
@@ -141,11 +121,6 @@ namespace Network.Packets
 			operation = (int)CharacterOperation.DESTROY;
 		}
 		
-		public override string toString()
-		{
-			writer.Write (this);			
-			return output.ToString();
-		}
 	}
 	
 	
@@ -162,11 +137,6 @@ namespace Network.Packets
 			operation = (int)CharacterOperation.CHANGEDSTATE;
 		}
 		
-		public override string toString()
-		{
-			writer.Write (this);			
-			return output.ToString();
-		}
 	}
 }
 

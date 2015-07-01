@@ -13,58 +13,57 @@ using UnityEngine.EventSystems;
 using Network;
 using Network.Packets;
 
-public class LoginUI : MonoBehaviour {
+public class LoginUI : NetworkMonoBehaviour {
 
+    
 	EventSystem system;
-	
 	private string username;
-	
 	private string password;
-	
-	//public GameObject MessageBox;
-	
-	//problably have to create a UIManager
-	public Queue<Action> funcQueue;
-	
-	// Use this for initialization
-	void Start () {
-		system = EventSystem.current;
-		
-		funcQueue = new Queue<Action>();
-		
-		UserManager.Instance.registerCallback(UserOperation.LOGIN, (object obj) =>
+
+    private Text errorText;
+    private InputField userField;
+    private InputField passField;
+
+    // Use this for initialization
+    void Start () {
+        base.Init();
+
+        system = EventSystem.current;
+
+        errorText = GameObject.Find("ErrorText").GetComponent<Text>();
+        userField = GameObject.Find("usernameEdit").GetComponent<InputField>();
+        passField = GameObject.Find("passwordEdit").GetComponent<InputField>();
+
+        UserManager.Instance.registerCallback(UserOperation.LOGIN, (object obj) =>
 		{
 			funcQueue.Enqueue(() => {
 				LoginReply packet = (LoginReply)obj;
 				
-				//GameObject msgbox = Instantiate<GameObject>(MessageBox);
-				
-				LoginStatus loginStatus = (LoginStatus)packet.response.status;
+				LoginStatus loginStatus = (LoginStatus)packet.response;
 				
 				string loginmessage = string.Empty;
-				
-				Text errorText = GameObject.Find("ErrorText").GetComponent<Text>();
+
 				
 				switch(loginStatus)
 				{
 					case LoginStatus.VALID:
-						Application.LoadLevel("charSelect");
-						errorText.text =  "";
+                        errorText.text = "";
+                        Application.LoadLevel("charSelect");
 						break;
 					case LoginStatus.NOT_EXIST:
-						errorText.text =  "Username or password invalid";
+                        userField.text = "";
+                        passField.text = "";
+                        errorText.text =  "Username or password invalid";
 						break;
 					case LoginStatus.ERROR:
-						errorText.text = "There was an error";
+                        userField.text = "";
+                        passField.text = "";
+                        errorText.text = "There was an error";
 						break;
 					default:
 					break;
 				}
 				
-				
-				//UI.MessageBox.Show(msgbox, loginmessage, "LoginReply", ()=> {
-				//	DestroyObject(msgbox);
-				//});
 			});
 		});
 	}
@@ -73,29 +72,35 @@ public class LoginUI : MonoBehaviour {
 	void Update () 
 	{
 		Utils.handleTab( system );
-		
-		if( funcQueue != null )
-			while(funcQueue.Count > 0) 
-				funcQueue.Dequeue().Invoke();	
-		
-		
+        if (Input.GetKeyDown(KeyCode.Return))
+            onLogin();
+        
+        base.ProcessPackets();
+
 	}
 	
 	public void saveUsername() {
 		InputField input = system.currentSelectedGameObject.GetComponent<InputField>();
 		username = input.text;
-	}
+        onClearError();
+    }
 	
 	public void savePassword() {
 		InputField input = system.currentSelectedGameObject.GetComponent<InputField>();
 		password = input.text;
-	}
+        onClearError();
+    }
 	
-	public void loginBtn(){
+	public void onLogin(){
 		NetworkManager.Send(new LoginPacket(username, password));
 	}
 	
-	public void registerBtn(){
+	public void onRegister(){
 		Application.LoadLevel("registrationScene");
 	}
+
+    public void onClearError()
+    {
+        errorText.text = "";
+    }
 }

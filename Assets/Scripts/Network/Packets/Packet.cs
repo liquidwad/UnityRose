@@ -46,7 +46,7 @@ namespace Network.Packets
 			writer = new JsonWriter (output,settings);
     	}
     	
-        public virtual string toString()
+        public string toString()
         {
 			writer.Write (this);			
 			return output.ToString();

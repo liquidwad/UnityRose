@@ -4,7 +4,8 @@ module.exports = {
 	userOperation: {
 		Register: 0,
 		Login: 1,
-		CharSelect: 2
+		CharSelect: 2,
+		SpawnChar: 3
 	},
 
 	//LOGIN
@@ -17,13 +18,12 @@ module.exports = {
 	//REGISTER
 	registerCallbackOperation: {
 		Error: 0,
-		Exists: 1,
-		Valid: 2,
-		UsernameTooShort: 3,
-		UsernameBadChars: 4,
-		UsernameExists: 5,
-		PasswordTooShort: 6,
-		EmailUsed: 7,
-		EmailInvalid: 8
+		Valid: 1,
+		UsernameTooShort: 2,
+		UsernameBadChars: 3,
+		UsernameExists: 4,
+		PasswordTooShort: 5,
+		EmailUsed: 6,
+		EmailInvalid: 7
 	},
 };
