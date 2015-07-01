@@ -100,6 +100,9 @@ public class RegisterUI : NetworkMonoBehaviour {
 			registerButton.interactable = true;
 		else
 			registerButton.interactable = false;
+			
+		if (Input.GetKeyDown(KeyCode.Return) && registerButton.interactable)
+			registerBtn();
 
 	}
 	

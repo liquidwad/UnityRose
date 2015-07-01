@@ -10,9 +10,10 @@ namespace Network.Packets
 	{
 		REGISTER = 0,
 		LOGIN,
-        SELECTCHAR,
-        CREATECHAR,
-        DELETECHAR,
+		CHARSELECT, // tells server char select finished loading
+        SELECTCHAR, // tells server which char has been selected for entering game
+        CREATECHAR, // two-way: tells server we created a char. Tells client to accept that char.
+        DELETECHAR, // tells server we have deleted a char
 	}
 
     public enum CharSelectOperation
@@ -140,6 +141,7 @@ namespace Network.Packets
 
         public CharSelectPacket()
         {
+        	operation = (int)UserOperation.CHARSELECT;
         }
 
         public CharSelectPacket(UserOperation op, string charID)

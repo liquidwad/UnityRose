@@ -22,7 +22,10 @@ namespace UnityRose
             newCharPanel.SetActive(false);
 
             players = new Dictionary<RosePlayer, int>();
-
+			
+			// Register for incoming createchar packets
+			
+			// Server tells us to load a character
             UserManager.Instance.registerCallback(UserOperation.CREATECHAR, (object obj) =>
             {
                 funcQueue.Enqueue(() => {
@@ -31,6 +34,23 @@ namespace UnityRose
 
                 });
             });
+            
+            // Server tells us our new char request is valid
+			UserManager.Instance.registerCallback(UserOperation.CREATECHAR, (object obj) =>
+			{
+				funcQueue.Enqueue(() => {
+					CharSelectPacket packet = (CharSelectPacket)obj;
+					if( packet.charID != null && packet.charID != "" )
+					{
+						currentPlayer.charModel._charID = packet.charID;
+						onNetworkCreate();
+					}
+				});
+			});
+            
+            
+            // Tell the server we are ready to recieve char select packets
+			NetworkManager.Send(new CharSelectPacket());
 
             /*
             // TODO: get packets from server to populate players
@@ -138,28 +158,28 @@ namespace UnityRose
             // Tell the server that we have created a new char
             NetworkManager.Send(new CharSelectPacket(currentPlayer.charModel));
 
-            // Hide the new char panel
-            newCharPanel.SetActive(false);
-
-            // Put the player on the approriate altar
-            Vector3 altarPos = playerPositions[findFirstEmptySlot()].position;
-
-            int id = findFirstEmptySlot();
-            players.Add(currentPlayer, id);
-
-            currentPlayer.player.transform.position = new Vector3(altarPos.x, altarPos.y + 2.1f, altarPos.z);
-            currentPlayer.player.transform.LookAt(Camera.main.transform);
-
-            // Make them stand 
-            currentPlayer.setAnimationState(States.STANDING);
-
         }
 
+		// Server response to onCreate()
         public void onNetworkCreate()
         {
-            // TODO
+			// Hide the new char panel
+			newCharPanel.SetActive(false);
+			
+			// Put the player on the approriate altar
+			Vector3 altarPos = playerPositions[findFirstEmptySlot()].position;
+			
+			int id = findFirstEmptySlot();
+			players.Add(currentPlayer, id);
+			
+			currentPlayer.player.transform.position = new Vector3(altarPos.x, altarPos.y + 2.1f, altarPos.z);
+			currentPlayer.player.transform.LookAt(Camera.main.transform);
+			
+			// Make them stand 
+			currentPlayer.setAnimationState(States.STANDING);
         }
-
+		
+		// Cancel char creation
         public void onCancel()
         {
             // Delete current char
@@ -169,10 +189,15 @@ namespace UnityRose
             newCharPanel.SetActive(false);
         }
 
+		// Delete the current player
         public void onDelete()
         {
             if (currentPlayer != null)
             {
+            	// Tell the server
+				NetworkManager.Send(new CharSelectPacket(UserOperation.DELETECHAR, currentPlayer.charModel._charID));
+                
+                // Destroy the char
                 players.Remove(currentPlayer);
                 currentPlayer.Destroy();
                 currentPlayer = null;
