@@ -142,7 +142,7 @@ namespace Network.Packets
     public class CharSelectPacket : UserPacket
     {
         [JsonMember]
-        public string name { get; set; }
+        public int status { get; set; }
 
         [JsonMember]
         public CharModel charModel { get; set; }
@@ -155,7 +155,7 @@ namespace Network.Packets
         public CharSelectPacket(UserOperation op, string name)
         {
             operation = (int)op;
-            this.name = name;
+            charModel.name = name;
         }
 
         public CharSelectPacket(CharModel charModel)

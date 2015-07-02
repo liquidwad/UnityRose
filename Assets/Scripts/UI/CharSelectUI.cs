@@ -40,10 +40,26 @@ namespace UnityRose
 			{
 				funcQueue.Enqueue(() => {
 					CharSelectPacket packet = (CharSelectPacket)obj;
-					if( packet.name != null && packet.name != "" )
+					
+					CharSelectResponse response = (CharSelectResponse)packet.status;
+					
+					switch( response )
 					{
-						currentPlayer.charModel.name = packet.name;
-						onNetworkCreate();
+						case CharSelectResponse.SUCCESS:
+							onNetworkCreate();
+							break;
+						case CharSelectResponse.NAME_EXISTS:
+							Debug.Log ("TODO: name already exists");
+							break;
+						case CharSelectResponse.INVALID_CHOICE:
+							Debug.Log ("TODO: choices are not valid");
+							break;
+						case CharSelectResponse.ERROR:
+							Debug.Log ("TODO: an internal error has occurred");
+							break;
+						default:
+							Debug.Log ("TODO: a communication error has occurred");
+							break;
 					}
 				});
 			});
