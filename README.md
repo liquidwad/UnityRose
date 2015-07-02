@@ -9,6 +9,7 @@ Unity version of Rose Online
     <li>Run <code>npm install</code> in the server folder to download all packages</li>
     <li>Start Mongodb instance - <a href="http://docs.mongodb.org/manual/" target="_blank">Manual</a></li>
     <li>Run <code>npm start</code> or <code>nodemon server.js</code> in the server folder</li>
+    <li>To install a database admin tool, follow insturctions in <a href="https://www.npmjs.com/package/mongo-express" target="_blank">npm-express</a></li>
   </ul>
 </p>
 
