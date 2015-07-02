@@ -60,7 +60,13 @@ namespace Network
 				case UserOperation.REGISTER:
 					_packet = jsonReader.Deserialize<RegisterReply>();
 					break;
-				default:
+                case UserOperation.CHARSELECT:
+                case UserOperation.CREATECHAR:
+                case UserOperation.DELETECHAR:
+                case UserOperation.SELECTCHAR:
+                    _packet = jsonReader.Deserialize<CharSelectPacket>();
+                    break;
+                default:
 					break;
 			}
 			

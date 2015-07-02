@@ -20,8 +20,7 @@ exports.CreateCharPacket = function(status)
 	var packet = {
 		type: type.User,
 		operation: opcodes.userOperation.CreateChar,
-		status: status,
-		charModel: null
+		status: status
 	};
 
 	return packet;

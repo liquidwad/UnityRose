@@ -63,24 +63,41 @@ var UserManager = function() {
 		
 		var user = userManager.getUser( client );
 		if( user == null )
+		{
+			console.log("User is null");
 			return;
+		}
 		
-		// For each char ID found in user
-		_.each(user._chars, function(char) {
-			// Find the char with this char ID in the char database
-			CharModel.findOne({ 
-				_charID: char
-			}, function(err, char) {
-	
-				if(!err && char)
-				{
-					var encryptedPacket = crypto.encrypt( CharSelectPackets.SpawnCharPacket( char ) );
-					client.write( encryptedPacket );
-				}
-				
-			}); // end findOne
-		});  // end each
+		UserModel.findOne({
+			username: user.username 
+		}, function(err, foundUser) {
+			if(err)
+			{
+				console.log("Couldn't find user: " + user.username);
+				return;
+			}
+			
+			// For each char ID found in user
+			_.each(foundUser._chars, function(char) {
+				console.log("char: " + char);
+				// Find the char with this char ID in the char database
+				CharModel.findOne({ 
+					name: char
+				}, function(err, foundChar) {
 		
+					if(!err && foundChar)
+					{
+						var encryptedPacket = crypto.encrypt( CharSelectPackets.SpawnCharPacket( foundChar ) );
+						client.write( encryptedPacket );
+					}
+					else
+					{
+						console.log("Couldn't find char: " + char);
+					}
+					
+				}); // end findOne CharModel
+			});  // end each
+		}); // end findOne UserModel
 	};
 	
 	
@@ -125,7 +142,14 @@ var UserManager = function() {
 			
 			}, function(err, char) {
 				if(!err && char )
+				{
+					UserModel.update (
+						{ username: user.username },
+						{ $push: { _chars: packet.charModel.name} }
+					);
+
 					client.write(crypto.encrypt( CharSelectPackets.CreateCharPacket( opcodes.charSelectCallBackOp.Success) ) );
+				}
 				else
 					client.write(crypto.encrypt( CharSelectPackets.CreateCharPacket( opcodes.charSelectCallBackOp.Error ) ) );
 					

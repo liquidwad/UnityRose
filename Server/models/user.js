@@ -9,8 +9,8 @@ var userSchema = new Schema({
 	email: String,
 	server: Number,
 	online: Boolean,
-	_chars: [Schema.Types.ObjectId],
-	_activeChar: Schema.Types.ObjectId
+	_chars: [String],
+	_activeChar: String
 });
 
 var User = mongoose.model('User', userSchema);
