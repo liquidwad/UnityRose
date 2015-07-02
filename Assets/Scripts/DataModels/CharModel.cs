@@ -69,7 +69,6 @@ namespace UnityRose
 	}
 
 	public class CharModel {
-        public string _charID { get; set; }
 		public string name { get; set; }
 		public Job1Type job1 { get; set; }
 		public Job2Type job2 { get; set; }

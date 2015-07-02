@@ -5,7 +5,9 @@ module.exports = {
 		Register: 0,
 		Login: 1,
 		CharSelect: 2,
-		SpawnChar: 3
+		SelectChar: 3,
+		CreateChar: 4,
+		DeleteChar: 5
 	},
 
 	//LOGIN
@@ -26,4 +28,13 @@ module.exports = {
 		EmailUsed: 6,
 		EmailInvalid: 7
 	},
+	
+	// CHARSELECT
+	charSelectCallBackOp: {
+		Error: 0,
+		Success: 1,
+		NameExists: 2,
+		InvalidChoice: 3
+		
+	}
 };

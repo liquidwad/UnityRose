@@ -26,7 +26,7 @@ namespace UnityRose
 			// Register for incoming createchar packets
 			
 			// Server tells us to load a character
-            UserManager.Instance.registerCallback(UserOperation.CREATECHAR, (object obj) =>
+            UserManager.Instance.registerCallback(UserOperation.CHARSELECT, (object obj) =>
             {
                 funcQueue.Enqueue(() => {
                     CharSelectPacket packet = (CharSelectPacket)obj;
@@ -40,17 +40,18 @@ namespace UnityRose
 			{
 				funcQueue.Enqueue(() => {
 					CharSelectPacket packet = (CharSelectPacket)obj;
-					if( packet.charID != null && packet.charID != "" )
+					if( packet.name != null && packet.name != "" )
 					{
-						currentPlayer.charModel._charID = packet.charID;
+						currentPlayer.charModel.name = packet.name;
 						onNetworkCreate();
 					}
 				});
 			});
-            
-            
+
+
+
             // Tell the server we are ready to recieve char select packets
-			NetworkManager.Send(new CharSelectPacket());
+            NetworkManager.Send(new CharSelectPacket());
 
             /*
             // TODO: get packets from server to populate players
@@ -195,7 +196,7 @@ namespace UnityRose
             if (currentPlayer != null)
             {
             	// Tell the server
-				NetworkManager.Send(new CharSelectPacket(UserOperation.DELETECHAR, currentPlayer.charModel._charID));
+				NetworkManager.Send(new CharSelectPacket(UserOperation.DELETECHAR, currentPlayer.charModel.name));
                 
                 // Destroy the char
                 players.Remove(currentPlayer);

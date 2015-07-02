@@ -8,7 +8,7 @@ var _ = require('lodash'),
 	User = require('./user'),
 	loginPacket = require('../packets/user/loginpacket'),
 	registerPacket = require('../packets/user/registerpacket'),
-	spawnCharPacket = require('../packets/user/spawnCharPacket'),
+	CharSelectPackets = require('../packets/user/CharSelectPackets'),
 	opcodes = require('../packets/opcodes'),
 	crypto = require('../crypto');
 
@@ -58,8 +58,12 @@ var UserManager = function() {
 	
 	// Sends a packet for each character the user owns to the client
 	// With a character model for each
-	this.spawnChars = function(client, user) {
+	this.spawnChars = function(client, packet) {
 		var userManager = this;
+		
+		var user = userManager.getUser( client );
+		if( user == null )
+			return;
 		
 		// For each char ID found in user
 		_.each(user._chars, function(char) {
@@ -70,7 +74,7 @@ var UserManager = function() {
 	
 				if(!err && char)
 				{
-					var encryptedPacket = crypto.encrypt( spawnCharPacket( char ) );
+					var encryptedPacket = crypto.encrypt( CharSelectPackets.SpawnCharPacket( char ) );
 					client.write( encryptedPacket );
 				}
 				
@@ -79,11 +83,63 @@ var UserManager = function() {
 		
 	};
 	
-
+	
+	this.createChar = function(client, packet ){
+		var userManager = this;
+		var user = userManager.getUser( client );
+		if( user == null )
+			return;
+		
+		// TODO: handle the case where user already has max number of chars
+		// validate the new character
+		var validHairs = [ 0, 5, 10, 15, 20, 25, 30 ];
+		var validFaces = [1, 8, 15, 22, 29, 36, 43, 50, 57, 64, 71, 78, 85, 92];
+		var validGenders = ["MALE", "FEMALE"];
+		
+		var hairValid = validHairs.indexOf(packet.charModel.equip.hairID ) >= 0;
+		var faceValid = validFaces.indexOf(packet.charModel.equip.faceID ) >= 0;
+		var genderValid = validGenders.indexOf(packet.charModel.gender ) >= 0;
+		
+		if( ! (hairValid && faceValid && genderValid ) )
+		{
+			client.write(crypto.encrypt( CharSelectPackets.CreateCharPacket( opcodes.charSelectCallBackOp.InvalidChoice ) ) );
+			return;	
+		}
+		
+		CharModel.findOne({
+			name: packet.charModel.name
+		}, function(err, char) {
+			if( !err && char )
+			{
+				client.write(crypto.encrypt( CharSelectPackets.CreateCharPacket( opcodes.charSelectCallBackOp.NameExists ) ) );
+				return;		
+			}
+			
+			CharModel.create({
+				'name': packet.charModel.name,
+				'gender': packet.charModel.gender,
+				'equip': {
+					'hairID': packet.charModel.equip.hairID,
+					'faceID' : packet.charModel.equip.faceID	
+				}
+			
+			}, function(err, char) {
+				if(!err && char )
+					client.write(crypto.encrypt( CharSelectPackets.CreateCharPacket( opcodes.charSelectCallBackOp.Success) ) );
+				else
+					client.write(crypto.encrypt( CharSelectPackets.CreateCharPacket( opcodes.charSelectCallBackOp.Error ) ) );
+					
+			});
+			
+		
+		});
+	};
+	
+	
 	this.sendRegistrationResponse = function(client, response) {
 		var encryptedPacket = crypto.encrypt( registerPacket( response ) );
 		client.write(encryptedPacket);
-	}
+	};
 
 	this.registerUser = function(client, packet) {
 
@@ -157,7 +213,7 @@ var UserManager = function() {
 	};
 
 	this.findIndex = function(client) {
-		var index = _.findIndex(users, function(user) {
+		var index = _.findIndex(this.users, function(user) {
 			return (user.client === client);
 		});
 
@@ -220,7 +276,10 @@ var UserManager = function() {
 
 	this.registerPacket(opcodes.userOperation.Register, this.registerUser);
 	this.registerPacket(opcodes.userOperation.Login, this.loginUser);
-
+	this.registerPacket(opcodes.userOperation.CharSelect, this.spawnChars);
+	this.registerPacket(opcodes.userOperation.SelectChar, this.selectChar);
+	this.registerPacket(opcodes.userOperation.CreateChar, this.createChar);
+	this.registerPacket(opcodes.userOperation.DeleteChar, this.deleteChar);
 	console.log("User manager has loaded");
 };
 
