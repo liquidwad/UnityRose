@@ -42,7 +42,8 @@ var UserManager = function() {
 			} else {
 				if(user) {
 					user.online = true;
-					userManager.addUser(client, user);
+					if(userManager.getUser(client) == null)
+						userManager.addUser(client, user);
 					response = opcodes.loginCallbackOperation.Valid;
 				} else {
 					response = opcodes.loginCallbackOperation.NotExist;
@@ -67,13 +68,17 @@ var UserManager = function() {
 			console.log("User is null");
 			return;
 		}
+		else
+		{
+			console.log("User name is: " + user.model.username);
+		}
 		
 		UserModel.findOne({
-			username: user.username 
+			username: user.model.username 
 		}, function(err, foundUser) {
-			if(err)
+			if(err || (foundUser == null) )
 			{
-				console.log("Couldn't find user: " + user.username);
+				console.log("Couldn't find user: " + user.model.username);
 				return;
 			}
 			
@@ -133,19 +138,25 @@ var UserManager = function() {
 			}
 			
 			CharModel.create({
-				'name': packet.charModel.name,
-				'gender': packet.charModel.gender,
-				'equip': {
-					'hairID': packet.charModel.equip.hairID,
-					'faceID' : packet.charModel.equip.faceID	
+				name: packet.charModel.name,
+				gender: packet.charModel.gender,
+				equip: {
+					hairID: packet.charModel.equip.hairID,
+					faceID : packet.charModel.equip.faceID	
 				}
 			
 			}, function(err, char) {
 				if(!err && char )
 				{
-					UserModel.update (
-						{ username: user.username },
-						{ $push: { _chars: packet.charModel.name} }
+					console.log("Adding " + packet.charModel.name + " to " + user.model.username);
+					UserModel.findOne ({ username: user.model.username }, function (err, foundUser) {
+						if( !err && foundUser)
+						{
+							foundUser._chars.push(packet.charModel.name);
+							foundUser.save(null);
+						}
+					}
+						
 					);
 
 					client.write(crypto.encrypt( CharSelectPackets.CreateCharPacket( opcodes.charSelectCallBackOp.Success) ) );
@@ -193,8 +204,8 @@ var UserManager = function() {
 
 		UserModel.findOne({
 			$or: [
-				{ 'username': packet.username },
-				{ 'email': packet.email }
+				{ username: packet.username },
+				{ email: packet.email }
 			]
 		}, 
 		function(err, user) {
@@ -220,10 +231,11 @@ var UserManager = function() {
 			}
 
 			//register user
+			console.log("Creating a user");
 			UserModel.create({
-				'username': packet.username,
-				'password': packet.password,
-				'email': packet.email
+				username: packet.username,
+				password: packet.password,
+				email: packet.email
 			}, function(err, user) {
 				if(err) {
 					response = opcodes.registerCallbackOperation.Error;
@@ -241,15 +253,13 @@ var UserManager = function() {
 			return (user.client === client);
 		});
 
-		if(index < 0) {
-			throw "User with this socket doesn't exist";
-		}
-
 		return index;
 	}
 
 	this.getUser = function(client) {
 		var index = this.findIndex(client);
+		if( index < 0 )
+			return null;
 		return this.users[index];
 	};
 

@@ -5,12 +5,12 @@ var CryptoJS = require("crypto-js"),
 	config = require('./config');
 
 module.exports.encrypt = function(data) {
-
 	var message = data;
 
 	if(Object.prototype.toString.call(data) == "[object Object]") {
 		try {
 			message = JSON.stringify(data);
+			console.log("Encrypting:" + message);
 		}
 		catch(e) {
 			console.log(e);

@@ -24,7 +24,7 @@ namespace Network
     public class State {
         public Socket socket;
 
-        public const int BufferSize = 256;
+        public const int BufferSize = 1024;
 
         public byte[] buffer = new byte[BufferSize];
 
