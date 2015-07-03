@@ -7,9 +7,9 @@ var userSchema = new Schema({
 	username: String,
 	password: String,
 	email: String,
-	server: Number,
-	online: Boolean,
-	_chars: [String],
+	server: {type: Number, default: 0 },
+	online: { type: Boolean, default: false },
+	_chars: {type: Array, default: [] },
 	_activeChar: String
 });
 
