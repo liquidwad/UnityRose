@@ -1,18 +1,27 @@
 ﻿using UnityEngine;
 using System.Collections;
+using JsonFx.Json;
 
 namespace UnityRose
 {
+    [JsonOptIn]
 	public class Stats {
-
-		public float atk { get; set; }
-		public float def { get; set; }
-		public float dex { get; set; }
-		public float intel { get; set; } 
-		public float crit { get; set; }
-		public float luck { get; set; }
-		public float movSpd { get; set; }
-		public float atkSpd { get; set; }
+        [JsonMember]
+        public float atk { get; set; }
+        [JsonMember]
+        public float def { get; set; }
+        [JsonMember]
+        public float dex { get; set; }
+        [JsonMember]
+        public float intel { get; set; }
+        [JsonMember]
+        public float crit { get; set; }
+        [JsonMember]
+        public float luck { get; set; }
+        [JsonMember]
+        public float movSpd { get; set; }
+        [JsonMember]
+        public float atkSpd { get; set; }
 
 		public Stats()
 		{
@@ -27,17 +36,28 @@ namespace UnityRose
 		}
 	}
 
+    [JsonOptIn]
 	public class Equip {
-		public int faceID { get; set; }
-		public int hairID { get; set; }
-		public int chestID { get; set; }
-		public int footID { get; set; }
-		public int handID { get; set; }
-		public int weaponID { get; set; }
-		public int shieldID { get; set; }
-		public int backID { get; set; }
-		public int maskID { get; set; }
-		public int capID { get; set; }
+        [JsonMember]
+        public int faceID { get; set; }
+        [JsonMember]
+        public int hairID { get; set; }
+        [JsonMember]
+        public int chestID { get; set; }
+        [JsonMember]
+        public int footID { get; set; }
+        [JsonMember]
+        public int handID { get; set; }
+        [JsonMember]
+        public int weaponID { get; set; }
+        [JsonMember]
+        public int shieldID { get; set; }
+        [JsonMember]
+        public int backID { get; set; }
+        [JsonMember]
+        public int maskID { get; set; }
+        [JsonMember]
+        public int capID { get; set; }
 
 		public Equip(){	
 			faceID = 1;
@@ -68,17 +88,29 @@ namespace UnityRose
 		}
 	}
 
+    [JsonOptIn]
 	public class CharModel {
+        [JsonMember]
 		public string name { get; set; }
-		public Job1Type job1 { get; set; }
-		public Job2Type job2 { get; set; }
-		public int level { get; set; }
-		public Vector3 pos { get; set; }
-		public GenderType gender { get; set; }
-		public WeaponType weapon { get; set; }
+        [JsonMember]
+        public Job1Type job1 { get; set; }
+        [JsonMember]
+        public Job2Type job2 { get; set; }
+        [JsonMember]
+        public int level { get; set; }
+        [JsonMember]
+        public Vector3 pos { get; set; }
+        [JsonMember]
+        public GenderType gender { get; set; }
+        [JsonMember]
+        public WeaponType weapon { get; set; }
+        [JsonMember]
         public RigType rig { get; set; }
+        [JsonMember]
         public States state { get; set; }
+        [JsonMember]
         public Stats stats { get; set; }
+        [JsonMember]
         public Equip equip { get; set; }
 
 		public CharModel()

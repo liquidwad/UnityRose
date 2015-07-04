@@ -179,7 +179,7 @@ namespace UnityRose.File
 
         public string ReadKorean(int size)
         {
-            return Encoding.GetEncoding("EUC-KR").GetString(ReadBytes(size));
+            return Encoding.UTF8.GetString(ReadBytes(size));
         }
 
         /// <summary>

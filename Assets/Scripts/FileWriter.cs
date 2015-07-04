@@ -61,7 +61,7 @@ namespace UnityRose.File
 
         public void WriteKorean(string value, int size)
         {
-            byte[] data = Encoding.GetEncoding("EUC-KR").GetBytes(value);
+            byte[] data = Encoding.UTF8.GetBytes(value);
 
             byte[] buffer = new byte[size];
 

@@ -84,9 +84,9 @@ namespace UnityRose.Formats
         {
             asset = Resources.Load(filePath) as TextAsset;
             if (asset != null)
-                fh = new FileHandler(asset, Encoding.GetEncoding("EUC-KR"));
+                fh = new FileHandler(asset, Encoding.UTF8);
             else
-                fh = new FileHandler(filePath, FileHandler.FileOpenMode.Reading, Encoding.GetEncoding("EUC-KR"));
+                fh = new FileHandler(filePath, FileHandler.FileOpenMode.Reading, Encoding.UTF8);
 
             Load();
         }
@@ -150,7 +150,7 @@ namespace UnityRose.Formats
         /// <param name="filePath">The file path.</param>
         public void Save(string filePath)
         {
-            Encoding encoding = Encoding.GetEncoding("EUC-KR");
+            Encoding encoding = Encoding.UTF8;
 
             FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Writing, encoding);
 

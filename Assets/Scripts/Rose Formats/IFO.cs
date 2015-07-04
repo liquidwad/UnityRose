@@ -683,7 +683,7 @@ namespace UnityRose.Formats
         {
             FileName = Path.GetFileName(filePath);
 
-            FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Reading, Encoding.GetEncoding("EUC-KR"));
+            FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Reading, Encoding.UTF8);
 
             int blockCount = fh.Read<int>();
 
@@ -1325,7 +1325,7 @@ namespace UnityRose.Formats
         {
             FileName = Path.GetFileName(filePath);
 
-            FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Writing, Encoding.GetEncoding("EUC-KR"));
+            FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Writing, Encoding.UTF8);
 
             fh.Write<int>(BLOCK_COUNT);
             fh.Write<byte[]>(new byte[BLOCK_COUNT * (sizeof(int) * 2)]);

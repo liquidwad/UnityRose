@@ -191,7 +191,7 @@ namespace UnityRose.Formats
 
             try
             {
-                FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Reading, Encoding.GetEncoding("EUC-KR"));
+                FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Reading, Encoding.UTF8);
 
                 int objectCount = fh.Read<int>();
                 Objects = new List<Object>(objectCount);
@@ -256,7 +256,7 @@ namespace UnityRose.Formats
         /// <param name="filePath">The file path.</param>
         public void Save(string filePath)
         {
-            FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Writing, Encoding.GetEncoding("EUC-KR"));
+            FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Writing, Encoding.UTF8);
 
             fh.Write<int>(Objects.Count);
 

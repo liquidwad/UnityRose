@@ -53,7 +53,7 @@ namespace UnityRose.Formats
         /// <param name="filePath">The file path.</param>
         public void Load(string filePath)
         {
-            FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Reading, Encoding.GetEncoding("EUC-KR"));
+            FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Reading, Encoding.UTF8);
 
             int height = fh.Read<int>();
             int width = fh.Read<int>();
@@ -83,7 +83,7 @@ namespace UnityRose.Formats
         /// <param name="filePath">The file path.</param>
         public void Save(string filePath)
         {
-            FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Writing, Encoding.GetEncoding("EUC-KR"));
+            FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Writing, Encoding.UTF8);
 
             fh.Write<int>(32);
             fh.Write<int>(32);
