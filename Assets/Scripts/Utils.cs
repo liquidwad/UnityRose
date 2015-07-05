@@ -68,21 +68,17 @@ public class Utils
 
 	public static void Destroy( GameObject go )
 	{
-		#if UNITY_EDITOR
 		GameObject.DestroyImmediate (go);
-		#else
-		GameObject.Destroy (go);
-		#endif
-	}
+    }
 
-	public static void Destroy( Transform tr )
+    public static void Destroy( Transform tr )
 	{
-		#if UNITY_EDITOR
+#if UNITY_EDITOR
+		GameObject.DestroyImmediate(tr);
+#else
 		GameObject.DestroyImmediate (tr);
-		#else
-		GameObject.Destroy (tr);
-		#endif
-	}
+#endif
+    }
 
 
     public static bool isOneHanded( WeaponType weapon)

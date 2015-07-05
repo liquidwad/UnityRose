@@ -18,15 +18,29 @@ using Network.Packets;
 using Network.JsonConverters;
 using JsonFx.Json;
 using System.Runtime.CompilerServices;
+using System.IO;
 
 namespace Network
 {
+    
     public class State {
+
+        public enum PacketState
+        {
+            HEADER,
+            PAYLOAD
+        };
+
+        public PacketState packetState;
+
         public Socket socket;
 
         public const int BufferSize = 1024;
 
         public byte[] buffer = new byte[BufferSize];
+
+        public int bytesReceived = 0; // bytes received so far
+        public int bytesExpected = 0; // total bytes expected to be received
 
         public StringBuilder sb = new StringBuilder();
     }
@@ -40,11 +54,18 @@ namespace Network
         private static Socket socket = null;
         
 		private static AES crypto;
-		
-		//public delegate void Reply(Packet packet);
+
+        private const int PrefixSize = 8;
+
+        private static State state;
+
 		
 		void Awake()
         {
+            state = new State();
+            state.packetState = State.PacketState.HEADER;
+            state.bytesReceived = 0;
+            state.bytesExpected = PrefixSize;
             Connect();
         }
         
@@ -91,57 +112,55 @@ namespace Network
 
         public static void Recieve()
         {
-			if (socket == null || !socket.Connected)
+            if (socket == null || !socket.Connected)
             {
-            	Connect();
+                Connect();
                 return;
             }
-            	
+
             try
             {
-                State state = new State();
                 state.socket = socket;
-                socket.BeginReceive(state.buffer, 0, State.BufferSize, 0, new AsyncCallback(RecieveCallback), state);
+                if (state.packetState == State.PacketState.HEADER)
+                {
+                    socket.BeginReceive(state.buffer, state.bytesReceived, state.bytesExpected, 0, new AsyncCallback(RecievePrefixCallback), state);
+                }
+                else if (state.packetState == State.PacketState.PAYLOAD)
+                    socket.BeginReceive(state.buffer, state.bytesReceived, state.bytesExpected, 0, new AsyncCallback(RecievePayloadCallback), state);
+                
             }
             catch (Exception e)
             {
                 Debug.Log(e.ToString());
             }
         }
-        
-        private static void RecieveCallback(IAsyncResult ar)
+
+        private static void RecievePrefixCallback(IAsyncResult ar)
         {
             try
             {
-                State state = (State)ar.AsyncState;
+                state = (State)ar.AsyncState;
                 Socket client = state.socket;
 
                 int bytesRead = client.EndReceive(ar);
 
                 if (bytesRead > 0)
                 {
-                    state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
-                    
-                    string data = crypto.Decrypt(state.sb.ToString());
-                    Debug.Log (data);
-
-                    JsonReader reader = new JsonReader(data);
-              		
-              		Packet packet = reader.Deserialize<Packet>();
-              		
-              		PacketType type = (PacketType)packet.type;
-              		
-              		switch(type) {
-              			case PacketType.CHARACTER:
-              				CharacterManager.Instance.handlePacket(packet.operation, data);
-              				break;
-              			case PacketType.USER:
-              				UserManager.Instance.handlePacket(packet.operation, data);
-              				break;
-					default: 
-						break;
-					
-              		}					
+                    if (bytesRead == state.bytesExpected)
+                    {
+                        string size = Encoding.ASCII.GetString(state.buffer, 0, PrefixSize);
+                        Debug.Log("size: " + size);
+                        int payloadSize = Int32.Parse(size, System.Globalization.NumberStyles.HexNumber);
+                        state = new State();
+                        state.packetState = State.PacketState.PAYLOAD;
+                        state.bytesExpected = payloadSize;
+                        state.bytesReceived = 0;
+                    }
+                    else
+                    {
+                        state.bytesExpected = PrefixSize - bytesRead;
+                        state.bytesReceived += bytesRead;
+                    }
                 }
 
             }
@@ -149,10 +168,72 @@ namespace Network
             {
                 Debug.Log(e.ToString());
             }
-            
+
             Recieve();
         }
 
+
+        private static void RecievePayloadCallback(IAsyncResult ar)
+        {
+            try
+            {
+                state = (State)ar.AsyncState;
+                Socket client = state.socket;
+
+                int bytesRead = client.EndReceive(ar);
+
+                if (bytesRead > 0)
+                {
+                    state.sb.Append(Encoding.ASCII.GetString(state.buffer, state.bytesReceived, bytesRead));
+
+                    if (bytesRead == state.bytesExpected)
+                    {
+                        string data = crypto.Decrypt(state.sb.ToString());
+
+                        // Switch to header mode
+                        state = new State();
+                        state.packetState = State.PacketState.HEADER;
+                        state.bytesExpected = PrefixSize;
+                        state.bytesReceived = 0;
+
+                        Debug.Log(data);
+
+
+                        JsonReader reader = new JsonReader(data);
+
+                        Packet packet = reader.Deserialize<Packet>();
+
+                        PacketType type = (PacketType)packet.type;
+
+                        switch (type)
+                        {
+                            case PacketType.CHARACTER:
+                                CharacterManager.Instance.handlePacket(packet.operation, data);
+                                break;
+                            case PacketType.USER:
+                                UserManager.Instance.handlePacket(packet.operation, data);
+                                break;
+                            default:
+                                break;
+
+                        }
+                    }
+                    else
+                    {
+                        state.bytesExpected -= bytesRead;
+                        state.bytesReceived += bytesRead;
+                    }
+
+                }
+
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e.ToString());
+            }
+
+            Recieve();
+        }
 		
         public static void Send(Packets.Packet packet)
         {

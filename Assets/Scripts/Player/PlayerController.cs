@@ -102,10 +102,6 @@ namespace UnityRose
             SetAnimationStateMachine(rosePlayer.charModel.rig, animationStateMachine.state);
 		}
 
-		public void OnDisable()
-		{
-			NetworkManager.Send( new DestroyChar( playerInfo.name ));
-		}
 
 		public void OnChangeEquip(BodyPartType bodyPart, int id)
 		{

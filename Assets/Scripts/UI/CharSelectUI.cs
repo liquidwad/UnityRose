@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using System;
 using Network;
 using Network.Packets;
+using System.Linq;
 
 namespace UnityRose
 {
@@ -64,23 +65,8 @@ namespace UnityRose
 				});
 			});
 
-
-
             // Tell the server we are ready to recieve char select packets
             NetworkManager.Send(new CharSelectPacket());
-
-            /*
-            // TODO: get packets from server to populate players
-            // For now simulate loading 3 players
-            onLoad(new CharModel("Hadak", GenderType.MALE));
-            CharModel hawker = new CharModel("Ferkh", GenderType.FEMALE);
-            hawker.equip = new Equip(97, 97, 97, 97, 0, 0, 1, 0, 0, 0);
-            onLoad(hawker);
-            CharModel knight = new CharModel("3awd", GenderType.MALE);
-            knight.equip = new Equip(42, 42, 42, 42, 0, 0, 1, 0, 0, 0);
-            onLoad(knight);
-            */
-
 
         }
 
@@ -199,8 +185,10 @@ namespace UnityRose
 		// Cancel char creation
         public void onCancel()
         {
-            // Delete current char
-            onDelete();
+            // Destroy the temporary char
+            players.Remove(currentPlayer);
+            currentPlayer.Destroy();
+            currentPlayer = players.Keys.ElementAt(players.Count - 1);
 
             // Hide the new char panel
             newCharPanel.SetActive(false);
@@ -213,11 +201,10 @@ namespace UnityRose
             {
             	// Tell the server
 				NetworkManager.Send(new CharSelectPacket(UserOperation.DELETECHAR, currentPlayer.charModel.name));
-                
-                // Destroy the char
+                // Destroy the current player
                 players.Remove(currentPlayer);
                 currentPlayer.Destroy();
-                currentPlayer = null;
+                currentPlayer = (players.Count > 0) ? players.Keys.ElementAt(players.Count - 1) : null;
             }
         }   
 
@@ -323,13 +310,14 @@ namespace UnityRose
             if (controller != null)
             {
                 RosePlayer clickedPlayer = controller.rosePlayer;
+                clickedPlayer.setAnimationState(States.STANDUP);
                 if (clickedPlayer != currentPlayer)
                 {
-                    clickedPlayer.setAnimationState(States.STANDUP);
                     if(currentPlayer != null)
                         currentPlayer.setAnimationState(States.SIT);
                     currentPlayer = clickedPlayer;
                 }
+
             }
         }
 

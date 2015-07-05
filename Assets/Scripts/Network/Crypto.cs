@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Diagnostics;
 
+
 namespace Common.Cryptography
 {
 	/// <summary>
@@ -18,7 +19,9 @@ namespace Common.Cryptography
 	/// </summary>
 	public class AES
 	{
-		private const string _SALT = "g46dzQ80";
+        const bool encrypt = false;  // set to true to allow encryption
+
+        private const string _SALT = "g46dzQ80";
 		private const string _INITVECTOR = "5TGB&YHN7UJM(IK<";
 		private const string _KEY = "!QAZ2WSX#EDC4RFV";
 		
@@ -44,7 +47,10 @@ namespace Common.Cryptography
 		/// <returns>An encrypted string</returns>        
 		public string Encrypt(string plainText, string password = null, string salt = null, string initialVector = null)
 		{
-			return Convert.ToBase64String(EncryptToBytes(plainText, password, salt, initialVector));
+            if (encrypt)
+                return Convert.ToBase64String(EncryptToBytes(plainText, password, salt, initialVector));
+            else
+                return plainText;
 		}
 		
 		/// <summary>
@@ -108,8 +114,13 @@ namespace Common.Cryptography
 		/// <returns>A decrypted string</returns>
 		public string Decrypt(string cipherText, string password = null, string salt = null, string initialVector = null)
 		{
-			byte[] cipherTextBytes = Convert.FromBase64String(cipherText.Replace(' ','+'));
-			return Decrypt(cipherTextBytes, password, salt, initialVector).TrimEnd('\0');
+            if (encrypt)
+            {
+                byte[] cipherTextBytes = Convert.FromBase64String(cipherText.Replace(' ', '+'));
+                return Decrypt(cipherTextBytes, password, salt, initialVector).TrimEnd('\0');
+            }
+            else
+                return cipherText;
 		}
 		
 		/// <summary>  

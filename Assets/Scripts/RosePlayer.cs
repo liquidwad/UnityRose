@@ -126,9 +126,10 @@ public class RosePlayer : IPointerClickHandler
 
 	private void LoadPlayerSkeleton(GenderType gender, WeaponType weapType, RigType rig, int weapon, int body, int arms, int foot, int hair, int face, int back, int cap, int shield)
 	{
+        //player.SetActive(false);
 
-		// First destroy any children of player
-		int childs = player.transform.childCount;
+        // First destroy any children of player
+        int childs = player.transform.childCount;
 		
 		for (int i = childs - 1; i > 0; i--)
 			Utils.Destroy(player.transform.GetChild(i).gameObject);
@@ -166,7 +167,9 @@ public class RosePlayer : IPointerClickHandler
         LoadObject(BodyPartType.SUBWEAPON, shield);
         LoadObject(BodyPartType.WEAPON, weapon);
 		LoadObject(BodyPartType.BACK, back);
-	}
+
+        //player.SetActive(true);
+    }
 
     public void equip(BodyPartType bodyPart, int id, bool changeId = true)
     {
