@@ -13,3 +13,5 @@ EditorBuildSettings:
     path: Assets/Scenes/UI/registrationScene.unity
   - enabled: 1
     path: Assets/Scenes/UI/loginScene.unity
+  - enabled: 1
+    path: Assets/Scenes/Maps/junon/junonPolis.unity

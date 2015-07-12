@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using UnityRose.Formats;
 using System.IO;
 using UnityRose;
-using UnityEditor;
 using UnityEngine.EventSystems;
 
 public class RosePlayer : IPointerClickHandler
@@ -126,7 +125,6 @@ public class RosePlayer : IPointerClickHandler
 
 	private void LoadPlayerSkeleton(GenderType gender, WeaponType weapType, RigType rig, int weapon, int body, int arms, int foot, int hair, int face, int back, int cap, int shield)
 	{
-        //player.SetActive(false);
 
         // First destroy any children of player
         int childs = player.transform.childCount;

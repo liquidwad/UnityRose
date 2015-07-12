@@ -52,15 +52,15 @@ namespace Network
         private const int port = 3000;
 
         private static Socket socket = null;
-        
-		private static AES crypto;
+
+        private static AES crypto;
 
         private const int PrefixSize = 8;
 
         private static State state;
 
-		
-		void Awake()
+
+        void Awake()
         {
             state = new State();
             state.packetState = State.PacketState.HEADER;
@@ -68,28 +68,35 @@ namespace Network
             state.bytesExpected = PrefixSize;
             Connect();
         }
-        
-        private static void Connect() 
+
+
+        private static void Connect()
         {
-			try
-			{
-				crypto = new AES();
-				IPAddress ip = IPAddress.Parse(ipAddress);
-				
-				IPEndPoint remoteEp = new IPEndPoint(ip, port);
-				
-				Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-				
-				socket = client;
-				
-				client.BeginConnect(remoteEp, new AsyncCallback(ConnectCallback), client);
-				
-				
-			}
-			catch (Exception e)
-			{
-				Debug.Log(e.ToString());
-			}
+            try
+            {
+                crypto = new AES();
+                IPAddress ip = IPAddress.Parse(ipAddress);
+
+                IPEndPoint remoteEp = new IPEndPoint(ip, port);
+
+                Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+                socket = client;
+
+                client.BeginConnect(remoteEp, new AsyncCallback(ConnectCallback), client);
+
+
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e.ToString());
+            }
+        }
+
+        private static void Disconnect()
+        {
+            if (socket != null)
+                socket.Disconnect(false);
         }
 
         private static void ConnectCallback(IAsyncResult ar)

@@ -32,12 +32,23 @@ namespace UnityRose
                 funcQueue.Enqueue(() => {
                     CharSelectPacket packet = (CharSelectPacket)obj;
                     onLoad(packet.charModel);
+                });
+            });
+
+            // Server tells us that we are clear to start playing with the chosen character
+            UserManager.Instance.registerCallback(UserOperation.SELECTCHAR, (object obj) =>
+            {
+                funcQueue.Enqueue(() => {
+                    CharSelectPacket packet = (CharSelectPacket)obj;
+                    CharSelectResponse response = (CharSelectResponse)packet.status;
+                    if (response == CharSelectResponse.SUCCESS)
+                        Application.LoadLevel(packet.name);
 
                 });
             });
-            
+
             // Server tells us our new char request is valid
-			UserManager.Instance.registerCallback(UserOperation.CREATECHAR, (object obj) =>
+            UserManager.Instance.registerCallback(UserOperation.CREATECHAR, (object obj) =>
 			{
 				funcQueue.Enqueue(() => {
 					CharSelectPacket packet = (CharSelectPacket)obj;
@@ -113,6 +124,14 @@ namespace UnityRose
             player.player.transform.LookAt(Camera.main.transform);
             players.Add(player, id);
             currentPlayer = player;
+
+        }
+
+        public void onStart() {
+            if (currentPlayer == null)
+                return;
+
+            NetworkManager.Send(new CharSelectPacket(UserOperation.SELECTCHAR, currentPlayer.charModel.name));
 
         }
 

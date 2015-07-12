@@ -93,6 +93,8 @@ namespace UnityRose
         [JsonMember]
 		public string name { get; set; }
         [JsonMember]
+        public string map { get; set; }
+        [JsonMember]
         public Job1Type job1 { get; set; }
         [JsonMember]
         public Job2Type job2 { get; set; }
@@ -171,6 +173,7 @@ namespace UnityRose
 			this.equip = equip;
             this.rig = RigType.FOOT;
             this.state = States.STANDING;
+            this.map = "zantCity"; // TODO: change to the default new player map
 		}
 
 		public void changeID(BodyPartType bodyPart, int id)
