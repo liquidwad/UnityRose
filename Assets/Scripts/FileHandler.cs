@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace UnityRose.File
@@ -399,6 +400,9 @@ namespace UnityRose.File
         {
             encoding = encodeType;
             fileOpenMode = mode;
+
+			Regex pathRegex = new Regex ("[\\\\/]");
+			filePath = pathRegex.Replace(filePath, Path.DirectorySeparatorChar.ToString());
 
             if (fileOpenMode == FileOpenMode.Reading)
             {
